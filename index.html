@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Financeiro Pessoal</title>
+  <meta name="description"
+    content="Ferramenta completa de gestão financeira pessoal com controle de receitas, despesas, diárias e investimentos.">
+  <link rel="stylesheet" href="style.css?v=7">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+
+  <!-- Mobile Menu Button -->
+  <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Abrir menu">☰</button>
+
+  <!-- Mobile Overlay -->
+  <div class="mobile-overlay" id="mobileOverlay"></div>
+
+  <!-- Auth Overlay -->
+  <div class="auth-overlay" id="authOverlay">
+    <div class="auth-card">
+      <div class="sidebar-logo" style="justify-content: center; margin-bottom: 24px;">
+        <div class="logo-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+            <path d="M2 17l10 5 10-5"></path>
+            <path d="M2 12l10 5 10-5"></path>
+          </svg>
+        </div>
+        <h1>FinZoni<span>Minha Gestão Financeira</span></h1>
+      </div>
+      
+      <form id="authForm" onsubmit="event.preventDefault(); app.handleAuth();">
+        <div class="form-group">
+          <label>E-mail</label>
+          <input type="email" id="authEmail" class="form-control" required placeholder="seu@email.com">
+        </div>
+        <div class="form-group">
+          <label>Senha</label>
+          <input type="password" id="authPassword" class="form-control" required placeholder="Sua senha">
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width:100%; margin-top: 16px;">Entrar ou Registrar</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="app-container" id="appContainer" style="display: none;">
+    <!-- ═══════════ SIDEBAR ═══════════ -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+              <path d="M2 17l10 5 10-5"></path>
+              <path d="M2 12l10 5 10-5"></path>
+            </svg>
+          </div>
+          <h1>FinZoni<span>Minha Gestão Financeira</span></h1>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-tab="dashboard" id="nav-dashboard">
+          <span class="nav-icon">📊</span> Dashboard
+        </button>
+        <button class="nav-item" data-tab="diarias" id="nav-diarias">
+          <span class="nav-icon">💼</span> Diárias
+        </button>
+        <button class="nav-item" data-tab="despesas" id="nav-despesas">
+          <span class="nav-icon">📉</span> Despesas
+        </button>
+        <button class="nav-item" data-tab="receitas" id="nav-receitas">
+          <span class="nav-icon">📈</span> Receitas
+        </button>
+        <button class="nav-item" data-tab="investimentos" id="nav-investimentos">
+          <span class="nav-icon">🏦</span> Investimentos
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="nav-item" onclick="app.handleLogout()">
+          <span class="nav-icon">🚪</span> Sair da Conta
+        </button>
+        <button class="nav-item" data-tab="configuracoes" id="nav-configuracoes">
+          <span class="nav-icon">⚙️</span> Configurações
+        </button>
+      </div>
+    </aside>
+
+    <!-- ═══════════ MAIN CONTENT ═══════════ -->
+    <main class="main-content">
+      <!-- Header -->
+      <header class="main-header">
+        <div class="month-selector">
+          <button class="month-nav-btn" id="prevMonth" aria-label="Mês anterior">◀</button>
+          <span class="current-month" id="currentMonthLabel">Janeiro 2026</span>
+          <button class="month-nav-btn" id="nextMonth" aria-label="Próximo mês">▶</button>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-ghost btn-sm" id="btnExport" title="Exportar dados">📥 Exportar</button>
+          <button class="btn btn-ghost btn-sm" id="btnImport" title="Importar dados">📤 Importar</button>
+          <input type="file" id="importFileInput" accept=".json" style="display:none">
+        </div>
+      </header>
+
+      <div class="page-content">
+
+        <!-- ═══════════ TAB: DASHBOARD ═══════════ -->
+        <div class="tab-content active" id="tab-dashboard">
+          <!-- Summary Cards -->
+          <div class="summary-grid" id="summaryCards">
+            <div class="summary-card income">
+              <div class="card-icon">📈</div>
+              <div class="card-label">Receitas</div>
+              <div class="card-value" id="dashTotalReceitas">R$ 0,00</div>
+              <div class="card-sub" id="dashReceitasSub">Receita total do mês</div>
+            </div>
+            <div class="summary-card expense"
+              style="display: flex; flex-direction: column; justify-content: center; padding: 16px;">
+              <div class="fs-sm"
+                style="color:var(--text-secondary); text-transform:uppercase; font-weight:600; margin-bottom:4px;">
+                Despesas Pagas</div>
+              <div class="card-value" style="color:var(--text-primary); font-size:1.4rem;" id="dashDespesasPagas">R$
+                0,00</div>
+
+              <div class="fs-sm"
+                style="color:var(--red); text-transform:uppercase; font-weight:600; margin-top:12px; margin-bottom:4px;">
+                Falta Pagar</div>
+              <div class="card-value" style="color:var(--red); font-size:1.4rem;" id="dashFaltaPagar">R$ 0,00</div>
+            </div>
+            <div class="summary-card balance">
+              <div class="card-icon">💸</div>
+              <div class="card-label">Salário Disponível</div>
+              <div class="card-value" id="dashSalarioDisponivel">R$ 0,00</div>
+              <div class="card-sub">Receitas - Contas Pagas</div>
+            </div>
+            <div class="summary-card balance">
+              <div class="card-icon">💎</div>
+              <div class="card-label">Saldo</div>
+              <div class="card-value" id="dashSaldo">R$ 0,00</div>
+              <div class="card-sub" id="dashSaldoSub">Receitas - Despesas</div>
+            </div>
+            <div class="summary-card diarias">
+              <div class="card-icon">🎯</div>
+              <div class="card-label">Produção</div>
+              <div class="card-value" id="dashTotalDiarias">R$ 0,00</div>
+              <div class="card-sub">Previsão: <span id="forecastPercent" style="font-weight:700;color:var(--amber)">0%
+                  alcançado</span></div>
+              <div class="progress-bar-container" style="margin-top:8px;">
+                <div class="progress-bar">
+                  <div class="progress-fill" id="forecastProgressBar"
+                    style="width:0%;background:linear-gradient(90deg, var(--amber), #ffab40)"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Salary Forecast -->
+          <div class="forecast-card" id="forecastSection">
+            <div class="section-header">
+              <div>
+                <div class="section-title">📋 Previsão de Salário</div>
+                <div class="section-subtitle">Baseado nos dias previstos por clínica</div>
+              </div>
+            </div>
+            <div class="forecast-grid" id="forecastGrid"></div>
+          </div>
+
+          <!-- Export Card -->
+          <div class="card mb-3"
+            style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+            <div>
+              <div class="card-title">📄 Relatório Financeiro</div>
+              <div class="fs-sm" style="color:var(--text-muted); margin-top:4px;">Gere um resumo detalhado deste mês.
+              </div>
+            </div>
+            <div class="flex gap-2 flex-wrap">
+              <button class="btn btn-ghost" onclick="app.exportPDF()">⬇️ Baixar PDF</button>
+              <button class="btn btn-primary" onclick="app.exportGoogleDocs()">📝 Enviar para o Google Docs</button>
+            </div>
+          </div>
+
+          <!-- Charts -->
+          <div class="charts-grid">
+            <div class="chart-card">
+              <div class="card-header"><span class="card-title">Despesas por Categoria</span></div>
+              <canvas id="chartDespesas"></canvas>
+            </div>
+            <div class="chart-card">
+              <div class="card-header"><span class="card-title">Receitas vs Despesas (Anual)</span></div>
+              <canvas id="chartReceitasDespesas"></canvas>
+            </div>
+          </div>
+          <div class="charts-grid">
+            <div class="chart-card">
+              <div class="card-header"><span class="card-title">Diárias por Clínica</span></div>
+              <canvas id="chartDiarias"></canvas>
+            </div>
+            <div class="chart-card">
+              <div class="card-header"><span class="card-title">Evolução do Saldo (Anual)</span></div>
+              <canvas id="chartSaldo"></canvas>
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div class="notes-area card">
+            <div class="card-header"><span class="card-title">📝 Observações do Mês</span></div>
+            <textarea class="form-textarea" id="dashNotas" placeholder="Anotações livres sobre o mês..."></textarea>
+          </div>
+        </div>
+
+        <!-- ═══════════ TAB: DIÁRIAS ═══════════ -->
+        <div class="tab-content" id="tab-diarias">
+          <!-- Mode Toggle -->
+          <div class="mode-toggle">
+            <button class="mode-btn active" id="modeAuto">📅 Automático (dia a dia)</button>
+            <button class="mode-btn" id="modeManual">📋 Manual (resumo)</button>
+          </div>
+
+          <!-- Forecast Days Config -->
+          <div class="card mb-3">
+            <div class="card-header">
+              <span class="card-title">📋 Dias Previstos no Mês</span>
+            </div>
+            <div class="forecast-grid" id="diasPrevistosGrid"></div>
+          </div>
+
+          <!-- AUTOMATIC MODE -->
+          <div id="diariasAutoSection">
+            <div class="clinic-legend" id="clinicLegend"></div>
+
+            <div class="card mb-3">
+              <div class="card-header">
+                <span class="card-title">Calendário de Trabalho</span>
+              </div>
+              <div class="calendar-grid" id="calendarGrid"></div>
+            </div>
+
+            <!-- Accumulated totals -->
+            <div class="card">
+              <div class="card-header"><span class="card-title">💰 Acumulado por Clínica</span></div>
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Clínica</th>
+                    <th class="text-right">Dias</th>
+                    <th class="text-right">Diárias</th>
+                    <th class="text-right" style="color:var(--cyan)">Comissão</th>
+                    <th class="text-right">Total</th>
+                  </tr>
+                </thead>
+                <tbody id="acumuladoAutoBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- MANUAL MODE -->
+          <div id="diariasManualSection" class="hidden">
+            <div class="card">
+              <div class="card-header"><span class="card-title">Resumo Mensal por Clínica</span></div>
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Clínica</th>
+                    <th class="text-right">Dias Previstos</th>
+                    <th class="text-right">Valor Previsto</th>
+                    <th class="text-right">Dias Reais</th>
+                    <th class="text-right">Valor Real</th>
+                    <th class="text-right">Diferença</th>
+                  </tr>
+                </thead>
+                <tbody id="manualTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════════ TAB: DESPESAS ═══════════ -->
+        <div class="tab-content" id="tab-despesas">
+          <!-- Fixed Expenses -->
+          <div class="card mb-3">
+            <div class="card-header">
+              <span class="card-title">📌 Gastos Fixos</span>
+              <button class="btn btn-ghost btn-sm" id="btnAddGastoFixo">+ Adicionar</button>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Descrição</th>
+                  <th class="text-right">Venc.</th>
+                  <th class="text-right">Valor Total</th>
+                  <th class="text-center">Compartilhado</th>
+                  <th class="text-right">Minha Parte</th>
+                  <th class="text-center">Pago</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="gastosFixosBody"></tbody>
+            </table>
+          </div>
+
+          <!-- Variable Expenses -->
+          <div class="card mb-3">
+            <div class="card-header">
+              <span class="card-title">🛒 Gastos Variáveis</span>
+              <button class="btn btn-ghost btn-sm" id="btnAddGastoVar">+ Adicionar</button>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Descrição</th>
+                  <th class="text-right">Valor</th>
+                  <th>Data</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="gastosVarBody"></tbody>
+            </table>
+          </div>
+
+          <!-- Total Summary -->
+          <div class="card" style="border-left: 3px solid var(--red);">
+            <div class="flex justify-between items-center flex-wrap gap-4">
+              <div style="flex: 1; min-width: 200px;">
+                <div class="card-title">Resumo do Mês</div>
+                <div class="fs-sm" style="color: var(--text-muted); margin-top:4px;">Contas Pagas vs Pendentes</div>
+              </div>
+
+              <div style="text-align: right; padding: 0 15px;">
+                <div class="fs-sm" style="color: var(--text-muted);">Pagas (Fixas + Var.)</div>
+                <div class="fs-lg" style="color: var(--green); font-weight: 700;" id="despesasPagasMes">R$ 0,00</div>
+              </div>
+
+              <div style="text-align: right; padding: 0 15px; border-left: 1px solid var(--border);">
+                <div class="fs-sm" style="color: var(--text-muted);">Falta Pagar</div>
+                <div class="fs-lg" style="color: var(--red); font-weight: 700;" id="despesasPendentesMes">R$ 0,00</div>
+              </div>
+
+              <div style="text-align: right; padding: 0 15px; border-left: 1px solid var(--border);">
+                <div class="fs-sm" style="color: var(--text-muted);">Total Previsto</div>
+                <div class="fs-xl" style="font-weight: 800; color: var(--text-primary);" id="totalDespesasMes">R$ 0,00
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════════ TAB: RECEITAS ═══════════ -->
+        <div class="tab-content" id="tab-receitas">
+          <!-- Salary from previous month -->
+          <div class="card mb-3" style="border-left: 3px solid var(--green);">
+            <div class="card-header">
+              <span class="card-title" id="salarioMesTitle">💰 Salário do Mês (Diárias do mês anterior)</span>
+              <span class="badge badge-green" id="receitaDiariasTotal">R$ 0,00</span>
+            </div>
+            <p class="fs-sm mb-2" style="color:var(--text-secondary);" id="salarioMesDesc">
+              Valor referente às diárias trabalhadas no mês anterior
+            </p>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Clínica</th>
+                  <th class="text-right">Dias Trabalhados</th>
+                  <th class="text-right">Diárias</th>
+                  <th class="text-right" style="color:var(--cyan)">Comissão</th>
+                  <th class="text-right">Total</th>
+                </tr>
+              </thead>
+              <tbody id="receitaDiariasBody"></tbody>
+            </table>
+          </div>
+
+          <!-- Other Income -->
+          <div class="card mb-3">
+            <div class="card-header">
+              <span class="card-title">💵 Outras Receitas do Mês</span>
+              <button class="btn btn-ghost btn-sm" id="btnAddReceita">+ Adicionar</button>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Descrição</th>
+                  <th class="text-right">Valor</th>
+                  <th>Data</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="outrasReceitasBody"></tbody>
+            </table>
+          </div>
+
+          <!-- Total Income This Month -->
+          <div class="card mb-3" style="border-left: 3px solid var(--green);">
+            <div class="flex justify-between items-center">
+              <div>
+                <div class="card-title">Total de Receitas do Mês</div>
+                <div class="fs-sm" style="color: var(--text-muted); margin-top:4px;">Salário (diárias mês anterior) +
+                  outras receitas</div>
+              </div>
+              <div class="card-value value-positive" style="font-size:1.5rem;" id="totalReceitasMes">R$ 0,00</div>
+            </div>
+          </div>
+
+          <!-- Balance -->
+          <div class="card mb-3" style="border-left: 3px solid var(--blue);">
+            <div class="flex justify-between items-center">
+              <div>
+                <div class="card-title">Saldo do Mês</div>
+                <div class="fs-sm" style="color: var(--text-muted); margin-top:4px;">Receitas - Despesas</div>
+              </div>
+              <div class="card-value" style="font-size:1.5rem;" id="saldoMesReceitas">R$ 0,00</div>
+            </div>
+          </div>
+
+          <!-- Production for next month (informational) -->
+          <div class="card" style="border-left: 3px solid var(--amber);">
+            <div class="card-header">
+              <span class="card-title" id="producaoMesTitle">📋 Produção deste Mês (será salário do próximo mês)</span>
+              <span class="badge badge-amber" id="producaoMesTotal">R$ 0,00</span>
+            </div>
+            <p class="fs-sm mb-2" style="color:var(--text-secondary);" id="producaoMesDesc">
+              Diárias trabalhadas neste mês — esse valor será sua receita no mês seguinte
+            </p>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Clínica</th>
+                  <th class="text-right">Dias</th>
+                  <th class="text-right">Diárias</th>
+                  <th class="text-right" style="color:var(--cyan)">Comissão</th>
+                  <th class="text-right">Total</th>
+                </tr>
+              </thead>
+              <tbody id="producaoMesBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ═══════════ TAB: INVESTIMENTOS ═══════════ -->
+        <div class="tab-content" id="tab-investimentos">
+          <!-- Reserve -->
+          <div class="section-header">
+            <div>
+              <div class="section-title">🏦 Reserva de Emergência</div>
+              <div class="section-subtitle">Controle de saques e reposições</div>
+            </div>
+          </div>
+
+          <div class="reserve-summary">
+            <div class="reserve-stat">
+              <div class="stat-label">Saldo Atual</div>
+              <div class="stat-value value-positive" id="reservaSaldo">R$ 0,00</div>
+            </div>
+            <div class="reserve-stat">
+              <div class="stat-label">Total Saques</div>
+              <div class="stat-value value-negative" id="reservaSaques">R$ 0,00</div>
+            </div>
+            <div class="reserve-stat">
+              <div class="stat-label">Falta Repor</div>
+              <div class="stat-value" style="color: var(--amber);" id="reservaFalta">R$ 0,00</div>
+            </div>
+          </div>
+
+          <div class="card mb-3">
+            <div class="card-header">
+              <span class="card-title">Movimentações da Reserva</span>
+              <button class="btn btn-ghost btn-sm" id="btnAddReserva">+ Adicionar</button>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Tipo</th>
+                  <th class="text-right">Valor</th>
+                  <th>Observação</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="reservaMovBody"></tbody>
+            </table>
+          </div>
+
+          <!-- Reserve Notes -->
+          <div class="card mb-3">
+            <div class="card-header"><span class="card-title">📝 Observações da Reserva</span></div>
+            <textarea class="form-textarea" id="reservaObs"
+              placeholder="Anotações sobre a reserva, motivos de saques, etc..."></textarea>
+          </div>
+
+          <!-- Goals -->
+          <div class="section-header mt-3">
+            <div>
+              <div class="section-title">🎯 Metas & Investimentos</div>
+              <div class="section-subtitle">Acompanhe seus objetivos financeiros</div>
+            </div>
+            <button class="btn btn-primary btn-sm" id="btnAddMeta">+ Nova Meta</button>
+          </div>
+
+          <div id="metasContainer"></div>
+
+          <div class="empty-state" id="emptyMetas">
+            <div class="empty-icon">🎯</div>
+            <p>Nenhuma meta criada ainda</p>
+            <button class="btn btn-primary btn-sm" id="btnAddMetaEmpty">+ Criar Primeira Meta</button>
+          </div>
+        </div>
+
+        <!-- ═══════════ TAB: CONFIGURAÇÕES ═══════════ -->
+        <div class="tab-content" id="tab-configuracoes">
+          <div class="section-header">
+            <div>
+              <div class="section-title">⚙️ Configurações</div>
+              <div class="section-subtitle">Gerencie clínicas, categorias e dados</div>
+            </div>
+          </div>
+
+          <!-- Clinics -->
+          <div class="card mb-3">
+            <div class="card-header">
+              <span class="card-title">🏥 Clínicas</span>
+              <button class="btn btn-ghost btn-sm" id="btnAddClinica">+ Adicionar</button>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th class="text-right">Diária Padrão</th>
+                  <th>Cor</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="clinicasConfigBody"></tbody>
+            </table>
+          </div>
+
+          <!-- Fixed Expense Categories -->
+          <div class="card mb-3">
+            <div class="card-header">
+              <span class="card-title">📌 Categorias de Gastos Fixos</span>
+              <button class="btn btn-ghost btn-sm" id="btnAddCategoriaFixa">+ Adicionar</button>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Categoria</th>
+                  <th class="text-center">Compartilhado (50%)</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="categoriasFixasBody"></tbody>
+            </table>
+          </div>
+
+          <!-- Aparência -->
+          <div class="card mb-3">
+            <div class="card-header"><span class="card-title">🎨 Aparência</span></div>
+            <div class="form-group" style="max-width: 300px;">
+              <label class="form-label">Tema do Sistema</label>
+              <select class="form-input" id="themeSelector" onchange="app.changeTheme(this.value)">
+                <option value="dark">Escuro (Padrão)</option>
+                <option value="amoled">Escuro AMOLED (Preto Profundo)</option>
+                <option value="light">Claro</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Integrações -->
+          <div class="card mb-3">
+            <div class="card-header"><span class="card-title">🔗 Integrações (Google Docs)</span></div>
+            <div class="form-group">
+              <label class="form-label">URL do Web App (Google Apps Script)</label>
+              <input type="text" class="form-input" id="appsScriptUrlInput"
+                placeholder="https://script.google.com/macros/s/.../exec"
+                onchange="app.updateAppsScriptUrl(this.value)">
+              <div class="fs-sm mt-1" style="color:var(--text-secondary);margin-top:8px;">
+                Cole aqui o link gerado pelo Google Apps Script para permitir o envio direto de relatórios para o seu
+                Google Docs.
+              </div>
+            </div>
+          </div>
+
+          <!-- Data Management -->
+          <div class="card mb-3">
+            <div class="card-header"><span class="card-title">💾 Gerenciamento de Dados</span></div>
+            <div class="flex gap-2 flex-wrap">
+              <button class="btn btn-success btn-sm" id="btnExportConfig">📥 Exportar Todos os Dados (JSON)</button>
+              <button class="btn btn-ghost btn-sm" id="btnImportConfig">📤 Importar Dados</button>
+              <button class="btn btn-danger btn-sm" id="btnClearData">🗑️ Limpar Todos os Dados</button>
+            </div>
+            <input type="file" id="importConfigInput" accept=".json" style="display:none">
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ═══════════ MODALS ═══════════ -->
+
+  <!-- Modal: Add Work Day -->
+  <div class="modal-overlay" id="modalDiaTrabalho">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Registrar Dia de Trabalho</h2>
+        <button class="modal-close" onclick="closeModal('modalDiaTrabalho')">✕</button>
+      </div>
+      <p class="fs-sm mb-2" style="color: var(--text-secondary);">
+        Dia: <strong id="modalDiaLabel"></strong>
+      </p>
+      <div id="modalClinicasChecks"></div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modalDiaTrabalho')">Cancelar</button>
+        <button class="btn btn-success" id="btnSalvarDia">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add Variable Expense -->
+  <div class="modal-overlay" id="modalGastoVar">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalGastoVarTitle">Adicionar Gasto Variável</h2>
+        <button class="modal-close" onclick="closeModal('modalGastoVar')">✕</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descrição</label>
+        <input type="text" class="form-input" id="gastoVarDescricao" placeholder="Ex: Mercado Guanabara">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Valor (R$)</label>
+          <input type="number" class="form-input" id="gastoVarValor" step="0.01" placeholder="0,00">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Data</label>
+          <input type="date" class="form-input" id="gastoVarData">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modalGastoVar')">Cancelar</button>
+        <button class="btn btn-primary" id="btnSalvarGastoVar">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add Fixed Expense -->
+  <div class="modal-overlay" id="modalGastoFixo">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Adicionar Gasto Fixo</h2>
+        <button class="modal-close" onclick="closeModal('modalGastoFixo')">✕</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descrição</label>
+        <input type="text" class="form-input" id="gastoFixoDescricao" placeholder="Ex: Conta de água">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Valor Total (R$)</label>
+          <input type="number" class="form-input" id="gastoFixoValor" step="0.01" placeholder="0,00">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Vencimento (Dia)</label>
+          <input type="number" class="form-input" id="gastoFixoVencimento" min="1" max="31" placeholder="Ex: 5">
+        </div>
+        <div class="form-group" style="display:flex;align-items:end;">
+          <label class="form-check">
+            <input type="checkbox" id="gastoFixoCompartilhado">
+            <span>Compartilhado (50/50)</span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modalGastoFixo')">Cancelar</button>
+        <button class="btn btn-primary" id="btnSalvarGastoFixo">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add Other Income -->
+  <div class="modal-overlay" id="modalReceita">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Adicionar Receita</h2>
+        <button class="modal-close" onclick="closeModal('modalReceita')">✕</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descrição</label>
+        <input type="text" class="form-input" id="receitaDescricao" placeholder="Ex: Freelance">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Valor (R$)</label>
+          <input type="number" class="form-input" id="receitaValor" step="0.01" placeholder="0,00">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Data</label>
+          <input type="date" class="form-input" id="receitaData">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modalReceita')">Cancelar</button>
+        <button class="btn btn-success" id="btnSalvarReceita">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Reserve Movement -->
+  <div class="modal-overlay" id="modalReserva">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Movimentação da Reserva</h2>
+        <button class="modal-close" onclick="closeModal('modalReserva')">✕</button>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tipo</label>
+          <select class="form-select" id="reservaTipo">
+            <option value="deposito">Depósito / Reposição</option>
+            <option value="saque">Saque</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Valor (R$)</label>
+          <input type="number" class="form-input" id="reservaValor" step="0.01" placeholder="0,00">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Data</label>
+        <input type="date" class="form-input" id="reservaData">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Observação</label>
+        <textarea class="form-textarea" id="reservaMovObs" placeholder="Motivo do saque/depósito..."
+          style="min-height:60px;"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modalReserva')">Cancelar</button>
+        <button class="btn btn-primary" id="btnSalvarReserva">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add Goal -->
+  <div class="modal-overlay" id="modalMeta">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Nova Meta / Investimento</h2>
+        <button class="modal-close" onclick="closeModal('modalMeta')">✕</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nome da Meta</label>
+        <input type="text" class="form-input" id="metaNome" placeholder="Ex: Carro, Viagem, Reserva...">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Valor da Meta (R$)</label>
+          <input type="number" class="form-input" id="metaValorMeta" step="0.01" placeholder="0,00">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Valor Atual (R$)</label>
+          <input type="number" class="form-input" id="metaValorAtual" step="0.01" placeholder="0,00" value="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Observação</label>
+        <textarea class="form-textarea" id="metaObs" placeholder="Detalhes sobre a meta..."
+          style="min-height:60px;"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modalMeta')">Cancelar</button>
+        <button class="btn btn-primary" id="btnSalvarMeta">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add Clinic -->
+  <div class="modal-overlay" id="modalClinica">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Adicionar Clínica</h2>
+        <button class="modal-close" onclick="closeModal('modalClinica')">✕</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nome</label>
+        <input type="text" class="form-input" id="clinicaNome" placeholder="Ex: Clínica Nova">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Diária Padrão (R$)</label>
+          <input type="number" class="form-input" id="clinicaDiaria" step="0.01" placeholder="0,00">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cor</label>
+          <input type="color" class="form-input" id="clinicaCor" value="#448aff" style="height:42px;padding:4px;">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modalClinica')">Cancelar</button>
+        <button class="btn btn-primary" id="btnSalvarClinica">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add Fixed Category -->
+  <div class="modal-overlay" id="modalCategoriaFixa">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Adicionar Categoria de Gasto Fixo</h2>
+        <button class="modal-close" onclick="closeModal('modalCategoriaFixa')">✕</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nome da Categoria</label>
+        <input type="text" class="form-input" id="catFixaNome" placeholder="Ex: Água">
+      </div>
+      <div class="form-group">
+        <label class="form-check">
+          <input type="checkbox" id="catFixaCompartilhado">
+          <span>Compartilhado (50/50 com cônjuge)</span>
+        </label>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modalCategoriaFixa')">Cancelar</button>
+        <button class="btn btn-primary" id="btnSalvarCatFixa">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Update Goal Amount -->
+  <div class="modal-overlay" id="modalAtualizarMeta">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Atualizar Meta</h2>
+        <button class="modal-close" onclick="closeModal('modalAtualizarMeta')">✕</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Adicionar Valor (R$)</label>
+        <input type="number" class="form-input" id="metaAddValor" step="0.01" placeholder="0,00">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Observação</label>
+        <textarea class="form-textarea" id="metaAddObs" placeholder="Motivo ou detalhe..."
+          style="min-height:50px;"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modalAtualizarMeta')">Cancelar</button>
+        <button class="btn btn-success" id="btnConfirmarAtualizarMeta">Adicionar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report Container (Hidden) -->
+  <div id="reportContainer" style="display:none; background:white; color:black; padding:40px; font-family:sans-serif;">
+    <div id="reportContent"></div>
+  </div>
+
+  <div id="toastContainer" class="toast-container"></div>
+  <!-- Application Script -->
+  <script src="app.js?v=14"></script>
+</body>
+
+</html>
