@@ -449,6 +449,9 @@ class App {
     }
     const selector = document.getElementById('themeSelector');
     if (selector) selector.value = theme;
+    
+    const authSelector = document.getElementById('authThemeSelector');
+    if (authSelector) authSelector.value = theme;
   }
 
   // ── NAVIGATION ──

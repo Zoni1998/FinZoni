@@ -578,10 +578,11 @@ body::before {
   border-bottom: none;
 }
 
-/* ── Buttons ── */
+/* ═══════════ Buttons ═══════════ */
 .btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   padding: 10px 20px;
   border-radius: var(--radius-md);
@@ -1479,33 +1480,54 @@ body::before {
 /* ── Auth Modal ── */
 .auth-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: radial-gradient(circle at center, rgba(17,25,40,0.8) 0%, rgba(5,10,20,0.95) 100%);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  z-index: 9999;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: var(--bg-body);
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+  background-image: radial-gradient(circle at 50% 0%, var(--bg-glass) 0%, transparent 70%);
 }
 
 .auth-card {
-  background: rgba(15, 20, 35, 0.6);
-  border: 1px solid rgba(255,255,255,0.05);
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
   border-radius: 24px;
   padding: 40px;
   width: 100%;
   max-width: 380px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 40px rgba(68, 138, 255, 0.1);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  animation: authSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
   gap: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 4px;
+  background: linear-gradient(90deg, var(--blue), var(--purple));
+}
+
+@keyframes authSlideUp {
+  0% { opacity: 0; transform: translateY(30px) scale(0.98); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Animations for view switching */
+.auth-view {
+  animation: authFadeIn 0.4s ease-out forwards;
+}
+
+@keyframes authFadeIn {
+  from { opacity: 0; transform: translateX(10px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes slideUpFade {

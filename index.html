@@ -20,6 +20,14 @@
 
   <!-- Auth Overlay -->
   <div class="auth-overlay" id="authOverlay">
+    <div style="position: absolute; top: 20px; right: 20px; z-index: 10;">
+      <select class="form-input" style="width: auto; background: var(--bg-glass); border: 1px solid var(--border); backdrop-filter: blur(10px); color: var(--text-primary); cursor: pointer;" onchange="app.changeTheme(this.value)" id="authThemeSelector">
+        <option value="dark">🌙 Modo Escuro</option>
+        <option value="amoled">🌑 AMOLED (Preto)</option>
+        <option value="light">☀️ Modo Claro</option>
+      </select>
+    </div>
+
     <div class="auth-card">
       <div class="sidebar-logo" style="justify-content: center; margin-bottom: 24px;">
         <div class="logo-icon">
@@ -33,78 +41,78 @@
       </div>
       
       <!-- Login View -->
-      <div id="authLoginView">
+      <div id="authLoginView" class="auth-view">
         <div class="auth-tabs">
           <button class="auth-tab active">Entrar</button>
           <button class="auth-tab" onclick="app.showAuthView('register')">Registrar</button>
         </div>
         <form onsubmit="event.preventDefault(); app.handleLogin();">
           <div class="form-group">
-            <label>E-mail</label>
-            <input type="email" id="loginEmail" class="form-control" required placeholder="seu@email.com" autocomplete="email">
+            <label class="form-label">E-mail</label>
+            <input type="email" id="loginEmail" class="form-input" required placeholder="seu@email.com" autocomplete="email">
           </div>
           <div class="form-group">
-            <label>Senha</label>
-            <input type="password" id="loginPassword" class="form-control" required placeholder="Sua senha" autocomplete="current-password">
+            <label class="form-label">Senha</label>
+            <input type="password" id="loginPassword" class="form-input" required placeholder="Sua senha" autocomplete="current-password">
           </div>
           <div class="form-group" style="display:flex; justify-content:space-between; align-items:center; margin-top: -8px;">
             <label class="form-check" style="margin: 0;">
               <input type="checkbox" id="rememberMe">
               <span style="font-size: 0.8rem;">Lembrar de mim</span>
             </label>
-            <a href="#" onclick="app.showAuthView('reset')" style="font-size: 0.8rem; color: var(--blue); text-decoration: none;">Esqueci a senha</a>
+            <a href="#" onclick="app.showAuthView('reset')" style="font-size: 0.8rem; color: var(--blue); text-decoration: none; transition: opacity 0.2s;">Esqueci a senha</a>
           </div>
           <button type="submit" class="btn btn-primary" style="width:100%; margin-top: 16px;">Entrar no Painel</button>
         </form>
       </div>
 
       <!-- Register View -->
-      <div id="authRegisterView" style="display: none;">
+      <div id="authRegisterView" class="auth-view" style="display: none;">
         <div class="auth-tabs">
           <button class="auth-tab" onclick="app.showAuthView('login')">Entrar</button>
           <button class="auth-tab active">Registrar</button>
         </div>
         <form onsubmit="event.preventDefault(); app.handleRegister();">
           <div class="form-group">
-            <label>E-mail</label>
-            <input type="email" id="registerEmail" class="form-control" required placeholder="seu@email.com" autocomplete="email">
+            <label class="form-label">E-mail</label>
+            <input type="email" id="registerEmail" class="form-input" required placeholder="seu@email.com" autocomplete="email">
           </div>
           <div class="form-group">
-            <label>Senha</label>
-            <input type="password" id="registerPassword" class="form-control" required placeholder="Crie uma senha forte" autocomplete="new-password">
+            <label class="form-label">Senha</label>
+            <input type="password" id="registerPassword" class="form-input" required placeholder="Crie uma senha forte" autocomplete="new-password">
           </div>
           <button type="submit" class="btn btn-success" style="width:100%; margin-top: 16px;">Criar Conta Grátis</button>
         </form>
       </div>
 
       <!-- Reset Request View -->
-      <div id="authResetView" style="display: none;">
+      <div id="authResetView" class="auth-view" style="display: none;">
         <h3 style="font-size: 1.1rem; text-align: center; margin-bottom: 16px; color: var(--text-primary);">Recuperar Senha</h3>
         <p style="font-size: 0.85rem; color: var(--text-secondary); text-align: center; margin-bottom: 20px;">
           Digite seu e-mail para receber um link de redefinição de senha.
         </p>
         <form onsubmit="event.preventDefault(); app.handlePasswordReset();">
           <div class="form-group">
-            <label>E-mail</label>
-            <input type="email" id="resetEmail" class="form-control" required placeholder="seu@email.com">
+            <label class="form-label">E-mail</label>
+            <input type="email" id="resetEmail" class="form-input" required placeholder="seu@email.com">
           </div>
           <button type="submit" class="btn btn-primary" style="width:100%; margin-top: 8px;">Enviar Link</button>
           <div style="text-align: center; margin-top: 16px;">
-            <a href="#" onclick="app.showAuthView('login')" style="font-size: 0.8rem; color: var(--text-muted); text-decoration: none;">← Voltar para o Login</a>
+            <a href="#" onclick="app.showAuthView('login')" style="font-size: 0.8rem; color: var(--text-muted); text-decoration: none; transition: color 0.2s;">← Voltar para o Login</a>
           </div>
         </form>
       </div>
 
       <!-- Update Password View (after clicking email link) -->
-      <div id="authUpdateView" style="display: none;">
+      <div id="authUpdateView" class="auth-view" style="display: none;">
         <h3 style="font-size: 1.1rem; text-align: center; margin-bottom: 16px; color: var(--text-primary);">Criar Nova Senha</h3>
         <p style="font-size: 0.85rem; color: var(--text-secondary); text-align: center; margin-bottom: 20px;">
           Digite sua nova senha de acesso abaixo.
         </p>
         <form onsubmit="event.preventDefault(); app.handleUpdatePassword();">
           <div class="form-group">
-            <label>Nova Senha</label>
-            <input type="password" id="newPassword" class="form-control" required placeholder="Nova senha" autocomplete="new-password">
+            <label class="form-label">Nova Senha</label>
+            <input type="password" id="newPassword" class="form-input" required placeholder="Nova senha" autocomplete="new-password">
           </div>
           <button type="submit" class="btn btn-success" style="width:100%; margin-top: 16px;">Atualizar Senha</button>
         </form>
