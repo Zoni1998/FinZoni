@@ -251,8 +251,37 @@ class App {
     this.checkSession();
   }
 
+  showAuthView(viewId) {
+    const views = ['login', 'register', 'reset', 'update'];
+    views.forEach(v => {
+      const el = document.getElementById('auth' + v.charAt(0).toUpperCase() + v.slice(1) + 'View');
+      if (el) el.style.display = 'none';
+    });
+    const target = document.getElementById('auth' + viewId.charAt(0).toUpperCase() + viewId.slice(1) + 'View');
+    if (target) target.style.display = 'block';
+  }
+
   async checkSession() {
     if (!sbClient) return;
+    
+    // Check for password recovery event
+    sbClient.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        document.getElementById('authOverlay').style.display = 'flex';
+        document.getElementById('appContainer').style.display = 'none';
+        this.showAuthView('update');
+      }
+    });
+
+    // Check remember me email
+    const savedEmail = localStorage.getItem('findash_remember_email');
+    if (savedEmail) {
+      const loginEmailEl = document.getElementById('loginEmail');
+      if (loginEmailEl) loginEmailEl.value = savedEmail;
+      const rememberEl = document.getElementById('rememberMe');
+      if (rememberEl) rememberEl.checked = true;
+    }
+
     const { data } = await sbClient.auth.getSession();
     if (data.session) {
       this.dm.userId = data.session.user.id;
@@ -263,49 +292,118 @@ class App {
     } else {
       document.getElementById('authOverlay').style.display = 'flex';
       document.getElementById('appContainer').style.display = 'none';
+      this.showAuthView('login');
     }
   }
 
-  async handleAuth() {
-    const email = document.getElementById('authEmail').value;
-    const password = document.getElementById('authPassword').value;
+  async handleLogin() {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    const rememberMe = document.getElementById('rememberMe').checked;
+    
     if (!email || !password) return;
 
     try {
-      console.log("Tentando login para:", email);
       showToast('Autenticando...', 'info');
-      // Tenta login primeiro
-      let { data, error } = await sbClient.auth.signInWithPassword({ email, password });
+      const { data, error } = await sbClient.auth.signInWithPassword({ email, password });
       
-      console.log("Resultado Login:", { data, error });
-      
-      if (error && error.message.includes('Invalid login credentials')) {
-        console.log("Conta não existe, tentando registrar...");
-        showToast('Criando conta nova...', 'info');
-        const reg = await sbClient.auth.signUp({ email, password });
-        data = reg.data;
-        error = reg.error;
-        console.log("Resultado Registro:", { data, error });
-      }
-
       if (error) {
-        showToast('Erro: ' + error.message, 'error');
-        alert('Erro: ' + error.message);
+        if (error.message.includes('Invalid login credentials')) {
+          showToast('E-mail ou senha incorretos.', 'error');
+        } else {
+          showToast('Erro: ' + error.message, 'error');
+        }
       } else if (data.session) {
+        if (rememberMe) {
+          localStorage.setItem('findash_remember_email', email);
+        } else {
+          localStorage.removeItem('findash_remember_email');
+        }
         showToast('Login efetuado com sucesso!', 'success');
         this.dm.userId = data.session.user.id;
         await this.dm.load();
         document.getElementById('authOverlay').style.display = 'none';
         document.getElementById('appContainer').style.display = 'flex';
         this.init();
-      } else {
-        showToast('Desative a confirmação de E-mail no Supabase para continuar!', 'warning');
-        alert('Por favor, desative a Confirmação de E-mail lá no painel do Supabase!');
       }
     } catch (e) {
       console.error(e);
-      showToast('Erro crítico no login: ' + e.message, 'error');
-      alert('Erro crítico: ' + e.message);
+      showToast('Erro crítico no login', 'error');
+    }
+  }
+
+  async handleRegister() {
+    const email = document.getElementById('registerEmail').value;
+    const password = document.getElementById('registerPassword').value;
+    if (!email || !password) return;
+
+    try {
+      showToast('Criando conta...', 'info');
+      const { data, error } = await sbClient.auth.signUp({ email, password });
+      
+      if (error) {
+        showToast('Erro ao criar conta: ' + error.message, 'error');
+      } else {
+        if (data.session) {
+          showToast('Conta criada com sucesso!', 'success');
+          this.dm.userId = data.session.user.id;
+          await this.dm.load();
+          document.getElementById('authOverlay').style.display = 'none';
+          document.getElementById('appContainer').style.display = 'flex';
+          this.init();
+        } else {
+          showToast('Conta criada! Por favor verifique seu email (ou desative a confirmação de E-mail no Supabase para login automático).', 'warning');
+          this.showAuthView('login');
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      showToast('Erro ao registrar', 'error');
+    }
+  }
+
+  async handlePasswordReset() {
+    const email = document.getElementById('resetEmail').value;
+    if (!email) return;
+
+    try {
+      showToast('Enviando link...', 'info');
+      const { error } = await sbClient.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.href
+      });
+      
+      if (error) {
+        showToast('Erro ao enviar link: ' + error.message, 'error');
+      } else {
+        showToast('Link de recuperação enviado para seu e-mail!', 'success');
+        this.showAuthView('login');
+      }
+    } catch (e) {
+      console.error(e);
+      showToast('Erro na recuperação', 'error');
+    }
+  }
+
+  async handleUpdatePassword() {
+    const newPassword = document.getElementById('newPassword').value;
+    if (!newPassword) return;
+
+    try {
+      showToast('Atualizando senha...', 'info');
+      const { error } = await sbClient.auth.updateUser({ password: newPassword });
+      
+      if (error) {
+        showToast('Erro ao atualizar: ' + error.message, 'error');
+      } else {
+        showToast('Senha atualizada com sucesso!', 'success');
+        // Now logged in and password updated, proceed to dashboard
+        document.getElementById('authOverlay').style.display = 'none';
+        document.getElementById('appContainer').style.display = 'flex';
+        this.init();
+      }
+    } catch (e) {
+      console.error(e);
+      showToast('Erro crítico ao atualizar senha', 'error');
     }
   }
 
@@ -314,7 +412,9 @@ class App {
     this.dm.userId = null;
     document.getElementById('authOverlay').style.display = 'flex';
     document.getElementById('appContainer').style.display = 'none';
-    document.getElementById('authPassword').value = '';
+    this.showAuthView('login');
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('registerPassword').value = '';
     showToast('Deslogado com sucesso!', 'info');
   }
 
