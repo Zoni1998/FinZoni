@@ -12,6 +12,7 @@ const YEAR = 2026;
 function getDefaultData() {
   return {
     year: YEAR,
+    perfil: { nome: 'Minha Conta', foto: '', nivel: 1, xp: 0 },
     clinicas: [
       { id: 'advance', nome: 'Advance', diariaPadrao: 170, cor: '#448aff' },
       { id: 'bm', nome: 'BM Odontologia', diariaPadrao: 150, cor: '#b388ff' },
@@ -86,6 +87,7 @@ class DataManager {
       if (data && data.data) {
         this.data = data.data;
         // Ensure sub-objects
+        if (!this.data.perfil) this.data.perfil = { nome: 'Minha Conta', foto: '', nivel: 1, xp: 0 };
         if (!this.data.metas) this.data.metas = [];
         if (!this.data.reserva) this.data.reserva = { movimentacoes: [], obs: '' };
         if (!this.data.categoriasFixas) this.data.categoriasFixas = getDefaultData().categoriasFixas;
@@ -95,6 +97,7 @@ class DataManager {
         if (localRaw) {
           try {
             const parsed = JSON.parse(localRaw);
+            if (!parsed.perfil) parsed.perfil = { nome: 'Minha Conta', foto: '', nivel: 1, xp: 0 };
             if (!parsed.metas) parsed.metas = [];
             if (!parsed.reserva) parsed.reserva = { movimentacoes: [], obs: '' };
             if (!parsed.categoriasFixas) parsed.categoriasFixas = getDefaultData().categoriasFixas;
@@ -172,6 +175,7 @@ class DataManager {
       const imported = JSON.parse(jsonStr);
       if (imported.year && imported.meses) {
         this.data = imported;
+        if (!this.data.perfil) this.data.perfil = { nome: 'Minha Conta', foto: '', nivel: 1, xp: 0 };
         this.ensureAllMonths();
         this.save();
         showToast('Dados importados com sucesso!', 'success');
@@ -460,6 +464,7 @@ class App {
     this.bindExportImport();
     this.bindNotes();
     this.initTheme();
+    this.updateProfileUI();
     this.renderAll();
   }
 
@@ -533,12 +538,38 @@ class App {
 
   // ── MONTH SELECTOR ──
   bindMonthSelector() {
-    document.getElementById('prevMonth').addEventListener('click', () => {
-      if (this.currentMonth > 1) { this.currentMonth--; this.renderAll(); }
-    });
-    document.getElementById('nextMonth').addEventListener('click', () => {
-      if (this.currentMonth < 12) { this.currentMonth++; this.renderAll(); }
-    });
+    document.getElementById('prevMonth').addEventListener('click', () => this.changeMonth(-1));
+    document.getElementById('nextMonth').addEventListener('click', () => this.changeMonth(1));
+  }
+
+  changeMonth(dir) {
+    const prevMonthStr = this.currentMonth;
+    if (dir === -1 && this.currentMonth > 1) {
+      this.currentMonth--;
+    } else if (dir === 1 && this.currentMonth < 12) {
+      this.currentMonth++;
+    } else {
+      return;
+    }
+    
+    // Recurrence check for next month
+    if (dir === 1) {
+      const prevMes = this.dm.getMonth(prevMonthStr);
+      const currMes = this.dm.getMonth(this.currentMonth);
+      if (currMes.gastosFixos.length === 0 && prevMes.gastosFixos.length > 0) {
+        if (confirm(`Deseja importar as ${prevMes.gastosFixos.length} despesas fixas do mês anterior para este mês?`)) {
+          currMes.gastosFixos = prevMes.gastosFixos.map(g => ({
+            ...g,
+            id: generateId(),
+            pago: false, // Reset payment status
+            vencimento: g.vencimento ? g.vencimento.replace(`-${String(prevMonthStr).padStart(2,'0')}-`, `-${String(this.currentMonth).padStart(2,'0')}-`) : g.vencimento
+          }));
+          this.dm.save();
+          showToast('Despesas importadas!', 'success');
+        }
+      }
+    }
+    this.renderAll();
   }
 
   updateMonthLabel() {
@@ -716,6 +747,12 @@ class App {
     if (!valor) { showToast('Informe o valor!', 'error'); return; }
     this.dm.data.reserva.movimentacoes.push({ id: generateId(), tipo, valor, data, obs });
     this.dm.save();
+    
+    if (tipo === 'deposito') {
+      this.addXP(valor);
+      if (typeof confetti === 'function') confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+    }
+    
     closeModal('modalReserva');
     this.renderAll();
     showToast('Movimentação registrada!', 'success');
@@ -741,6 +778,10 @@ class App {
     const meta = this.dm.data.metas.find(m => m.id === this.editingMetaId);
     if (meta) {
       meta.valorAtual += addValor;
+      if (addValor > 0) {
+         this.addXP(addValor);
+         if (typeof confetti === 'function') confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+      }
       if (!meta.historico) meta.historico = [];
       meta.historico.push({ data: new Date().toISOString().slice(0,10), valor: addValor, obs });
       this.dm.save();
@@ -2296,6 +2337,269 @@ class App {
       showToast('Erro de conexão. Verifique se copiou a URL inteira e se permitiu acesso para "Qualquer pessoa".', 'error');
     }
   }
+  // ═══════════ NEW FEATURES (PROFILE, GAMIFICATION, EXTRATO) ═══════════
+  openProfileModal() {
+    const p = this.dm.data.perfil;
+    document.getElementById('profileNameInput').value = p.nome || '';
+    if (p.foto) {
+      document.getElementById('profilePicPreview').src = p.foto;
+    }
+    openModal('modalProfile');
+  }
+
+  handleProfilePicSelect(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX = 200;
+        let width = img.width;
+        let height = img.height;
+        if (width > height) {
+          if (width > MAX) { height *= MAX / width; width = MAX; }
+        } else {
+          if (height > MAX) { width *= MAX / height; height = MAX; }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        document.getElementById('profilePicPreview').src = canvas.toDataURL('image/jpeg', 0.8);
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  saveProfile() {
+    const nome = document.getElementById('profileNameInput').value.trim();
+    const fotoSrc = document.getElementById('profilePicPreview').src;
+    if (nome) this.dm.data.perfil.nome = nome;
+    if (fotoSrc && fotoSrc.startsWith('data:')) this.dm.data.perfil.foto = fotoSrc;
+    this.dm.save();
+    this.updateProfileUI();
+    closeModal('modalProfile');
+    showToast('Perfil atualizado!', 'success');
+  }
+
+  updateProfileUI() {
+    const p = this.dm.data.perfil;
+    if (!p) return;
+    const nameEl = document.getElementById('userProfileName');
+    if (nameEl) nameEl.textContent = p.nome;
+    if (p.foto) {
+      const picEl = document.getElementById('userProfilePic');
+      if (picEl) picEl.src = p.foto;
+    }
+    
+    let titulo = 'Aprendiz';
+    if (p.nivel >= 50) titulo = 'Magnata';
+    else if (p.nivel >= 25) titulo = 'Acionista';
+    else if (p.nivel >= 10) titulo = 'Investidor';
+    else if (p.nivel >= 5) titulo = 'Poupador';
+    
+    const badgeEl = document.getElementById('userLevelBadge');
+    if (badgeEl) badgeEl.textContent = `Lvl ${p.nivel} - ${titulo}`;
+    
+    const xpBase = (p.nivel - 1) * 1000;
+    const currentLevelProgress = p.xp - xpBase;
+    const progressPct = Math.min(100, Math.max(0, (currentLevelProgress / 1000) * 100));
+    const fillEl = document.getElementById('userXpFill');
+    if (fillEl) fillEl.style.width = `${progressPct}%`;
+  }
+
+  addXP(amount) {
+    if (amount <= 0) return;
+    const p = this.dm.data.perfil;
+    p.xp += amount;
+    const novoNivel = Math.floor(p.xp / 1000) + 1;
+    if (novoNivel > p.nivel) {
+      p.nivel = novoNivel;
+      showToast(`🎉 Parabéns! Você subiu para o Nível ${novoNivel}!`, 'success');
+      if (typeof confetti === 'function') confetti({ particleCount: 200, spread: 90, origin: { y: 0.5 } });
+    }
+    this.updateProfileUI();
+    this.renderAchievements();
+  }
+
+  renderAchievements() {
+    const container = document.getElementById('achievementsGrid');
+    if (!container) return;
+    const xp = this.dm.data.perfil ? this.dm.data.perfil.xp : 0;
+    const achievements = [
+      { id: 'first_step', title: 'Primeiro Passo', desc: 'Guardou seu primeiro real', xpReq: 1, icon: '🌱' },
+      { id: 'apprentice', title: 'Poupador', desc: 'Acumulou 1.000 XP', xpReq: 1000, icon: '💰' },
+      { id: 'investor', title: 'Investidor', desc: 'Acumulou 5.000 XP', xpReq: 5000, icon: '📈' },
+      { id: 'whale', title: 'Baleia', desc: 'Acumulou 20.000 XP', xpReq: 20000, icon: '🐋' },
+      { id: 'diamond', title: 'Mãos de Diamante', desc: 'Acumulou 50.000 XP', xpReq: 50000, icon: '💎' },
+      { id: 'magnate', title: 'Magnata', desc: 'Acumulou 100.000 XP', xpReq: 100000, icon: '👑' }
+    ];
+    container.innerHTML = achievements.map(a => {
+      const unlocked = xp >= a.xpReq;
+      return `
+        <div class="achievement-card ${unlocked ? 'unlocked' : ''}">
+          <div class="achievement-icon">${a.icon}</div>
+          <div class="achievement-title">${a.title}</div>
+          <div class="achievement-desc">${a.desc}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  renderExtratoAnual() {
+    const yearSelect = document.getElementById('extratoYearSelect');
+    if (!yearSelect) return;
+    const year = yearSelect.value;
+    const tbody = document.getElementById('extratoAnualBody');
+    const tfoot = document.getElementById('extratoAnualFoot');
+    
+    let totais = { receitas: 0, despesas: 0, investimentos: 0 };
+    let labels = [];
+    let saldos = [];
+    let html = '';
+    
+    for(let m=1; m<=12; m++) {
+       const rec = this.calcTotalReceitas(m);
+       const desp = this.calcResumoDespesas(m).total;
+       
+       const mesStr = `${year}-${String(m).padStart(2,'0')}`;
+       let inv = 0;
+       this.dm.data.reserva.movimentacoes.forEach(mov => {
+         if (mov.data && mov.data.startsWith(mesStr) && mov.tipo === 'deposito') inv += mov.valor;
+       });
+       // Count metas additions as investments for that month if they occurred (approx. via total if needed, but metas don't have explicit history timestamps. Let's rely on reserve for the chart, or XP additions).
+       
+       const saldo = rec - desp;
+       
+       totais.receitas += rec;
+       totais.despesas += desp;
+       totais.investimentos += inv;
+       
+       labels.push(MONTHS[m-1].substring(0,3));
+       saldos.push(saldo);
+       
+       html += `
+         <tr>
+           <td>${MONTHS[m-1]}</td>
+           <td class="text-right" style="color:var(--green)">${formatCurrency(rec)}</td>
+           <td class="text-right" style="color:var(--red)">${formatCurrency(desp)}</td>
+           <td class="text-right" style="color:var(--blue)">${formatCurrency(inv)}</td>
+           <td class="text-right" style="font-weight:bold; color:${saldo>=0?'var(--green)':'var(--red)'}">${formatCurrency(saldo)}</td>
+         </tr>
+       `;
+    }
+    
+    tbody.innerHTML = html;
+    const saldoGeral = totais.receitas - totais.despesas;
+    tfoot.innerHTML = `
+      <tr style="font-weight:bold; background:var(--bg-glass);">
+        <td>TOTAL DO ANO</td>
+        <td class="text-right" style="color:var(--green)">${formatCurrency(totais.receitas)}</td>
+        <td class="text-right" style="color:var(--red)">${formatCurrency(totais.despesas)}</td>
+        <td class="text-right" style="color:var(--blue)">${formatCurrency(totais.investimentos)}</td>
+        <td class="text-right" style="color:${saldoGeral>=0?'var(--green)':'var(--red)'}">${formatCurrency(saldoGeral)}</td>
+      </tr>
+    `;
+    
+    this.renderExtratoChart(labels, saldos);
+  }
+
+  renderExtratoChart(labels, saldos) {
+    const ctx = document.getElementById('extratoChart');
+    if (!ctx) return;
+    if (this.charts.extrato) this.charts.extrato.destroy();
+    
+    const canvasCtx = ctx.getContext('2d');
+    const gradient = canvasCtx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, 'rgba(68, 138, 255, 0.5)');
+    gradient.addColorStop(1, 'rgba(68, 138, 255, 0.0)');
+    
+    this.charts.extrato = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Evolução do Saldo Mensal',
+          data: saldos,
+          borderColor: '#448aff',
+          backgroundColor: gradient,
+          borderWidth: 2,
+          fill: true,
+          tension: 0.4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { grid: { color: 'rgba(255,255,255,0.05)' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  toggleNotifications() {
+    const panel = document.getElementById('notificationsPanel');
+    if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  }
+
+  checkAlerts() {
+    const mes = this.dm.getMonth(this.currentMonth);
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    
+    let alerts = [];
+    mes.gastosFixos.forEach(g => {
+      if (!g.pago && g.vencimento) {
+        const parts = g.vencimento.split('-');
+        if (parts.length === 3) {
+          const vDate = new Date(parts[0], parts[1]-1, parts[2]);
+          vDate.setHours(0,0,0,0);
+          const diffTime = vDate.getTime() - today.getTime();
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          if (diffDays < 0) {
+            alerts.push(`<div class="notification-item"><div class="notification-icon">⚠️</div><div class="notification-text">A conta <strong>${g.descricao}</strong> está atrasada há ${Math.abs(diffDays)} dia(s)!</div></div>`);
+          } else if (diffDays <= 3) {
+            alerts.push(`<div class="notification-item"><div class="notification-icon">⏰</div><div class="notification-text">A conta <strong>${g.descricao}</strong> vence em ${diffDays} dia(s)!</div></div>`);
+          }
+        }
+      }
+    });
+    
+    const badge = document.getElementById('notificationBadge');
+    const body = document.getElementById('notificationsBody');
+    if (badge && body) {
+      if (alerts.length > 0) {
+        badge.textContent = alerts.length;
+        badge.style.display = 'block';
+        body.innerHTML = alerts.join('');
+      } else {
+        badge.style.display = 'none';
+        body.innerHTML = '<div class="no-notifications">Nenhum alerta no momento.</div>';
+      }
+    }
+  }
+
+  handleGlobalSearch() {
+    const termEl = document.getElementById('globalSearchInput');
+    if (!termEl) return;
+    const term = termEl.value.toLowerCase();
+    
+    const filterTable = (selector) => {
+      document.querySelectorAll(selector).forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none';
+      });
+    };
+    filterTable('#gastosFixosBody tr');
+    filterTable('#gastosVariaveisBody tr');
+    filterTable('#receitasBody tr');
+  }
+
 }
 
 // ── INITIALIZE ──
