@@ -1957,11 +1957,13 @@ class App {
     emptyState.classList.add('hidden');
     container.innerHTML = metas.map(meta => {
       const pct = meta.valorMeta > 0 ? Math.min(100, (meta.valorAtual / meta.valorMeta) * 100) : 0;
-      const histHTML = (meta.historico || []).slice(-5).map(h =>
-        `<div class="fs-sm" style="color:var(--text-muted);padding:4px 0;border-bottom:1px solid var(--border);">
-          ${h.data} — ${formatCurrency(h.valor)} ${h.obs ? '— ' + h.obs : ''}
-        </div>`
-      ).join('');
+      const histHTML = (meta.historico || []).slice(-5).map((h, idx) => {
+        const actualIdx = Math.max(0, meta.historico.length - 5) + idx;
+        return `<div class="fs-sm" style="color:var(--text-muted);padding:4px 0;border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+          <span>${h.data} — ${formatCurrency(h.valor)} ${h.obs ? '— ' + h.obs : ''}</span>
+          <button class="btn-icon" style="opacity:0.5; padding:2px;" onclick="app.deleteAporteMeta('${meta.id}', ${actualIdx})" title="Remover aporte">🗑️</button>
+        </div>`;
+      }).join('');
 
       // Calculate investido no mês
       const currentMonthStr = String(this.currentMonth).padStart(2, '0');
@@ -2003,6 +2005,22 @@ class App {
           ${histHTML ? `<div class="mt-2"><div class="fs-sm fw-bold mb-1" style="color:var(--text-secondary);">Últimos aportes:</div>${histHTML}</div>` : ''}
         </div>`;
     }).join('');
+  }
+
+  deleteAporteMeta(metaId, index) {
+    if(!confirm('Deseja excluir este registro do histórico de aportes?')) return;
+    const meta = this.dm.data.metas.find(m => m.id === metaId);
+    if(meta && meta.historico && meta.historico[index]) {
+      const aporte = meta.historico[index];
+      if (confirm(`Deseja também subtrair o valor de ${formatCurrency(aporte.valor)} do total atual da meta?\n\n[OK] = Excluir Histórico E Subtrair Valor\n[Cancelar] = APENAS Excluir Histórico (Matenha o Total atual)`)) {
+        meta.valorAtual -= aporte.valor;
+        if (meta.valorAtual < 0) meta.valorAtual = 0;
+      }
+      meta.historico.splice(index, 1);
+      this.dm.save();
+      this.renderAll();
+      showToast('Registro removido!', 'success');
+    }
   }
 
   openUpdateMeta(id) {
