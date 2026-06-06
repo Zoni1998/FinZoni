@@ -2550,22 +2550,27 @@ class App {
 
   checkAlerts() {
     const mes = this.dm.getMonth(this.currentMonth);
+    if (!mes || !mes.gastosFixos) return;
+    
     const today = new Date();
     today.setHours(0,0,0,0);
+    const currentYear = this.dm.data.year || new Date().getFullYear();
     
     let alerts = [];
     mes.gastosFixos.forEach(g => {
       if (!g.pago && g.vencimento) {
-        const parts = g.vencimento.split('-');
-        if (parts.length === 3) {
-          const vDate = new Date(parts[0], parts[1]-1, parts[2]);
+        const day = parseInt(g.vencimento, 10);
+        if (!isNaN(day)) {
+          const vDate = new Date(currentYear, this.currentMonth - 1, day);
           vDate.setHours(0,0,0,0);
+          
           const diffTime = vDate.getTime() - today.getTime();
           const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          
           if (diffDays < 0) {
             alerts.push(`<div class="notification-item"><div class="notification-icon">⚠️</div><div class="notification-text">A conta <strong>${g.descricao}</strong> está atrasada há ${Math.abs(diffDays)} dia(s)!</div></div>`);
           } else if (diffDays <= 3) {
-            alerts.push(`<div class="notification-item"><div class="notification-icon">⏰</div><div class="notification-text">A conta <strong>${g.descricao}</strong> vence em ${diffDays} dia(s)!</div></div>`);
+            alerts.push(`<div class="notification-item"><div class="notification-icon">⏰</div><div class="notification-text">A conta <strong>${g.descricao}</strong> vence em ${diffDays === 0 ? 'hoje' : diffDays + ' dia(s)'}!</div></div>`);
           }
         }
       }
@@ -2592,12 +2597,17 @@ class App {
     
     const filterTable = (selector) => {
       document.querySelectorAll(selector).forEach(row => {
+        // Skip total rows
+        if (row.classList.contains('total-row')) return;
+        
         row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none';
       });
     };
+    
     filterTable('#gastosFixosBody tr');
-    filterTable('#gastosVariaveisBody tr');
-    filterTable('#receitasBody tr');
+    filterTable('#gastosVarBody tr');
+    filterTable('#outrasReceitasBody tr');
+    filterTable('#receitaDiariasBody tr');
   }
 
 }
