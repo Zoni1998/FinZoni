@@ -235,6 +235,17 @@ body::before {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Esconder a barra de rolagem mas manter funcionamento */
+.sidebar-nav::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
 }
 
 .nav-item {
@@ -1662,7 +1673,9 @@ body::before {
   top: 60px;
   right: 16px;
   width: 320px;
-  background: var(--bg-card);
+  background: var(--bg-modal);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
