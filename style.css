@@ -1256,6 +1256,7 @@ body::before {
     box-shadow: 10px 0 30px rgba(0,0,0,0.8);
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
+    z-index: 2000;
   }
 
   .sidebar.open {
@@ -1264,10 +1265,12 @@ body::before {
 
   .mobile-menu-btn {
     display: flex;
+    z-index: 2100;
   }
 
   .mobile-overlay.show {
     display: block;
+    z-index: 1900;
   }
 
   .main-content {
@@ -1348,9 +1351,13 @@ body::before {
   
   .header-actions {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 8px;
-    margin-top: 10px;
+    margin-top: 0;
+  }
+  
+  .header-actions .btn span {
+    display: none;
   }
 }
 
