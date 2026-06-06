@@ -7,7 +7,7 @@
   <title>Dashboard Financeiro Pessoal</title>
   <meta name="description"
     content="Ferramenta completa de gestão financeira pessoal com controle de receitas, despesas, diárias e investimentos.">
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=17">
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Supabase -->
@@ -16,11 +16,7 @@
 
 <body>
 
-  <!-- Mobile Menu Button -->
-  <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Abrir menu">☰</button>
 
-  <!-- Mobile Overlay -->
-  <div class="mobile-overlay" id="mobileOverlay"></div>
 
   <!-- Auth Overlay -->
   <div class="auth-overlay" id="authOverlay">
@@ -52,6 +48,12 @@
   </div>
 
   <div class="app-container" id="appContainer" style="display: none;">
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Abrir menu">☰</button>
+
+    <!-- Mobile Overlay -->
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+
     <!-- ═══════════ SIDEBAR ═══════════ -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
