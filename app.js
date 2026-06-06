@@ -424,6 +424,13 @@ class App {
         // Clear the recovery hash so refresh doesn't trigger recovery mode
         history.replaceState(null, null, ' ');
         
+        // Load user data before proceeding to dashboard
+        const { data: sessionData } = await sbClient.auth.getSession();
+        if (sessionData && sessionData.session) {
+          this.dm.userId = sessionData.session.user.id;
+          await this.dm.load();
+        }
+
         // Now logged in and password updated, proceed to dashboard
         document.getElementById('authOverlay').style.display = 'none';
         document.getElementById('appContainer').style.display = 'flex';
