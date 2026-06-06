@@ -505,6 +505,9 @@ class App {
     // Update Goal
     document.getElementById('btnConfirmarAtualizarMeta').addEventListener('click', () => this.confirmUpdateMeta());
 
+    // Edit Goal
+    document.getElementById('btnSalvarEdicaoMeta').addEventListener('click', () => this.saveEdicaoMeta());
+
     // Save Work Day
     document.getElementById('btnSalvarDia').addEventListener('click', () => this.saveWorkDay());
 
@@ -793,8 +796,29 @@ class App {
     const m = this.currentMonth;
     const totalReceitas = this.calcTotalReceitas(m);
     const resumo = this.calcResumoDespesas(m);
+    
+    // Calcula investimentos do mês atual
+    let investidoNoMes = 0;
+    const currentMonthStr = String(m).padStart(2, '0');
+    const prefix = `${YEAR}-${currentMonthStr}`;
+    
+    // Metas
+    (this.dm.data.metas || []).forEach(meta => {
+      (meta.historico || []).forEach(h => {
+        if (h.data && h.data.startsWith(prefix)) investidoNoMes += h.valor;
+      });
+    });
+    
+    // Reserva
+    (this.dm.data.reserva.movimentacoes || []).forEach(mov => {
+      if (mov.data && mov.data.startsWith(prefix)) {
+        if (mov.tipo === 'deposito') investidoNoMes += mov.valor;
+        if (mov.tipo === 'saque') investidoNoMes -= mov.valor;
+      }
+    });
+
     const saldo = totalReceitas - resumo.total;
-    const salarioDisponivel = totalReceitas - resumo.pago;
+    const salarioDisponivel = totalReceitas - resumo.pago - investidoNoMes;
     const producaoMes = this.calcProducaoDoMes(m);
     const forecast = this.calcForecast(m);
 
@@ -1380,9 +1404,21 @@ class App {
       totalVar += g.valor;
       varHTML += `
         <tr>
-          <td>${g.descricao}</td>
-          <td class="text-right value-negative">${formatCurrency(g.valor)}</td>
-          <td>${g.data || '-'}</td>
+          <td>
+            <input type="text" class="editable-value" value="${g.descricao}"
+              onchange="app.updateGastoVar('${g.id}', 'descricao', this.value)"
+              onkeydown="if(event.key==='Enter') this.blur();">
+          </td>
+          <td class="text-right">
+            <input type="text" inputmode="decimal" class="editable-value value-negative" style="text-align:right" value="${g.valor}"
+              onchange="app.updateGastoVar('${g.id}', 'valor', this.value)"
+              onkeydown="if(event.key==='Enter') this.blur();">
+          </td>
+          <td>
+            <input type="date" class="editable-value" value="${g.data || ''}"
+              onchange="app.updateGastoVar('${g.id}', 'data', this.value)"
+              onkeydown="if(event.key==='Enter') this.blur();">
+          </td>
           <td><button class="btn-icon" onclick="app.deleteGastoVar('${g.id}')" title="Remover">🗑️</button></td>
         </tr>`;
     });
@@ -1439,6 +1475,22 @@ class App {
     this.dm.save();
     this.renderDespesas();
     this.renderDashboard();
+  }
+
+  updateGastoVar(id, field, value) {
+    const mes = this.dm.getMonth(this.currentMonth);
+    const g = mes.gastosVariaveis.find(x => x.id === id);
+    if (g) {
+      if (field === 'valor') {
+        const strVal = String(value).replace(',', '.');
+        g[field] = parseFloat(strVal) || 0;
+      } else {
+        g[field] = value;
+      }
+      this.dm.save();
+      this.renderDespesas();
+      this.renderDashboard();
+    }
   }
 
   deleteGastoVar(id) {
@@ -1522,9 +1574,21 @@ class App {
       totalOutras += r.valor;
       oHTML += `
         <tr>
-          <td>${r.descricao}</td>
-          <td class="text-right value-positive">${formatCurrency(r.valor)}</td>
-          <td>${r.data || '-'}</td>
+          <td>
+            <input type="text" class="editable-value" value="${r.descricao}"
+              onchange="app.updateReceita('${r.id}', 'descricao', this.value)"
+              onkeydown="if(event.key==='Enter') this.blur();">
+          </td>
+          <td class="text-right">
+            <input type="text" inputmode="decimal" class="editable-value value-positive" style="text-align:right" value="${r.valor}"
+              onchange="app.updateReceita('${r.id}', 'valor', this.value)"
+              onkeydown="if(event.key==='Enter') this.blur();">
+          </td>
+          <td>
+            <input type="date" class="editable-value" value="${r.data || ''}"
+              onchange="app.updateReceita('${r.id}', 'data', this.value)"
+              onkeydown="if(event.key==='Enter') this.blur();">
+          </td>
           <td><button class="btn-icon" onclick="app.deleteReceita('${r.id}')" title="Remover">🗑️</button></td>
         </tr>`;
     });
@@ -1610,6 +1674,22 @@ class App {
     this.renderDashboard();
   }
 
+  updateReceita(id, field, value) {
+    const mes = this.dm.getMonth(this.currentMonth);
+    const r = mes.outrasReceitas.find(x => x.id === id);
+    if (r) {
+      if (field === 'valor') {
+        const strVal = String(value).replace(',', '.');
+        r[field] = parseFloat(strVal) || 0;
+      } else {
+        r[field] = value;
+      }
+      this.dm.save();
+      this.renderReceitas();
+      this.renderDashboard();
+    }
+  }
+
   // ── INVESTIMENTOS ──
   renderInvestimentos() {
     const appsScriptInput = document.getElementById('appsScriptUrlInput');
@@ -1630,10 +1710,27 @@ class App {
     movs.forEach(m => {
       movHTML += `
         <tr>
-          <td>${m.data || '-'}</td>
-          <td><span class="badge ${m.tipo === 'deposito' ? 'badge-green' : 'badge-red'}">${m.tipo === 'deposito' ? '⬆ Depósito' : '⬇ Saque'}</span></td>
-          <td class="text-right ${m.tipo === 'deposito' ? 'value-positive' : 'value-negative'}">${formatCurrency(m.valor)}</td>
-          <td class="fs-sm" style="color:var(--text-secondary);max-width:200px;">${m.obs || '-'}</td>
+          <td>
+            <input type="date" class="editable-value" value="${m.data || ''}"
+              onchange="app.updateReservaMov('${m.id}', 'data', this.value)"
+              onkeydown="if(event.key==='Enter') this.blur();">
+          </td>
+          <td>
+            <select class="editable-value ${m.tipo === 'deposito' ? 'value-positive' : 'value-negative'}" style="width:110px;" onchange="app.updateReservaMov('${m.id}', 'tipo', this.value)">
+              <option value="deposito" ${m.tipo === 'deposito' ? 'selected' : ''}>⬆ Depósito</option>
+              <option value="saque" ${m.tipo === 'saque' ? 'selected' : ''}>⬇ Saque</option>
+            </select>
+          </td>
+          <td class="text-right">
+            <input type="text" inputmode="decimal" class="editable-value ${m.tipo === 'deposito' ? 'value-positive' : 'value-negative'}" style="text-align:right" value="${m.valor}"
+              onchange="app.updateReservaMov('${m.id}', 'valor', this.value)"
+              onkeydown="if(event.key==='Enter') this.blur();">
+          </td>
+          <td>
+            <input type="text" class="editable-value fs-sm" style="color:var(--text-secondary);max-width:200px;" value="${m.obs || ''}" placeholder="-"
+              onchange="app.updateReservaMov('${m.id}', 'obs', this.value)"
+              onkeydown="if(event.key==='Enter') this.blur();">
+          </td>
           <td><button class="btn-icon" onclick="app.deleteReservaMov('${m.id}')" title="Remover">🗑️</button></td>
         </tr>`;
     });
@@ -1650,6 +1747,21 @@ class App {
     this.dm.data.reserva.movimentacoes = this.dm.data.reserva.movimentacoes.filter(m => m.id !== id);
     this.dm.save();
     this.renderInvestimentos();
+  }
+
+  updateReservaMov(id, field, value) {
+    const mov = this.dm.data.reserva.movimentacoes.find(x => x.id === id);
+    if (mov) {
+      if (field === 'valor') {
+        const strVal = String(value).replace(',', '.');
+        mov[field] = parseFloat(strVal) || 0;
+      } else {
+        mov[field] = value;
+      }
+      this.dm.save();
+      this.renderInvestimentos();
+      this.renderDashboard();
+    }
   }
 
   renderMetas() {
@@ -1672,12 +1784,23 @@ class App {
         </div>`
       ).join('');
 
+      // Calculate investido no mês
+      const currentMonthStr = String(this.currentMonth).padStart(2, '0');
+      const prefix = `${YEAR}-${currentMonthStr}`;
+      let investidoMes = 0;
+      (meta.historico || []).forEach(h => {
+        if (h.data && h.data.startsWith(prefix)) {
+          investidoMes += h.valor;
+        }
+      });
+
       return `
         <div class="goal-card">
           <div class="goal-header">
             <div class="goal-name">🎯 ${meta.nome}</div>
             <div class="flex gap-1">
               <button class="btn btn-success btn-sm" onclick="app.openUpdateMeta('${meta.id}')">+ Adicionar</button>
+              <button class="btn-icon" onclick="app.openModalEditarMeta('${meta.id}')" title="Editar">✏️</button>
               <button class="btn-icon" onclick="app.deleteMeta('${meta.id}')" title="Excluir">🗑️</button>
             </div>
           </div>
@@ -1694,6 +1817,9 @@ class App {
               <span>Faltam ${formatCurrency(Math.max(0, meta.valorMeta - meta.valorAtual))}</span>
             </div>
           </div>
+          <div style="margin-top:8px; font-size:0.85rem; color:var(--text-secondary);">
+            Investido neste mês: <strong class="value-positive">${formatCurrency(investidoMes)}</strong>
+          </div>
           ${meta.obs ? `<div class="obs-block mt-2">${meta.obs}</div>` : ''}
           ${histHTML ? `<div class="mt-2"><div class="fs-sm fw-bold mb-1" style="color:var(--text-secondary);">Últimos aportes:</div>${histHTML}</div>` : ''}
         </div>`;
@@ -1705,6 +1831,40 @@ class App {
     document.getElementById('metaAddValor').value = '';
     document.getElementById('metaAddObs').value = '';
     openModal('modalAtualizarMeta');
+  }
+
+  openModalEditarMeta(id) {
+    this.editingMetaId = id;
+    const meta = this.dm.data.metas.find(m => m.id === id);
+    if (meta) {
+      document.getElementById('editMetaNome').value = meta.nome || '';
+      document.getElementById('editMetaValorMeta').value = meta.valorMeta || 0;
+      document.getElementById('editMetaValorAtual').value = meta.valorAtual || 0;
+      document.getElementById('editMetaObs').value = meta.obs || '';
+      openModal('modalEditarMeta');
+    }
+  }
+
+  saveEdicaoMeta() {
+    const nome = document.getElementById('editMetaNome').value.trim();
+    const valorMeta = parseFloat(document.getElementById('editMetaValorMeta').value);
+    const valorAtual = parseFloat(document.getElementById('editMetaValorAtual').value) || 0;
+    const obs = document.getElementById('editMetaObs').value.trim();
+    
+    if (!nome || !valorMeta) { showToast('Preencha nome e valor da meta!', 'error'); return; }
+    
+    const meta = this.dm.data.metas.find(m => m.id === this.editingMetaId);
+    if (meta) {
+      meta.nome = nome;
+      meta.valorMeta = valorMeta;
+      meta.valorAtual = valorAtual;
+      meta.obs = obs;
+      this.dm.save();
+      closeModal('modalEditarMeta');
+      this.renderMetas();
+      this.renderDashboard();
+      showToast('Meta atualizada!', 'success');
+    }
   }
 
   deleteMeta(id) {
