@@ -425,6 +425,8 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
   margin-bottom: 20px;
 }
 
@@ -1300,7 +1302,7 @@ body::before {
   }
 
   .expense-row {
-    grid-template-columns: 1fr auto auto;
+    grid-template-columns: 1fr auto auto auto;
     gap: 8px;
   }
 
@@ -1317,9 +1319,38 @@ body::before {
     padding: 24px;
     margin: 16px;
   }
+  
+  .modal-footer {
+    flex-wrap: wrap;
+    justify-content: stretch;
+  }
+  
+  .modal-footer .btn {
+    width: 100%;
+    justify-content: center;
+  }
 
   .forecast-grid {
     grid-template-columns: 1fr 1fr;
+  }
+  
+  .data-table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+  
+  .editable-value {
+    min-width: 80px;
+  }
+  
+  .header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
   }
 }
 
@@ -1388,7 +1419,8 @@ body::before {
   font-family: 'Inter', sans-serif;
   font-size: inherit;
   font-weight: inherit;
-  width: 120px;
+  width: 100%;
+  min-width: 100px;
   text-align: right;
   transition: all var(--transition-fast);
 }
