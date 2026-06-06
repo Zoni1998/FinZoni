@@ -264,9 +264,12 @@ class App {
   async checkSession() {
     if (!sbClient) return;
     
+    let isRecovery = window.location.hash.includes('type=recovery');
+
     // Check for password recovery event
     sbClient.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY') {
+        isRecovery = true;
         document.getElementById('authOverlay').style.display = 'flex';
         document.getElementById('appContainer').style.display = 'none';
         this.showAuthView('update');
@@ -283,6 +286,14 @@ class App {
     }
 
     const { data } = await sbClient.auth.getSession();
+    
+    if (isRecovery) {
+      document.getElementById('authOverlay').style.display = 'flex';
+      document.getElementById('appContainer').style.display = 'none';
+      this.showAuthView('update');
+      return;
+    }
+
     if (data.session) {
       this.dm.userId = data.session.user.id;
       await this.dm.load();
