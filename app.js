@@ -957,6 +957,7 @@ class App {
     this.renderReceitas();
     this.renderInvestimentos();
     this.renderConfiguracoes();
+    this.checkAlerts();
   }
 
   renderCurrentTab(tab) {
@@ -1523,14 +1524,28 @@ class App {
         badge = `<span class="shared-badge" style="background:var(--green-soft);color:var(--green);">🟢 Pago</span>`;
       } else if (g.vencimento) {
         const v = parseInt(g.vencimento);
-        if (v < today) {
-          badge = `<span class="shared-badge" style="background:var(--red-soft);color:var(--red);">🔴 Vencido (${v})</span>`;
-        } else if (v === today) {
-          badge = `<span class="shared-badge" style="background:var(--amber-soft);color:var(--amber);">🟡 Vence Hoje</span>`;
-        } else if (v <= today + 5) {
-          badge = `<span class="shared-badge" style="background:var(--amber-soft);color:var(--amber);">🟡 Vence dia ${v}</span>`;
-        } else {
-          badge = `<span class="shared-badge" style="background:rgba(255,255,255,0.05);color:var(--text-secondary);">⚪ Vence dia ${v}</span>`;
+        if (!isNaN(v)) {
+          const currentYear = this.dm.data.year || new Date().getFullYear();
+          const realToday = new Date();
+          realToday.setHours(0,0,0,0);
+          
+          const vDate = new Date(currentYear, this.currentMonth - 1, v);
+          vDate.setHours(0,0,0,0);
+          
+          const diffTime = vDate.getTime() - realToday.getTime();
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+          if (diffDays < 0) {
+            badge = `<span class="shared-badge" style="background:var(--red-soft);color:var(--red);">🔴 Vencido (${v})</span>`;
+          } else if (diffDays === 0) {
+            badge = `<span class="shared-badge" style="background:var(--red-soft);color:var(--red);">🔴 Vence Hoje</span>`;
+          } else if (diffDays <= 2) {
+            badge = `<span class="shared-badge" style="background:var(--red-soft);color:var(--red);">🔴 Vence dia ${v}</span>`;
+          } else if (diffDays <= 5) {
+            badge = `<span class="shared-badge" style="background:var(--amber-soft);color:var(--amber);">🟡 Vence dia ${v}</span>`;
+          } else {
+            badge = `<span class="shared-badge" style="background:var(--green-soft);color:var(--green);">🟢 Vence dia ${v}</span>`;
+          }
         }
       }
 
