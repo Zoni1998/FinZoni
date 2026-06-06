@@ -7,11 +7,14 @@
   <title>Dashboard Financeiro Pessoal</title>
   <meta name="description"
     content="Ferramenta completa de gestão financeira pessoal com controle de receitas, despesas, diárias e investimentos.">
-  <link rel="stylesheet" href="style.css?v=17">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=18">
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 
 <body>
@@ -141,6 +144,16 @@
           <h1>FinZoni<span>Minha Gestão Financeira</span></h1>
         </div>
       </div>
+      <div class="sidebar-profile" onclick="app.openProfileModal()" title="Editar Perfil">
+        <div class="profile-pic">
+           <img id="userProfilePic" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E" alt="Profile">
+        </div>
+        <div class="profile-info">
+           <div class="profile-name" id="userProfileName">Minha Conta</div>
+           <div class="profile-level" id="userLevelBadge">Lvl 1 - Aprendiz</div>
+           <div class="profile-xp-bar"><div class="profile-xp-fill" id="userXpFill" style="width:0%"></div></div>
+        </div>
+      </div>
       <nav class="sidebar-nav">
         <button class="nav-item active" data-tab="dashboard" id="nav-dashboard">
           <span class="nav-icon">📊</span> Dashboard
@@ -156,6 +169,9 @@
         </button>
         <button class="nav-item" data-tab="investimentos" id="nav-investimentos">
           <span class="nav-icon">🏦</span> Investimentos
+        </button>
+        <button class="nav-item" data-tab="extrato" id="nav-extrato">
+          <span class="nav-icon">📅</span> Extrato Anual
         </button>
       </nav>
       <div class="sidebar-footer">
@@ -178,9 +194,24 @@
           <button class="month-nav-btn" id="nextMonth" aria-label="Próximo mês">▶</button>
         </div>
         <div class="header-actions">
+          <div class="search-bar">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="globalSearchInput" placeholder="Pesquisar..." onkeyup="app.handleGlobalSearch()">
+          </div>
+          <button class="btn btn-ghost btn-icon" id="btnNotifications" title="Notificações" style="position: relative;" onclick="app.toggleNotifications()">
+            🔔<span class="notification-badge" id="notificationBadge" style="display:none;">0</span>
+          </button>
           <button class="btn btn-ghost btn-sm" id="btnExport" title="Exportar dados">📥 <span>Exportar</span></button>
           <button class="btn btn-ghost btn-sm" id="btnImport" title="Importar dados">📤 <span>Importar</span></button>
           <input type="file" id="importFileInput" accept=".json" style="display:none">
+        </div>
+        
+        <!-- Painel de Notificações -->
+        <div class="notifications-panel" id="notificationsPanel" style="display: none;">
+          <div class="notifications-header">Alertas de Vencimento</div>
+          <div class="notifications-body" id="notificationsBody">
+            <div class="no-notifications">Nenhum alerta no momento.</div>
+          </div>
         </div>
       </header>
 
@@ -519,6 +550,20 @@
 
         <!-- ═══════════ TAB: INVESTIMENTOS ═══════════ -->
         <div class="tab-content" id="tab-investimentos">
+          
+          <!-- Gamification / Conquistas -->
+          <div class="section-header" style="margin-bottom: 16px;">
+            <div>
+              <div class="section-title">🏆 Conquistas e Nível</div>
+              <div class="section-subtitle">Acompanhe seu progresso como investidor</div>
+            </div>
+          </div>
+          <div class="achievements-panel card mb-4">
+            <div class="achievements-grid" id="achievementsGrid">
+              <!-- Renderized via JS -->
+            </div>
+          </div>
+
           <!-- Reserve -->
           <div class="section-header">
             <div>
@@ -584,9 +629,55 @@
             <p>Nenhuma meta criada ainda</p>
             <button class="btn btn-primary btn-sm" id="btnAddMetaEmpty">+ Criar Primeira Meta</button>
           </div>
-        </div>
+          </div>
 
-        <!-- ═══════════ TAB: CONFIGURAÇÕES ═══════════ -->
+          <!-- ═══════════ TAB: EXTRATO ANUAL ═══════════ -->
+          <div class="tab-content" id="tab-extrato">
+            <div class="section-header">
+              <div>
+                <div class="section-title">📅 Extrato Anual</div>
+                <div class="section-subtitle">Visão consolidada de todos os meses do ano</div>
+              </div>
+              <div>
+                <select class="form-input" id="extratoYearSelect" onchange="app.renderExtratoAnual()" style="width: 120px;">
+                  <option value="2024">2024</option>
+                  <option value="2025">2025</option>
+                  <option value="2026" selected>2026</option>
+                  <option value="2027">2027</option>
+                  <option value="2028">2028</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="card mb-3">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Mês</th>
+                    <th class="text-right">Receitas</th>
+                    <th class="text-right">Despesas</th>
+                    <th class="text-right">Investimentos</th>
+                    <th class="text-right">Saldo Final</th>
+                  </tr>
+                </thead>
+                <tbody id="extratoAnualBody">
+                  <!-- Gerado pelo JS -->
+                </tbody>
+                <tfoot id="extratoAnualFoot">
+                  <!-- Totais gerados pelo JS -->
+                </tfoot>
+              </table>
+            </div>
+            
+            <div class="card">
+              <div class="card-header"><span class="card-title">Evolução Patrimonial</span></div>
+              <div style="height: 300px; padding-top: 16px;">
+                <canvas id="extratoChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- ═══════════ TAB: CONFIGURAÇÕES ═══════════ -->
         <div class="tab-content" id="tab-configuracoes">
           <div class="section-header">
             <div>
@@ -962,6 +1053,33 @@
       </div>
     </div>
   </div>
+
+    <!-- Modal Profile -->
+    <div class="modal-overlay" id="modalProfile">
+      <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+          <div class="modal-title">Editar Perfil</div>
+          <button class="btn btn-ghost" onclick="closeModal('modalProfile')">✕</button>
+        </div>
+        <div class="form-group" style="text-align: center;">
+          <div class="profile-pic-large" style="width: 100px; height: 100px; border-radius: 50%; overflow: hidden; margin: 0 auto 16px auto; background: var(--bg-glass); border: 2px solid var(--border);">
+            <img id="profilePicPreview" src="" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+          <label class="btn btn-ghost btn-sm" style="cursor: pointer;">
+            📷 Alterar Foto
+            <input type="file" id="profilePicInput" accept="image/*" style="display: none;" onchange="app.handleProfilePicSelect(event)">
+          </label>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nome de Exibição</label>
+          <input type="text" class="form-input" id="profileNameInput" placeholder="Seu nome">
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" onclick="closeModal('modalProfile')">Cancelar</button>
+          <button class="btn btn-primary" onclick="app.saveProfile()">Salvar Perfil</button>
+        </div>
+      </div>
+    </div>
 
   <!-- Report Container (Hidden) -->
   <div id="reportContainer" style="display:none; background:white; color:black; padding:40px; font-family:sans-serif;">
