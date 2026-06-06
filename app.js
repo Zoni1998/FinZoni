@@ -401,12 +401,29 @@ class App {
 
     try {
       showToast('Atualizando senha...', 'info');
+      
+      // Explicitly set session from URL hash just in case Supabase hasn't persisted it
+      const hash = window.location.hash.substring(1);
+      const params = new URLSearchParams(hash);
+      const accessToken = params.get('access_token');
+      const refreshToken = params.get('refresh_token');
+      
+      if (accessToken && refreshToken) {
+        await sbClient.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken
+        });
+      }
+
       const { error } = await sbClient.auth.updateUser({ password: newPassword });
       
       if (error) {
         showToast('Erro ao atualizar: ' + error.message, 'error');
       } else {
         showToast('Senha atualizada com sucesso!', 'success');
+        // Clear the recovery hash so refresh doesn't trigger recovery mode
+        history.replaceState(null, null, ' ');
+        
         // Now logged in and password updated, proceed to dashboard
         document.getElementById('authOverlay').style.display = 'none';
         document.getElementById('appContainer').style.display = 'flex';
