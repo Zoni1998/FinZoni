@@ -406,6 +406,26 @@ body::before {
   animation: fadeIn 0.3s ease;
 }
 
+/* ── Skeletons ── */
+.loading-data .card-value {
+  position: relative;
+  overflow: hidden;
+  color: transparent !important;
+}
+.loading-data .card-value::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--bg-card-hover) 25%, var(--bg-input) 50%, var(--bg-card-hover) 75%);
+  background-size: 200% 100%;
+  animation: skeletonLoading 1.5s infinite;
+  border-radius: var(--radius-sm);
+}
+@keyframes skeletonLoading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
@@ -1829,4 +1849,40 @@ body::before {
 }
 .btn:active {
   transform: scale(0.96);
+}
+
+/* FAB IA */
+.fab-ia {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--purple), #b76cff);
+  color: white;
+  font-size: 1.8rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 15px rgba(138, 5, 190, 0.5);
+  cursor: pointer;
+  z-index: 999;
+  border: none;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+}
+
+.fab-ia:hover {
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 6px 20px rgba(138, 5, 190, 0.7);
+}
+
+@media (max-width: 768px) {
+  .fab-ia {
+    bottom: 80px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    font-size: 1.5rem;
+  }
 }

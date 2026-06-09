@@ -7,6 +7,8 @@
   <title>Dashboard Financeiro Pessoal</title>
   <meta name="description"
     content="Ferramenta completa de gestão financeira pessoal com controle de receitas, despesas, diárias e investimentos.">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0a0a1a">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css?v=18">
   <!-- Chart.js -->
@@ -168,7 +170,10 @@
           <span class="nav-icon">📈</span> Receitas
         </button>
         <button class="nav-item" data-tab="investimentos" id="nav-investimentos">
-          <span class="nav-icon">🏦</span> Investimentos
+          <span class="nav-icon">🏢</span> Investimentos
+        </button>
+        <button class="nav-item" data-tab="cartoes" id="nav-cartoes">
+          <span class="nav-icon">💳</span> Cartões
         </button>
         <button class="nav-item" data-tab="extrato" id="nav-extrato">
           <span class="nav-icon">📅</span> Extrato Anual
@@ -194,10 +199,18 @@
           <button class="month-nav-btn" id="nextMonth" aria-label="Próximo mês">▶</button>
         </div>
         <div class="header-actions">
+          <select id="mainThemeSelector" class="form-input" style="width:110px; padding: 4px 8px; font-size: 0.8rem; border-radius: 8px;" onchange="app.changeTheme(this.value)">
+            <option value="dark">Escuro</option>
+            <option value="light">Claro</option>
+            <option value="amoled">AMOLED</option>
+          </select>
           <div class="search-bar">
             <span class="search-icon">🔍</span>
             <input type="text" id="globalSearchInput" placeholder="Pesquisar..." onkeyup="app.handleGlobalSearch()">
           </div>
+          <button class="btn btn-ghost btn-icon" id="btnPrivacy" title="Modo Privacidade" onclick="app.togglePrivacy()">
+            👁️
+          </button>
           <button class="btn btn-ghost btn-icon" id="btnNotifications" title="Notificações" style="position: relative;" onclick="app.toggleNotifications()">
             🔔<span class="notification-badge" id="notificationBadge" style="display:none;">0</span>
           </button>
@@ -219,6 +232,29 @@
 
         <!-- ═══════════ TAB: DASHBOARD ═══════════ -->
         <div class="tab-content active" id="tab-dashboard">
+          <div class="section-header">
+            <div>
+              <div class="section-title">📊 Visão Geral</div>
+              <div class="section-subtitle">Gere um resumo detalhado deste mês.</div>
+            </div>
+          </div>
+          
+          <!-- Insight Diário da IA -->
+          <div class="card" style="background: linear-gradient(135deg, rgba(138, 5, 190, 0.1), rgba(183, 108, 255, 0.05)); border: 1px solid rgba(138, 5, 190, 0.3); border-left: 4px solid var(--purple); margin-bottom: 20px;">
+            <div style="display: flex; gap: 15px; align-items: flex-start;">
+              <div style="font-size: 2rem; background: linear-gradient(135deg, var(--purple), #b76cff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">✨</div>
+              <div style="flex: 1;">
+                <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center;">
+                  <span>Insight do FinZoni</span>
+                  <span id="insightTimer" style="font-size: 0.8rem; color: var(--text-secondary); font-weight: normal;">Analisando...</span>
+                </div>
+                <div id="insightContent" style="color: var(--text-secondary); line-height: 1.5; font-size: 0.95rem;">
+                  Carregando sua dica financeira do turno...
+                </div>
+              </div>
+            </div>
+          </div>
+          
           <!-- Summary Cards -->
           <div class="summary-grid" id="summaryCards">
             <div class="summary-card income">
@@ -430,6 +466,14 @@
             </table>
           </div>
 
+          <!-- Variable Expenses Budget -->
+          <div class="card mb-3">
+            <div class="card-header">
+              <span class="card-title">📊 Orçamento Variável (Budget)</span>
+            </div>
+            <div id="orcamentoVariavelGrid"></div>
+          </div>
+
           <!-- Total Summary -->
           <div class="card" style="border-left: 3px solid var(--red);">
             <div class="flex justify-between items-center flex-wrap gap-4">
@@ -548,6 +592,38 @@
           </div>
         </div>
 
+        <!-- ═══════════ TAB: LANÇAMENTOS ═══════════ -->
+        <div class="tab-content" id="tab-lancamentos">
+          <div class="section-header">
+            <div>
+              <div class="section-title">💸 Lançamentos</div>
+              <div class="section-subtitle">Registre e gerencie suas despesas e receitas.</div>
+            </div>
+            <div class="flex gap-2">
+              <button class="btn btn-primary" onclick="app.abrirModalDespesa()">+ Despesa</button>
+            </div>
+          </div>
+
+          <!-- Lançamento Mágico IA -->
+          <div class="card mb-3" style="background: linear-gradient(to right, #f4ebff, #ffffff); border-left: 4px solid var(--purple);">
+            <div style="font-weight: 600; color: var(--purple); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+              <span>✨</span> Lançamento Mágico com IA
+            </div>
+            <div class="flex gap-2">
+              <input type="text" id="magicoInput" class="form-input" placeholder="Ex: Comprei um lanche no burger king por 35 reais hoje" style="flex:1;" onkeydown="if(event.key === 'Enter') app.enviarLancamentoMagico()">
+              <button class="btn" style="background-color: var(--purple); color: white;" onclick="app.enviarLancamentoMagico()" id="btnMagico">Lançar Mágica</button>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 5px;">A Inteligência Artificial preencherá valor, data e categoria para você!</div>
+          </div>
+
+          <div class="card">
+            <div class="flex items-center gap-2 mb-3" style="justify-content: space-between;">
+              <h2 class="card-title">Extrato do Mês</h2>
+              <button class="btn btn-outline" style="font-size: 0.8rem; padding: 4px 8px; color: var(--purple); border-color: var(--purple);" onclick="app.autoCategorizarHistorico()">✨ Auto-Categorizar Sem Categoria</button>
+            </div>
+          </div>
+        </div>
+
         <!-- ═══════════ TAB: INVESTIMENTOS ═══════════ -->
         <div class="tab-content" id="tab-investimentos">
           
@@ -561,6 +637,20 @@
           <div class="achievements-panel card mb-4">
             <div class="achievements-grid" id="achievementsGrid">
               <!-- Renderized via JS -->
+            </div>
+          </div>
+
+          <!-- Desafio Mensal -->
+          <div class="challenge-panel card mb-4" style="border-left: 3px solid var(--purple);">
+            <div class="flex justify-between items-center flex-wrap gap-4">
+              <div style="flex: 1;">
+                <div class="card-title">⚔️ Desafio do Mês</div>
+                <div class="fs-sm" style="color: var(--text-secondary); margin-top:4px;" id="challengeDesc">Gaste menos em despesas variáveis do que no mês anterior para ganhar bônus de XP!</div>
+              </div>
+              <div style="text-align: right; min-width: 120px;">
+                <div class="fs-sm" style="color: var(--text-muted);">Status do Desafio</div>
+                <div class="fs-lg" style="color: var(--text-primary); font-weight: 700;" id="challengeStatus">Calculando...</div>
+              </div>
             </div>
           </div>
 
@@ -629,7 +719,156 @@
             <p>Nenhuma meta criada ainda</p>
             <button class="btn btn-primary btn-sm" id="btnAddMetaEmpty">+ Criar Primeira Meta</button>
           </div>
+
+          <!-- Consultoria AI -->
+          <div class="section-header mt-4">
+            <div>
+              <div class="section-title">🤖 Consultoria de Aportes (AI & Tempo Real)</div>
+              <div class="section-subtitle">Recomendações baseadas nas taxas atuais de mercado (Selic, CDI, Dólar)</div>
+            </div>
           </div>
+          
+          <div class="card mb-4" style="border-left: 3px solid var(--purple);">
+            <div class="flex gap-2 items-center mb-3">
+              <select id="consultoriaPersonaSelect" class="form-input" style="max-width: 200px;">
+                <option value="auto">Persona: Automática</option>
+                <option value="thiago">Thiago Nigro (Primo Rico)</option>
+                <option value="bruno">Bruno Perini (Você MAIS Rico)</option>
+                <option value="nathalia">Nathalia Arcuri (Me Poupe!)</option>
+                <option value="barsi">Luiz Barsi (Rei dos Dividendos)</option>
+                <option value="mira">Professor Mira</option>
+              </select>
+              <button class="btn btn-primary" id="btnGerarConsultoria" onclick="app.gerarConsultoria()">
+                ✨ Gerar Carteira Recomendada
+              </button>
+              <div id="consultoriaStatus" class="fs-sm hidden" style="color:var(--text-secondary);">
+                <span style="display:inline-block; animation: blink 1.4s infinite both;">⏳</span> Analisando mercado e calculando alocação...
+              </div>
+            </div>
+            
+            <div id="consultoriaMarketData" class="fs-sm mb-3 hidden" style="background: rgba(0,0,0,0.1); padding: 8px 12px; border-radius: 8px; color: var(--text-muted);">
+              <!-- Market data renderizado aqui -->
+            </div>
+            
+            <div id="consultoriaResultado" class="hidden">
+              <!-- Tabela Markdown e textos da IA -->
+            </div>
+          </div>
+
+          <!-- Simulator -->
+          <div class="section-header mt-4">
+            <div>
+              <div class="section-title">🧮 Simulador Financeiro</div>
+              <div class="section-subtitle">Projete juros compostos ou calcule financiamentos</div>
+            </div>
+          </div>
+          
+          <div class="card mb-4">
+            <div class="flex gap-2 mb-3" style="border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+              <button class="btn btn-primary btn-sm" id="btnSimTipoInv" onclick="app.setSimuladorTipo('investimento')">📈 Investimento</button>
+              <button class="btn btn-outline btn-sm" id="btnSimTipoFin" onclick="app.setSimuladorTipo('financiamento')">📉 Financiamento</button>
+            </div>
+            
+            <div class="grid-2 gap-3 mb-3">
+              <div class="form-group">
+                <label class="form-label" id="lblSimValor">Valor Inicial (R$)</label>
+                <input type="number" step="0.01" class="form-input" id="simValor" value="1000">
+              </div>
+              <div class="form-group">
+                <label class="form-label" id="lblSimAporte">Aporte Mensal (R$)</label>
+                <input type="number" step="0.01" class="form-input" id="simAporte" value="200">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Taxa de Juros (% ao mês)</label>
+                <input type="number" step="0.01" class="form-input" id="simTaxa" value="1.0">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Prazo (em meses)</label>
+                <input type="number" class="form-input" id="simPrazo" value="12">
+              </div>
+            </div>
+            
+            <button class="btn btn-success" style="width: 100%" onclick="app.calcularSimulador()">Calcular</button>
+            
+            <div id="simuladorResultados" class="mt-4 hidden">
+              <div class="grid-3 gap-2 mb-3">
+                <div class="stat-card" style="padding: 12px; text-align: center;">
+                  <div class="fs-sm" style="color:var(--text-muted)" id="lblSimResTotal">Total Acumulado</div>
+                  <div style="font-size: 1.2rem; font-weight: bold; color:var(--text-primary)" id="simResTotal">R$ 0,00</div>
+                </div>
+                <div class="stat-card" style="padding: 12px; text-align: center;">
+                  <div class="fs-sm" style="color:var(--text-muted)">Valor Principal</div>
+                  <div style="font-size: 1.2rem; font-weight: bold; color:var(--text-primary)" id="simResPrincipal">R$ 0,00</div>
+                </div>
+                <div class="stat-card" style="padding: 12px; text-align: center; border-bottom: 2px solid var(--green);" id="simResJurosCard">
+                  <div class="fs-sm" style="color:var(--text-muted)" id="lblSimResJuros">Juros Ganhos</div>
+                  <div style="font-size: 1.2rem; font-weight: bold; color:var(--green)" id="simResJuros">R$ 0,00</div>
+                </div>
+              </div>
+              
+              <div style="height: 250px; width: 100%; position: relative;">
+                <canvas id="simuladorChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+          <!-- ═══════════ TAB: CARTÕES ═══════════ -->
+        <div class="tab-content" id="tab-cartoes">
+          <div class="section-header">
+            <div>
+              <div class="section-title">💳 Meus Cartões de Crédito</div>
+              <div class="section-subtitle">Acompanhe seus limites, compras parceladas e faturas</div>
+            </div>
+            <div class="flex gap-2">
+              <button class="btn btn-outline" id="btnAddCartao">+ Novo Cartão</button>
+              <button class="btn btn-primary" id="btnNovaCompraCartao">💳 Lançar Compra</button>
+            </div>
+          </div>
+          
+          <!-- Lista de Cartões (Grid) -->
+          <div class="achievements-grid mb-4" id="cartoesGrid">
+            <!-- Renderized via JS -->
+          </div>
+
+          <!-- Fatura Mensal -->
+          <div class="card mb-3" style="border-left: 3px solid var(--purple);">
+            <div class="card-header">
+              <span class="card-title">📜 Fatura do Mês</span>
+              <div class="flex gap-2 items-center">
+                <select class="form-input" id="faturaMonthSelect" onchange="app.renderFaturas()" style="width: 150px;">
+                  <!-- Renderized via JS -->
+                </select>
+                <select class="form-input" id="faturaCartaoSelect" onchange="app.renderFaturas()" style="width: 150px;">
+                  <option value="all">Todos os Cartões</option>
+                  <!-- Renderized via JS -->
+                </select>
+              </div>
+            </div>
+            <div class="flex justify-between items-center mb-3">
+              <div class="fs-lg">Total da Fatura: <strong id="faturaTotalMes" style="color:var(--red);">R$ 0,00</strong></div>
+              <button class="btn btn-success btn-sm" id="btnPagarFatura">Pagar Fatura no Mês Atual</button>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Cartão</th>
+                    <th>Descrição</th>
+                    <th class="text-center">Parcela</th>
+                    <th class="text-right">Valor Parcela</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="faturaItemsBody">
+                  <!-- Renderized via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
 
           <!-- ═══════════ TAB: EXTRATO ANUAL ═══════════ -->
           <div class="tab-content" id="tab-extrato">
@@ -685,6 +924,30 @@
               <div class="section-subtitle">Gerencie clínicas, categorias e dados</div>
             </div>
           </div>
+            
+            <div class="card mb-3">
+              <h2 class="card-title">🔗 Integração</h2>
+              <div class="form-group mt-3">
+                <label class="form-label">Sincronização Nuvem (Apps Script Web App URL)</label>
+                <div class="flex gap-2">
+                  <input type="text" class="form-input" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/...">
+                  <button class="btn btn-primary" onclick="app.updateAppsScriptUrl(document.getElementById('appsScriptUrl').value)">Salvar URL</button>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 5px;">Se deixado em branco, o sistema usará apenas o LocalStorage/Supabase configurado nativamente.</div>
+              </div>
+            </div>
+            
+            <div class="card mb-3">
+              <h2 class="card-title">✨ Inteligência Artificial</h2>
+              <div class="form-group mt-3">
+                <label class="form-label">Chave da API (Groq)</label>
+                <div class="flex gap-2">
+                  <input type="password" class="form-input" id="groqApiKey" placeholder="gsk_...">
+                  <button class="btn" style="background-color: var(--purple); color: white;" onclick="app.saveGroqKey()">Salvar Chave</button>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 5px;">Acesse <a href="https://console.groq.com" target="_blank" style="color:var(--purple);">console.groq.com</a> para gerar sua chave gratuitamente. A chave fica salva apenas no seu PC.</div>
+              </div>
+            </div>
 
           <!-- Clinics -->
           <div class="card mb-3">
@@ -720,6 +983,24 @@
                 </tr>
               </thead>
               <tbody id="categoriasFixasBody"></tbody>
+            </table>
+          </div>
+
+          <!-- Variable Expense Categories (Budgets) -->
+          <div class="card mb-3">
+            <div class="card-header">
+              <span class="card-title">📊 Orçamentos de Gastos Variáveis</span>
+              <button class="btn btn-ghost btn-sm" id="btnAddCategoriaVar">+ Adicionar</button>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Categoria</th>
+                  <th class="text-right">Orçamento (R$)</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="categoriasVarBody"></tbody>
             </table>
           </div>
 
@@ -796,7 +1077,14 @@
       </div>
       <div class="form-group">
         <label class="form-label">Descrição</label>
-        <input type="text" class="form-input" id="gastoVarDescricao" placeholder="Ex: Mercado Guanabara">
+        <input type="text" class="form-input" id="gastoVarDescricao" placeholder="Ex: Almoço, Uber" onblur="app.sugerirCategoriaAuto(this.value)">
+        <div id="categoriaSugestaoLabel" style="font-size: 0.75rem; color: var(--purple); margin-top: 4px; display: none;">✨ Sugerindo categoria com IA...</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Categoria</label>
+        <select class="form-select" id="gastoVarCategoria">
+          <!-- Filled by JS -->
+        </select>
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -1088,7 +1376,109 @@
 
   <div id="toastContainer" class="toast-container"></div>
   <!-- Application Script -->
-  <script src="app.js?v=15"></script>
-</body>
+  <!-- Modal Adicionar/Editar Cartão -->
+  <div class="modal-overlay" id="modalCartao">
+    <div class="modal" style="max-width: 400px;">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalCartaoTitle">Adicionar Cartão</h2>
+        <button class="modal-close" onclick="closeModal('modalCartao')">✕</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nome do Cartão</label>
+        <input type="text" class="form-input" id="cartaoNome" placeholder="Ex: Nubank, Itaú">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Limite Total (R$)</label>
+        <input type="number" class="form-input" id="cartaoLimite" step="0.01" placeholder="0,00">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Dia do Fechamento</label>
+          <input type="number" class="form-input" id="cartaoFechamento" min="1" max="31" placeholder="Ex: 25">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Dia do Vencimento</label>
+          <input type="number" class="form-input" id="cartaoVencimento" min="1" max="31" placeholder="Ex: 5">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Cor de Identificação</label>
+        <input type="color" class="form-input" id="cartaoCor" value="#8a05be" style="height:40px; padding:2px;">
+      </div>
+      <button class="btn btn-primary w-100" id="btnSalvarCartao">Salvar Cartão</button>
+    </div>
+  </div>
 
+  <!-- Modal Nova Compra Cartão -->
+  <div class="modal-overlay" id="modalCompraCartao">
+    <div class="modal" style="max-width: 400px;">
+      <div class="modal-header">
+        <h2 class="modal-title">Lançar Compra no Cartão</h2>
+        <button class="modal-close" onclick="closeModal('modalCompraCartao')">✕</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Cartão</label>
+        <select class="form-select" id="compraCartaoId">
+          <!-- Renderized via JS -->
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descrição</label>
+        <input type="text" class="form-input" id="compraDescricao" placeholder="Ex: TV, Geladeira, Supermercado">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Data da Compra</label>
+        <input type="date" class="form-input" id="compraData">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Valor Total (R$)</label>
+          <input type="number" class="form-input" id="compraValorTotal" step="0.01" placeholder="0,00">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Parcelas (x)</label>
+          <input type="number" class="form-input" id="compraParcelas" min="1" value="1">
+        </div>
+      </div>
+      <button class="btn btn-primary w-100" id="btnSalvarCompraCartao">Lançar Compra</button>
+    </div>
+  </div>
+
+  <!-- Modal IA (Chat Financeiro) -->
+  <div class="modal-overlay" id="modalIA">
+    <div class="modal" style="max-width: 600px; height: 85vh; display: flex; flex-direction: column;">
+      <div class="modal-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+        <h2 class="modal-title flex items-center gap-2"><span style="font-size: 1.5rem;">✨</span> Consultor FinZoni</h2>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <select id="iaPersonaSelector" class="form-input" style="padding: 4px 8px; font-size: 0.85rem; height: auto; max-width: 150px;" onchange="app.changeIAPersona()">
+            <option value="auto">Especialista (Aba Atual)</option>
+            <option value="thiago">Thiago Nigro (Primo Rico)</option>
+            <option value="bruno">Bruno Perini</option>
+            <option value="nathalia">Nathalia Arcuri (Me Poupe)</option>
+            <option value="barsi">Luiz Barsi (Dividendos)</option>
+            <option value="mira">Professor Mira (Renda Variável)</option>
+          </select>
+          <button class="btn-icon" style="font-size: 0.8rem; border: 1px solid var(--border-color); border-radius: 4px; padding: 4px 8px; color: var(--text-secondary);" onclick="app.limparChatIA()" title="Limpar conversa">Limpar</button>
+          <button class="modal-close" onclick="closeModal('modalIA')">✕</button>
+        </div>
+      </div>
+      
+      <div id="iaChatHistory" style="flex: 1; overflow-y: auto; padding: 15px 5px; display: flex; flex-direction: column; gap: 15px;">
+        <!-- Mensagens serão inseridas aqui via JS -->
+      </div>
+      
+      <div style="padding-top: 15px; border-top: 1px solid var(--border-color); display: flex; gap: 8px;">
+        <input type="text" id="iaChatInput" class="form-input" style="flex: 1;" placeholder="Pergunte sobre seus gastos..." onkeydown="if(event.key === 'Enter') app.enviarMensagemIA()">
+        <button class="btn" style="background-color: var(--purple); color: white; border-radius: 50%; width: 40px; height: 40px; padding: 0; display: flex; justify-content: center; align-items: center;" onclick="app.enviarMensagemIA()" id="btnSendIA">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAB IA -->
+  <button class="fab-ia" onclick="app.consultarIA()" title="Falar com o FinZoni">
+    ✨
+  </button>
+
+  <script src="app.js?v=12"></script>
+</body>
 </html>

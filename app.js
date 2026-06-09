@@ -30,6 +30,14 @@ function getDefaultData() {
       { id: 'condominio', nome: 'Condomínio', compartilhado: true },
       { id: 'celular', nome: 'Celular (Parcelas)', compartilhado: false }
     ],
+    categoriasVariaveis: [
+      { id: 'alimentacao', nome: 'Alimentação', orcamento: 500 },
+      { id: 'lazer', nome: 'Lazer', orcamento: 300 },
+      { id: 'transporte', nome: 'Transporte', orcamento: 200 }
+    ],
+    cartoes: [],
+    comprasCartao: [],
+    groqApiKey: '',
     reserva: {
       movimentacoes: [],
       obs: ''
@@ -91,6 +99,9 @@ class DataManager {
         if (!this.data.metas) this.data.metas = [];
         if (!this.data.reserva) this.data.reserva = { movimentacoes: [], obs: '' };
         if (!this.data.categoriasFixas) this.data.categoriasFixas = getDefaultData().categoriasFixas;
+        if (!this.data.categoriasVariaveis) this.data.categoriasVariaveis = getDefaultData().categoriasVariaveis;
+        if (!this.data.cartoes) this.data.cartoes = [];
+        if (!this.data.comprasCartao) this.data.comprasCartao = [];
       } else {
         // Auto-Migration from localStorage
         const localRaw = localStorage.getItem('findash_data_v1');
@@ -101,6 +112,9 @@ class DataManager {
             if (!parsed.metas) parsed.metas = [];
             if (!parsed.reserva) parsed.reserva = { movimentacoes: [], obs: '' };
             if (!parsed.categoriasFixas) parsed.categoriasFixas = getDefaultData().categoriasFixas;
+            if (!parsed.categoriasVariaveis) parsed.categoriasVariaveis = getDefaultData().categoriasVariaveis;
+            if (!parsed.cartoes) parsed.cartoes = [];
+            if (!parsed.comprasCartao) parsed.comprasCartao = [];
             this.data = parsed;
             showToast('Dados do seu PC importados para a Nuvem com sucesso!', 'success');
             // Save to Supabase immediately
@@ -198,7 +212,10 @@ class DataManager {
 }
 
 // ── UTILITY FUNCTIONS ──
+let isPrivacyMode = localStorage.getItem('findash_privacy') === 'true';
+
 function formatCurrency(value) {
+  if (isPrivacyMode) return 'R$ ****';
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0);
 }
 
@@ -243,6 +260,7 @@ function closeModal(id) {
   document.getElementById(id).classList.remove('show');
 }
 
+
 // ── MAIN APP ──
 class App {
   constructor() {
@@ -251,6 +269,7 @@ class App {
     this.charts = {};
     this.selectedDay = null;
     this.editingMetaId = null;
+    this.conversationHistory = [];
 
     this.checkSession();
   }
@@ -300,9 +319,11 @@ class App {
 
     if (data.session) {
       this.dm.userId = data.session.user.id;
-      await this.dm.load();
       document.getElementById('authOverlay').style.display = 'none';
       document.getElementById('appContainer').style.display = 'flex';
+      document.getElementById('appContainer').classList.add('loading-data');
+      await this.dm.load();
+      document.getElementById('appContainer').classList.remove('loading-data');
       this.init();
     } else {
       document.getElementById('authOverlay').style.display = 'flex';
@@ -336,9 +357,11 @@ class App {
         }
         showToast('Login efetuado com sucesso!', 'success');
         this.dm.userId = data.session.user.id;
-        await this.dm.load();
         document.getElementById('authOverlay').style.display = 'none';
         document.getElementById('appContainer').style.display = 'flex';
+        document.getElementById('appContainer').classList.add('loading-data');
+        await this.dm.load();
+        document.getElementById('appContainer').classList.remove('loading-data');
         this.init();
       }
     } catch (e) {
@@ -362,9 +385,11 @@ class App {
         if (data.session) {
           showToast('Conta criada com sucesso!', 'success');
           this.dm.userId = data.session.user.id;
-          await this.dm.load();
           document.getElementById('authOverlay').style.display = 'none';
           document.getElementById('appContainer').style.display = 'flex';
+          document.getElementById('appContainer').classList.add('loading-data');
+          await this.dm.load();
+          document.getElementById('appContainer').classList.remove('loading-data');
           this.init();
         } else {
           showToast('Conta criada! Por favor verifique seu email (ou desative a confirmação de E-mail no Supabase para login automático).', 'warning');
@@ -432,12 +457,17 @@ class App {
         const { data: sessionData } = await sbClient.auth.getSession();
         if (sessionData && sessionData.session) {
           this.dm.userId = sessionData.session.user.id;
+          document.getElementById('authOverlay').style.display = 'none';
+          document.getElementById('appContainer').style.display = 'flex';
+          document.getElementById('appContainer').classList.add('loading-data');
           await this.dm.load();
+          document.getElementById('appContainer').classList.remove('loading-data');
+        } else {
+          document.getElementById('authOverlay').style.display = 'none';
+          document.getElementById('appContainer').style.display = 'flex';
         }
 
         // Now logged in and password updated, proceed to dashboard
-        document.getElementById('authOverlay').style.display = 'none';
-        document.getElementById('appContainer').style.display = 'flex';
         this.init();
       }
     } catch (e) {
@@ -458,6 +488,14 @@ class App {
   }
 
   init() {
+    if (!this.dm.data.categoriasVariaveis || this.dm.data.categoriasVariaveis.length === 0) {
+      this.dm.data.categoriasVariaveis = [
+        { id: 'alimentacao', nome: 'Alimentação', orcamento: 500 },
+        { id: 'transporte', nome: 'Transporte', orcamento: 200 }
+      ];
+      this.dm.save();
+    }
+    
     this.bindNavigation();
     this.bindMonthSelector();
     this.bindModals();
@@ -465,7 +503,20 @@ class App {
     this.bindNotes();
     this.initTheme();
     this.updateProfileUI();
+    this.updatePrivacyIcon();
     this.renderAll();
+  }
+
+  togglePrivacy() {
+    isPrivacyMode = !isPrivacyMode;
+    localStorage.setItem('findash_privacy', isPrivacyMode);
+    this.updatePrivacyIcon();
+    this.renderAll();
+  }
+
+  updatePrivacyIcon() {
+    const btn = document.getElementById('btnPrivacy');
+    if (btn) btn.innerHTML = isPrivacyMode ? '🙈' : '👁️';
   }
 
   // ── THEME ──
@@ -477,6 +528,18 @@ class App {
   changeTheme(theme) {
     localStorage.setItem('findash_theme', theme);
     this.applyTheme(theme);
+    this.renderAll();
+  }
+
+  getChartColors() {
+    const isLight = document.documentElement.classList.contains('theme-light');
+    return {
+      text: isLight ? '#1a1a24' : '#e8e8f0',
+      grid: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)',
+      tooltipBg: isLight ? 'rgba(255,255,255,0.95)' : '#1a1a2e',
+      tooltipText: isLight ? '#1a1a24' : '#e8e8f0',
+      tooltipBorder: isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)'
+    };
   }
 
   applyTheme(theme) {
@@ -492,6 +555,9 @@ class App {
     
     const authSelector = document.getElementById('authThemeSelector');
     if (authSelector) authSelector.value = theme;
+
+    const mainSelector = document.getElementById('mainThemeSelector');
+    if (mainSelector) mainSelector.value = theme;
   }
 
   // ── NAVIGATION ──
@@ -503,6 +569,7 @@ class App {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         const tab = document.getElementById('tab-' + btn.dataset.tab);
         if (tab) tab.classList.add('active');
+        this.activeTab = btn.dataset.tab;
         this.renderCurrentTab(btn.dataset.tab);
         // Close mobile menu
         document.getElementById('sidebar').classList.remove('open');
@@ -627,9 +694,50 @@ class App {
       document.getElementById('gastoVarDescricao').value = '';
       document.getElementById('gastoVarValor').value = '';
       document.getElementById('gastoVarData').value = `${YEAR}-${String(this.currentMonth).padStart(2,'0')}-01`;
+      const catSelect = document.getElementById('gastoVarCategoria');
+      if (catSelect) {
+        catSelect.innerHTML = (this.dm.data.categoriasVariaveis || []).map(c => `<option value="${c.id}">${c.nome}</option>`).join('') + '<option value="">Sem categoria</option>';
+      }
       openModal('modalGastoVar');
     });
     document.getElementById('btnSalvarGastoVar').addEventListener('click', () => this.saveGastoVar());
+
+    // Cartões
+    const btnAddCartao = document.getElementById('btnAddCartao');
+    if (btnAddCartao) {
+      btnAddCartao.addEventListener('click', () => {
+        document.getElementById('cartaoNome').value = '';
+        document.getElementById('cartaoLimite').value = '';
+        document.getElementById('cartaoFechamento').value = '';
+        document.getElementById('cartaoVencimento').value = '';
+        document.getElementById('modalCartaoTitle').textContent = 'Adicionar Cartão';
+        openModal('modalCartao');
+      });
+    }
+    const btnSalvarCartao = document.getElementById('btnSalvarCartao');
+    if (btnSalvarCartao) btnSalvarCartao.addEventListener('click', () => this.saveCartao());
+
+    const btnNovaCompraCartao = document.getElementById('btnNovaCompraCartao');
+    if (btnNovaCompraCartao) {
+      btnNovaCompraCartao.addEventListener('click', () => {
+        const select = document.getElementById('compraCartaoId');
+        if (!this.dm.data.cartoes || this.dm.data.cartoes.length === 0) {
+          showToast('Adicione um cartão primeiro!', 'error');
+          return;
+        }
+        select.innerHTML = this.dm.data.cartoes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+        document.getElementById('compraDescricao').value = '';
+        document.getElementById('compraData').value = new Date().toISOString().slice(0,10);
+        document.getElementById('compraValorTotal').value = '';
+        document.getElementById('compraParcelas').value = '1';
+        openModal('modalCompraCartao');
+      });
+    }
+    const btnSalvarCompraCartao = document.getElementById('btnSalvarCompraCartao');
+    if (btnSalvarCompraCartao) btnSalvarCompraCartao.addEventListener('click', () => this.saveCompraCartao());
+
+    const btnPagarFatura = document.getElementById('btnPagarFatura');
+    if (btnPagarFatura) btnPagarFatura.addEventListener('click', () => this.pagarFaturaMes());
 
     // Fixed Expense (add to current month)
     document.getElementById('btnAddGastoFixo').addEventListener('click', () => {
@@ -703,9 +811,10 @@ class App {
     const desc = document.getElementById('gastoVarDescricao').value.trim();
     const valor = parseFloat(document.getElementById('gastoVarValor').value);
     const data = document.getElementById('gastoVarData').value;
+    const categoriaId = document.getElementById('gastoVarCategoria').value;
     if (!desc || !valor) { showToast('Preencha todos os campos!', 'error'); return; }
     const mes = this.dm.getMonth(this.currentMonth);
-    mes.gastosVariaveis.push({ id: generateId(), descricao: desc, valor, data });
+    mes.gastosVariaveis.push({ id: generateId(), descricao: desc, valor, data, categoriaId });
     this.dm.save();
     closeModal('modalGastoVar');
     this.renderAll();
@@ -948,6 +1057,598 @@ class App {
     showToast('URL do Apps Script salva!', 'success');
   }
 
+  saveGroqKey() {
+    const el = document.getElementById('groqApiKey');
+    if (!el) return;
+    this.dm.data.groqApiKey = el.value.trim();
+    this.dm.save();
+    showToast('Chave da API salva com sucesso!', 'success');
+  }
+
+  // --- IA Avançada ---
+  async getSystemPrompt(personaOverride) {
+    const m = this.currentMonth;
+    const mesObj = this.dm.getMonth(m);
+    
+    // 1. Receitas & Despesas Gerais
+    const receitas = Number(this.calcTotalReceitas(m) || 0);
+    const resumo = this.calcResumoDespesas(m);
+    const despTotal = Number(resumo.total || 0);
+    const producao = Number(this.calcProducaoDoMes(m) || 0);
+    const saldoFinal = Number(receitas - despTotal);
+    
+    // 2. Transações
+    const trRecs = (mesObj.receitas || []).map(r => `Rec: ${r.descricao} R$${Number(r.valor || 0).toFixed(2)} (Data: ${r.data})`).join('; ');
+    const trFixas = (mesObj.gastosFixos || []).map(g => `Fixo: ${g.descricao} R$${Number(g.valor || 0).toFixed(2)} (Data: ${g.data})`).join('; ');
+    const trVars = (mesObj.gastosVariaveis || []).map(g => `Var: ${g.descricao} R$${Number(g.valor || 0).toFixed(2)} (Cat: ${g.categoriaId}, Data: ${g.data})`).join('; ');
+
+    // 3. Orçamento de Categorias Variáveis
+    const catVarsText = (this.dm.data.categoriasVariaveis || []).map(cat => {
+      const gastoCat = (mesObj.gastosVariaveis || []).filter(g => g.categoriaId === cat.id).reduce((sum, g) => sum + Number(g.valor || 0), 0);
+      return `${cat.nome} (ID: ${cat.id}): Gasto R$ ${gastoCat.toFixed(2)} de R$ ${Number(cat.orcamento || 0).toFixed(2)}`;
+    }).join('; ');
+
+    // 4. Diárias (Produção)
+    let diariasText = '';
+    if (mesObj.diarias && mesObj.diarias.modo === 'automatico') {
+      const worked = mesObj.diarias.diasTrabalhados || {};
+      Object.keys(worked).forEach(d => {
+         const dataStr = `${m}-${d.padStart(2, '0')}`;
+         worked[d].forEach(e => {
+            const clinic = this.dm.data.clinicas.find(c => c.id === e.clinicaId);
+            const cName = clinic ? clinic.nome : 'Extra';
+            diariasText += `Diária: ${cName} R$${Number(e.valor || 0).toFixed(2)} (Data: ${dataStr}); `;
+         });
+      });
+    } else if (mesObj.diarias && mesObj.diarias.modo === 'manual') {
+      const manual = mesObj.diarias.manual || {};
+      Object.keys(manual).forEach(id => {
+         const clinic = this.dm.data.clinicas.find(c => c.id === id);
+         const cName = clinic ? clinic.nome : 'Extra';
+         diariasText += `Diária Manual: ${cName} -> ${manual[id].diasReais || 0} dias trabalhados, R$${Number(manual[id].valorReal || 0).toFixed(2)}; `;
+      });
+    }
+    if (!diariasText) diariasText = 'Nenhuma diária registrada.';
+
+    // 5. Investimentos e Reserva
+    const reservaSaldo = Number(this.calcReserva().saldo || 0);
+    
+    // Calcula o total investido/depositado no mês atual
+    let investidoNoMes = 0;
+    const prefixMes = `${YEAR}-${String(m).padStart(2, '0')}`;
+    (this.dm.data.reserva.movimentacoes || []).forEach(mov => {
+      if (mov.data && mov.data.startsWith(prefixMes) && mov.tipo === 'deposito') investidoNoMes += mov.valor;
+    });
+    const metasText = (this.dm.data.metas || []).map(mt => {
+      let depMes = 0;
+      (mt.historico || []).forEach(h => {
+        if (h.data && h.data.startsWith(prefixMes)) depMes += h.valor;
+      });
+      investidoNoMes += depMes;
+      return `Objetivo: ${mt.nome} | Saldo Acumulado R$${Number(mt.valorAtual || 0).toFixed(2)} / Alvo R$${Number(mt.valorMeta || 0).toFixed(2)} | Aportado neste mês: R$${depMes.toFixed(2)}`;
+    }).join('; ');
+
+    // 6. Histórico Resumido dos Meses Anteriores
+    let historicoMesesText = '';
+    const todosMeses = Object.keys(this.dm.data.meses || {}).sort();
+    todosMeses.forEach(mesChave => {
+      if (mesChave !== m) {
+        const hRecs = Number(this.calcTotalReceitas(mesChave) || 0);
+        const hDesps = Number(this.calcResumoDespesas(mesChave).total || 0);
+        const hProd = Number(this.calcProducaoDoMes(mesChave) || 0);
+        historicoMesesText += `Mês ${mesChave}: Receitas/Salário R$ ${hRecs.toFixed(2)} | Despesas R$ ${hDesps.toFixed(2)} | Produção/Diárias R$ ${hProd.toFixed(2)}\n`;
+      }
+    });
+    if (!historicoMesesText) historicoMesesText = 'Nenhum histórico anterior.';
+
+    // 7. Datas de Referência
+    const hojeObj = new Date();
+    const hojeStr = hojeObj.toISOString().slice(0, 10);
+    const ontemObj = new Date(hojeObj);
+    ontemObj.setDate(ontemObj.getDate() - 1);
+    const ontemStr = ontemObj.toISOString().slice(0, 10);
+
+    // 8. Contexto da Aba Atual (Persona Especialista) ou Persona Famosa Selecionada
+    const selectorEl = document.getElementById('iaPersonaSelector');
+    const selectedPersona = personaOverride || (selectorEl ? selectorEl.value : 'auto');
+    let contextoLocal = '';
+
+    if (selectedPersona === 'thiago') {
+      contextoLocal = "PAPEL: Thiago Nigro. AÇÃO: Analise as finanças focando no longo prazo e na metodologia ARCA. Seja educado, direto e chame o usuário de 'Primo' de vez em quando. Ajude-o a encontrar dinheiro para aportar.";
+    } else if (selectedPersona === 'bruno') {
+      contextoLocal = "PAPEL: Bruno Perini. AÇÃO: Analise os números de forma objetiva, lógica e pragmática. Fale de forma séria. Dê dicas sobre consistência, estoicismo e a importância de criar fontes de renda e aportar com disciplina.";
+    } else if (selectedPersona === 'nathalia') {
+      contextoLocal = "PAPEL: Nathalia Arcuri. AÇÃO: Fale de forma levemente irreverente sobre cortes de gastos, mas sem perder a lógica. Ensine a regra 70/30 de forma didática. Ocasionalmente chame o usuário de 'criatura', mas priorize ser uma consultora útil e analítica.";
+    } else if (selectedPersona === 'barsi') {
+      contextoLocal = "PAPEL: Luiz Barsi. AÇÃO: Analise a carteira focando em dividendos e longo prazo. Defenda ações sólidas e descarte a especulação. Fale de forma madura e didática.";
+    } else if (selectedPersona === 'mira') {
+      contextoLocal = "PAPEL: Professor Mira. AÇÃO: Assuma a postura de um professor paciente de Renda Variável. Explique a lógica dos investimentos de forma clara e simples.";
+    } else {
+      const contextosAbas = {
+        dashboard: "PAPEL: Planejador Financeiro Sênior.\\nAÇÃO: Analise a macro-visão financeira. Compare as receitas com as despesas totais. Alerte sobre desequilíbrios entre o que se ganha e o que se gasta. Dê conselhos estratégicos de alto nível para crescimento de patrimônio. Seja analítico e mire no longo prazo.",
+        diarias: "PAPEL: Gestor de Carreira / Especialista em Faturamento Médico.\\nAÇÃO: Analise os dias trabalhados e o valor da 'Produção'. Avalie se o usuário está otimizando bem o tempo e o valor de cada clínica. Dê opiniões francas sobre clínicas que pagam pouco e incentive renegociação de diárias ou aumento de turnos onde paga mais.",
+        despesas: "PAPEL: Analista de Redução de Custos (Implacável).\\nAÇÃO: Inspecione rigorosamente os 'Gastos Fixos' e 'Gastos Variáveis'. Procure padrões de desperdício (como muito gasto em comida, apps ou supérfluos). Critique orçamentos estourados nas Categorias e sugira ações imediatas para enxugar despesas de forma inteligente.",
+        receitas: "PAPEL: Consultor de Aumento de Renda e Negócios.\\nAÇÃO: Analise o Salário atual e rendas extras. Sugira formas de diversificação de renda e estratégias ativas para ele faturar mais no seu serviço.",
+        lancamentos: "PAPEL: Assistente Pessoal de Contabilidade.\\nAÇÃO: Seu objetivo é agilizar registros. Ajude o usuário a categorizar gastos rapidamente e aponte se o lançamento atual vai estourar a categoria dele.",
+        investimentos: "PAPEL: Assessor de Investimentos (Private Wealth).\\nAÇÃO: Avalie o progresso da Reserva de Emergência e Metas. Calcule mentalmente se a reserva está segura. Dê dicas avançadas (como CDBs de liquidez diária para reserva, Tesouro Direto, e diversificação para metas longas). Incentive aportes consistentes.",
+        cartoes: "PAPEL: Especialista em Gestão de Crédito e Milhas.\\nAÇÃO: Foque no peso das faturas do cartão de crédito. Aconselhe fortemente contra parcelamentos longos ou atrasos (juros rotativos). Avalie se a fatura está consumindo uma porcentagem perigosa da receita total e ensine a usar o limite ao favor dele.",
+        extrato: "PAPEL: Auditor Contábil.\\nAÇÃO: Faça análises precisas. Quando o usuário pedir um histórico de dias (como ontem ou anteontem), varra as listas de gastos/receitas e entregue relatórios exatos do fluxo de caixa e somatórias perfeitas.",
+        configuracoes: "PAPEL: Especialista de Suporte do Sistema.\\nAÇÃO: Ajude o usuário a configurar a plataforma, chaves de API e extrair o melhor do App."
+      };
+      contextoLocal = contextosAbas[this.activeTab] || 'Você é o consultor financeiro do usuário.';
+    }
+
+    return `ATENÇÃO: Você DEVE assumir TOTALMENTE a identidade e o estilo da Persona definida abaixo. NUNCA diga que você é uma IA. Aja, fale e respire como a pessoa ou especialista descrito, incorporando a linguagem de forma natural em todo o texto (não apenas colando bordões no começo).
+
+CONTEXTO E IDENTIDADE ATUAL:
+**${contextoLocal}**
+
+REGRAS DE NEGÓCIO:
+1. "Produção" e "Diárias" significam a mesma coisa: o dinheiro gerado trabalhando em clínicas no mês atual.
+2. O que ele "Produz" no mês atual será recebido como "Salário" (Receitas) no MÊS SEGUINTE.
+
+DATAS DO CALENDÁRIO (USE PARA RESPONDER PERGUNTAS SOBRE HOJE/ONTEM):
+- HOJE: ${hojeStr}
+- ONTEM: ${ontemStr}
+
+DADOS FINANCEIROS GERAIS DO MÊS ATUAL (${m}):
+- Saldo em Caixa (Receitas - Despesas): R$ ${saldoFinal.toFixed(2)}
+- Produção Gerada Neste Mês (Diárias trabalhadas): R$ ${producao.toFixed(2)}
+- Receitas Totais Recebidas (Salário): R$ ${receitas.toFixed(2)}
+- Despesas Totais (Fixas + Variáveis): R$ ${despTotal.toFixed(2)}
+- Total Investido/Aportado Neste Mês: R$ ${investidoNoMes.toFixed(2)}
+- Reserva de Emergência: R$ ${reservaSaldo.toFixed(2)}
+- Metas de Investimento: ${metasText || 'Nenhuma'}
+- Orçamentos de Categorias Variáveis: ${catVarsText || 'Nenhuma'}
+
+HISTÓRICO DE MESES PASSADOS:
+${historicoMesesText}
+
+TRANSAÇÕES DO MÊS DETALHADAS (Procure nestas listas se perguntarem de dias específicos):
+- Diárias/Produção Trabalhadas: [${diariasText}]
+- Receitas Recebidas: [${trRecs || 'Nenhuma'}]
+- Gastos Fixos Pagos: [${trFixas || 'Nenhuma'}]
+- Gastos Variáveis (do dia a dia): [${trVars || 'Nenhuma'}]
+
+INSTRUÇÕES CRÍTICAS PARA A SUA ATUAÇÃO:
+1. **É ESTRITAMENTE PROIBIDO agir como um assistente de IA ou atendente de telemarketing.** Não use frases clichês como "Como posso ajudar?", "Aproveite para...", "Se precisar de mais alguma coisa". 
+2. A sua resposta inteira (do começo ao fim) deve parecer ter sido escrita pela pessoa real da Persona escolhida. Impregne o texto com a personalidade, tom de voz, ironia ou seriedade exigidos pelo seu papel.
+3. Formate sempre os valores em R$ e negrito.
+4. Se o usuário perguntar de um gasto (ex: iFood) e ele não estiver na lista de transações, reaja de acordo com a sua Persona (ex: dê uma bronca por não ter anotado, ou diga que não encontrou na análise), mas NUNCA use frases robóticas do tipo "não tenho registro no sistema".`;
+  }
+
+  async callGroq(messages, max_tokens = 500, temp = 0.7, jsonMode = false) {
+    const apiKey = this.dm.data.groqApiKey;
+    if (!apiKey) throw new Error('Chave da API Groq não configurada na aba de Configurações.');
+    
+    const body = {
+      model: 'llama-3.1-8b-instant',
+      messages,
+      temperature: temp,
+      max_tokens
+    };
+    if (jsonMode) body.response_format = { type: "json_object" };
+
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.error?.message || `Erro API: ${res.status}`);
+    }
+    const data = await res.json();
+    return data.choices[0].message.content;
+  }
+
+  // --- CONSULTORIA DE APORTES (MARKET DATA) ---
+  async fetchMarketData() {
+    let selic = 10.5; // fallback
+    let dolar = 5.5;
+    let btc = 350000;
+    
+    try {
+      // Taxa Selic Anual - BCB SGS Série 432 (Meta Selic)
+      const resSelic = await fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados/ultimos/1?formato=json');
+      const dataSelic = await resSelic.json();
+      if (dataSelic && dataSelic[0] && dataSelic[0].valor) {
+        selic = parseFloat(dataSelic[0].valor);
+      }
+    } catch(e) { console.warn('Erro ao buscar Selic no BCB:', e); }
+    
+    try {
+      // Câmbio - AwesomeAPI
+      const resCambio = await fetch('https://economia.awesomeapi.com.br/last/USD-BRL,BTC-BRL');
+      const dataCambio = await resCambio.json();
+      if (dataCambio.USDBRL) dolar = parseFloat(dataCambio.USDBRL.bid);
+      if (dataCambio.BTCBRL) btc = parseFloat(dataCambio.BTCBRL.bid);
+    } catch(e) { console.warn('Erro ao buscar Dólar/BTC:', e); }
+    
+    return { selic, cdi: selic - 0.1, dolar, btc };
+  }
+
+  parseMarkdownTable(markdown) {
+    // Procura por tabela Markdown simples e converte para HTML
+    let inTable = false;
+    let tableHtml = '<table class="data-table" style="margin-top: 15px;">';
+    const lines = markdown.split('\n');
+    let hasTable = false;
+    
+    let htmlResult = '';
+    
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i].trim();
+      
+      if (line.startsWith('|') && line.endsWith('|')) {
+        hasTable = true;
+        if (!inTable) {
+           inTable = true;
+        }
+        
+        if (line.includes('---')) {
+          continue; // Ignorar linha separadora
+        }
+        
+        let cols = line.split('|').slice(1, -1).map(c => c.trim());
+        tableHtml += '<tr>';
+        cols.forEach(col => {
+           // Checar se é a primeira linha para th
+           if (i === 0 || lines[i-1].includes('---')) {
+             tableHtml += `<th>${col.replace(/\*\*/g, '')}</th>`;
+           } else {
+             tableHtml += `<td>${col.replace(/\*\*/g, '')}</td>`;
+           }
+        });
+        tableHtml += '</tr>';
+      } else {
+        if (inTable) {
+          tableHtml += '</table>';
+          htmlResult += tableHtml;
+          inTable = false;
+        }
+        if (line !== '') {
+          // Normal paragraph
+          let formattedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+          htmlResult += `<p style="margin-bottom: 8px;">${formattedLine}</p>`;
+        }
+      }
+    }
+    
+    if (inTable) {
+      tableHtml += '</table>';
+      htmlResult += tableHtml;
+    }
+    
+    return hasTable ? htmlResult : markdown.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  }
+
+  async gerarConsultoria() {
+    const statusEl = document.getElementById('consultoriaStatus');
+    const resultEl = document.getElementById('consultoriaResultado');
+    const marketEl = document.getElementById('consultoriaMarketData');
+    const btn = document.getElementById('btnGerarConsultoria');
+    
+    if (!this.dm.data.groqApiKey) {
+      showToast('Configure a chave da API Groq nas Configurações!', 'error');
+      return;
+    }
+    
+    statusEl.classList.remove('hidden');
+    resultEl.classList.add('hidden');
+    marketEl.classList.add('hidden');
+    btn.disabled = true;
+    
+    try {
+      // 1. Fetch Dados Reais
+      const marketData = await this.fetchMarketData();
+      marketEl.innerHTML = `<strong>Taxas Atuais (Tempo Real):</strong> Selic: ${marketData.selic}% a.a. | CDI: ${marketData.cdi.toFixed(2)}% a.a. | Dólar: R$ ${marketData.dolar.toFixed(2)} | BTC: R$ ${marketData.btc.toLocaleString('pt-BR')}`;
+      marketEl.classList.remove('hidden');
+      
+      // 2. Prepara Contexto Base
+      const selectedPersonaId = document.getElementById('consultoriaPersonaSelect').value;
+      const sysPrompt = await this.getSystemPrompt(selectedPersonaId);
+      
+      const receitas = this.calcTotalReceitas(this.currentMonth) || 0;
+      const despesas = this.calcResumoDespesas(this.currentMonth).total || 0;
+      const availableMoney = receitas - despesas;
+      
+      const reservaSaldo = Number(this.calcReserva().saldo || 0);
+      let totalMetasAcumulado = 0;
+      (this.dm.data.metas || []).forEach(mt => { totalMetasAcumulado += (mt.valorAtual || 0); });
+      const patrimonioTotal = reservaSaldo + totalMetasAcumulado;
+      
+      const targetAporte = availableMoney > 0 ? availableMoney : (receitas * 0.3); // Sugere aportar 30% da receita se não sobrar nada
+      const strAporte = targetAporte > 0 ? targetAporte.toFixed(2) : '1000.00';
+      
+      let filosofiaInstrucao = "Especifique ativos reais de mercado focados em diversificação.";
+      if (selectedPersonaId === 'thiago') {
+        filosofiaInstrucao = "Siga ESTRITAMENTE a metodologia ARCA: Ações (nacionais), Real Estate (FIIs), Caixa (Renda Fixa/Tesouro) e Ativos Internacionais (BDRs/ETFs). A tabela DEVE dividir os aportes nestas 4 categorias e sugerir um ativo real para cada (ex: BOVA11, VISC11, Tesouro Selic, IVVB11).";
+      } else if (selectedPersonaId === 'bruno') {
+        filosofiaInstrucao = "Siga a estratégia do Barbell (anti-fragilidade) e longo prazo: maior peso em Tesouro IPCA+ longo (segurança/renda fixa) e uma parte em Bitcoin/Cripto ou Ações de valor. Sugira ativos como Tesouro IPCA+, BTC e Ações.";
+      } else if (selectedPersonaId === 'nathalia') {
+        filosofiaInstrucao = "Foque pesado na Reserva de Emergência (Tesouro Selic ou CDB 100%+ CDI com liquidez diária). Só sugira Renda Variável se o patrimônio já for alto. Recomende CDBs de bancos médios ou Tesouro IPCA.";
+      } else if (selectedPersonaId === 'barsi') {
+        filosofiaInstrucao = "Foco 100% em AÇÕES BOAS PAGADORAS DE DIVIDENDOS (Setores BEST: Bancos, Energia, Saneamento, Telecom, Seguros). NUNCA recomende Renda Fixa (chame de 'perda fixa'). Sugira ações reais (ex: TAEE11, BBAS3, KLBN11, EGIE3, SANB11).";
+      } else if (selectedPersonaId === 'mira') {
+        filosofiaInstrucao = "Foco em montar uma carteira de FIIs (Fundos Imobiliários) e Ações para gerar renda passiva (dividendos mensais) com segurança. Sugira ativos reais (ex: MXRF11, HGLG11, BTLG11 e ações perenes).";
+      }
+
+      const consultoriaPrompt = `
+Você é a Persona definida no sistema. 
+TAREFA EXCLUSIVA: Fazer uma Consultoria de Aportes baseada nos dados do mercado em TEMPO REAL.
+
+DADOS DE PATRIMÔNIO DO USUÁRIO:
+- Patrimônio Total Investido: R$ ${patrimonioTotal.toFixed(2)}
+- Salário/Receitas deste mês: R$ ${receitas.toFixed(2)}
+- Capital livre sugerido para aportar AGORA: R$ ${strAporte}
+
+DADOS DE MERCADO HOJE:
+- Selic: ${marketData.selic}% ao ano
+- CDI: ${marketData.cdi.toFixed(2)}% ao ano
+- Dólar: R$ ${marketData.dolar.toFixed(2)}
+- Bitcoin: R$ ${marketData.btc}
+
+REGRAS OBRIGATÓRIAS:
+1. Comece com 1 ou 2 parágrafos analisando o Patrimônio Total dele e sugerindo em quais ativos ele deve investir os R$ ${strAporte} livres hoje, usando as taxas atuais de mercado. O seu texto inicial DEVE incorporar muito fortemente o seu tom de voz, seus jargões e sua metodologia.
+2. A SUA ÚNICA RESPOSTA ESTRUTURAL DEVE CONTER UMA TABELA MARKDOWN EXATA COM ESTAS COLUNAS: | Ativo | Valor (R$) | Porcentagem (%) | Recorrência |
+3. REGRAS DE ALOCAÇÃO DA SUA PERSONA: ${filosofiaInstrucao}
+4. O Valor na tabela deve dividir EXATAMENTE os R$ ${strAporte}. A soma das porcentagens deve dar 100%.`;
+
+      const msgList = [
+        { role: 'system', content: sysPrompt },
+        { role: 'user', content: consultoriaPrompt }
+      ];
+
+      // 3. Chama LLM
+      const responseText = await this.callGroq(msgList, 1000, 0.7);
+      
+      // 4. Renderiza Resposta
+      resultEl.innerHTML = this.parseMarkdownTable(responseText);
+      resultEl.classList.remove('hidden');
+      
+    } catch(e) {
+      resultEl.innerHTML = `<div style="color:var(--red);">Erro: ${e.message}</div>`;
+      resultEl.classList.remove('hidden');
+    } finally {
+      statusEl.classList.add('hidden');
+      btn.disabled = false;
+    }
+  }
+
+  async consultarIA() {
+    if (!this.dm.data.groqApiKey) {
+      showToast('Configure a Chave Groq na aba Configurações.', 'error');
+      return;
+    }
+    openModal('modalIA');
+    
+    try {
+      const sysPrompt = await this.getSystemPrompt();
+      
+      if (!this.conversationHistory || this.conversationHistory.length === 0) {
+        this.conversationHistory = [{ role: 'system', content: sysPrompt }];
+        
+        const abasWelcome = {
+          dashboard: "Olá! Sou o FinZoni, seu consultor financeiro. Já cruzei todos os seus saldos, despesas e metas. Como posso te ajudar na visão geral?",
+          diarias: "Olá! Sou o FinZoni, seu Gerente de Carreira. Analisei os seus dias trabalhados e a sua Produção. Quer dicas de como maximizar seus ganhos nas clínicas?",
+          despesas: "Olá! Sou o FinZoni. Já listei todos os seus gastos fixos e variáveis. Quer que eu faça uma varredura para encontrarmos onde cortar gastos?",
+          receitas: "Olá! Sou o FinZoni. Quer ajuda para analisar as suas fontes de renda e planejar o aumento do seu faturamento?",
+          lancamentos: "Olá! Sou o FinZoni. Posso ajudar a analisar seus gastos. O que você gostaria de saber hoje?",
+          investimentos: "Olá! Sou o FinZoni, seu Consultor de Investimentos. Analisei suas Metas e Reserva. Quer dicas para bater suas metas mais rápido?",
+          cartoes: "Olá! Sou o FinZoni, especialista em Crédito. Estou de olho nas suas faturas para garantir que não pague juros. Tem dúvidas sobre suas compras?",
+          extrato: "Olá! Sou o FinZoni. Posso varrer o seu extrato e fluxo de caixa detalhado. O que quer procurar?",
+          configuracoes: "Olá! Sou o FinZoni. Precisa de ajuda com as configurações do sistema?"
+        };
+
+        const selectorEl = document.getElementById('iaPersonaSelector');
+        const selectedPersona = selectorEl ? selectorEl.value : 'auto';
+
+        let welcomeMsg = abasWelcome[this.activeTab] || "Olá! Eu sou o FinZoni. Como posso ajudar você hoje?";
+
+        if (selectedPersona === 'thiago') {
+          welcomeMsg = "E aí, Primo! Aqui é o Thiago Nigro. Já dei uma olhada na sua carteira e no seu caixa. Vamos aplicar o método ARCA e buscar a sua liberdade financeira hoje? O que quer analisar?";
+        } else if (selectedPersona === 'bruno') {
+          welcomeMsg = "Olá. Aqui é o Bruno Perini. Analisei seus números. O segredo da riqueza é o aporte constante e a disciplina de longo prazo. Qual área da sua vida financeira vamos organizar hoje?";
+        } else if (selectedPersona === 'nathalia') {
+          welcomeMsg = "Me Poupe, né Criatura! Que bagunça (ou não) é essa? Aqui é a Nathalia Arcuri e eu tô pronta pra pegar no seu pé e te fazer economizar pra investir. Vamos aplicar a regra 70/30?";
+        } else if (selectedPersona === 'barsi') {
+          welcomeMsg = "Olá, meu jovem. Aqui é o Barsi. Lembre-se: Ações garantem o futuro. Nada de perda fixa ou especulação. Quer que o vovô analise seus aportes para buscarmos bons dividendos?";
+        } else if (selectedPersona === 'mira') {
+          welcomeMsg = "Fala, galera! Aqui é o Professor Mira. Já vesti a camisa e estou pronto pra te ensinar como dar o próximo passo na Renda Variável sem medo. Qual a dúvida de hoje?";
+        }
+
+        this.conversationHistory.push({ role: 'assistant', content: welcomeMsg });
+      } else {
+        // Atualiza o prompt de sistema silenciosamente com a aba atual e os dados mais frescos
+        if (this.conversationHistory[0].role === 'system') {
+          this.conversationHistory[0].content = sysPrompt;
+        } else {
+          this.conversationHistory.unshift({ role: 'system', content: sysPrompt });
+        }
+      }
+      
+      this.renderChatHistory();
+    } catch(e) {
+      const histDiv = document.getElementById('iaChatHistory');
+      histDiv.innerHTML = `<div style="color:var(--red);text-align:center;padding:20px;">Erro: ${e.message}</div>`;
+    }
+  }
+
+  limparChatIA() {
+    this.conversationHistory = [];
+    this.consultarIA();
+  }
+
+  changeIAPersona() {
+    // Quando a persona muda, limpamos o chat para a nova IA se apresentar adequadamente
+    this.limparChatIA();
+  }
+
+  renderChatHistory() {
+    const histDiv = document.getElementById('iaChatHistory');
+    if (!histDiv) return;
+    
+    let html = '';
+    for (let i = 1; i < this.conversationHistory.length; i++) {
+      const msg = this.conversationHistory[i];
+      const isUser = msg.role === 'user';
+      const bg = isUser ? 'var(--purple)' : 'var(--bg-card)';
+      const color = isUser ? '#fff' : 'var(--text-primary)';
+      const border = isUser ? 'none' : '1px solid var(--border-color)';
+      const align = isUser ? 'flex-end' : 'flex-start';
+      const txt = msg.content.replace(/\n/g, '<br/>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      
+      html += `
+        <div style="display:flex; justify-content:${align}; width:100%;">
+          <div style="background:${bg}; color:${color}; border:${border}; padding:12px 16px; border-radius:12px; max-width:85%; font-size:0.95rem; line-height:1.5; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+            ${txt}
+          </div>
+        </div>
+      `;
+    }
+    histDiv.innerHTML = html;
+    histDiv.scrollTop = histDiv.scrollHeight;
+  }
+
+  async enviarMensagemIA() {
+    const inputEl = document.getElementById('iaChatInput');
+    const text = inputEl.value.trim();
+    if (!text) return;
+
+    this.conversationHistory.push({ role: 'user', content: text });
+    inputEl.value = '';
+    this.renderChatHistory();
+
+    const histDiv = document.getElementById('iaChatHistory');
+    histDiv.innerHTML += `
+      <div id="iaLoadingIndicator" style="display:flex; justify-content:flex-start; width:100%; margin-top:5px;">
+        <div style="background:var(--bg-card); border:1px solid var(--border-color); color:var(--text-primary); padding:12px 16px; border-radius:12px; font-size:0.9rem; opacity:0.7;">
+          <span style="display:inline-block; animation: blink 1.4s infinite both;">✨</span> Pensando...
+        </div>
+      </div>
+    `;
+    histDiv.scrollTop = histDiv.scrollHeight;
+
+    try {
+      // Retornando temp para 0.7 para manter a lógica matemática e o bom português
+      const responseText = await this.callGroq(this.conversationHistory, 500, 0.7);
+      this.conversationHistory.push({ role: 'assistant', content: responseText });
+    } catch(e) {
+      this.conversationHistory.push({ role: 'assistant', content: `❌ Erro: ${e.message}` });
+    }
+    this.renderChatHistory();
+  }
+
+  async sugerirCategoriaAuto(descricao) {
+    if (!descricao || descricao.trim().length < 3) return;
+    const catLabel = document.getElementById('categoriaSugestaoLabel');
+    const catSelect = document.getElementById('gastoVarCategoria');
+    if (!catLabel || !catSelect || !this.dm.data.groqApiKey) return;
+    
+    catLabel.style.display = 'block';
+    catLabel.innerText = '✨ IA analisando transação...';
+
+    const catDisp = (this.dm.data.categoriasVariaveis || []).map(c => ({ id: c.id, nome: c.nome }));
+    if (catDisp.length === 0) { catLabel.style.display = 'none'; return; }
+
+    const prompt = `Você classifica despesas. Despesa: "${descricao}".
+Categorias: ${JSON.stringify(catDisp)}
+Retorne JSON com {"categoriaId": "id_da_categoria_escolhida"}. Se não conseguir, devolva a id da primeira. OBRIGATÓRIO DEVOLVER UM JSON VALIDO.`;
+
+    try {
+      const result = await this.callGroq([{role: 'user', content: prompt}], 150, 0.1, true);
+      const obj = JSON.parse(result);
+      if (obj.categoriaId) {
+        catSelect.value = obj.categoriaId;
+        catLabel.innerText = '✨ Categoria auto-preenchida';
+        setTimeout(() => { catLabel.style.display = 'none'; }, 2000);
+      } else { catLabel.style.display = 'none'; }
+    } catch(e) { catLabel.style.display = 'none'; }
+  }
+
+  async enviarLancamentoMagico() {
+    const input = document.getElementById('magicoInput');
+    const btn = document.getElementById('btnMagico');
+    const text = input.value.trim();
+    if(!text) return;
+    if(!this.dm.data.groqApiKey) { showToast('Configure a API Key da Groq primeiro.', 'error'); return; }
+
+    input.disabled = true;
+    btn.innerHTML = '✨ Processando...';
+
+    const catDisp = (this.dm.data.categoriasVariaveis || []).map(c => ({ id: c.id, nome: c.nome }));
+    const hoje = new Date().toISOString().slice(0,10);
+
+    const prompt = `Hoje: ${hoje}. Texto: "${text}"
+Categorias Variaveis: ${JSON.stringify(catDisp)}
+Extraia os dados em formato JSON estrito, adivinhando a categoria correta:
+{ "descricao": "nome", "valor": float_positivo, "data": "YYYY-MM-DD", "tipo": "variavel|fixo|receita", "categoriaId": "id_da_categoria_se_variavel_senao_null" }`;
+
+    try {
+      const result = await this.callGroq([{role: 'user', content: prompt}], 300, 0.1, true);
+      const parsed = JSON.parse(result);
+      
+      const m = parsed.data.slice(0,7);
+      if(!this.dm.data.meses[m]) Object.assign(this.dm.data.meses, { [m]: { receitas:[], gastosFixos:[], gastosVariaveis:[] } });
+      const mesObj = this.dm.data.meses[m];
+      const nova = { id: Date.now().toString(), descricao: parsed.descricao, valor: parsed.valor, data: parsed.data };
+
+      if(parsed.tipo === 'variavel') {
+        nova.categoriaId = parsed.categoriaId || (catDisp[0] ? catDisp[0].id : null);
+        mesObj.gastosVariaveis.push(nova);
+      } else if (parsed.tipo === 'fixo') {
+        nova.pago = true;
+        mesObj.gastosFixos.push(nova);
+      } else {
+        mesObj.receitas.push(nova);
+      }
+
+      this.dm.save();
+      this.renderAll();
+      showToast('✨ Lançamento Mágico adicionado!', 'success');
+      input.value = '';
+    } catch(e) { showToast('Erro na IA: ' + e.message, 'error'); }
+
+    input.disabled = false;
+    btn.innerHTML = 'Lançar Mágica';
+    input.focus();
+  }
+
+  async autoCategorizarHistorico() {
+    if(!this.dm.data.groqApiKey) { showToast('Configure a API Key.', 'error'); return; }
+    const m = this.currentMonth;
+    const mesObj = this.dm.getMonth(m);
+    
+    const semCat = mesObj.gastosVariaveis.filter(g => !g.categoriaId);
+    if(semCat.length === 0) { showToast('Não há despesas variáveis sem categoria neste mês!', 'info'); return; }
+
+    if(!confirm(`Deseja categorizar magicamente ${semCat.length} despesas de ${m} usando IA?`)) return;
+    showToast('✨ Analisando histórico...', 'info');
+
+    const catDisp = (this.dm.data.categoriasVariaveis || []).map(c => ({ id: c.id, nome: c.nome }));
+    const mapeamento = semCat.map(g => ({ id: g.id, descricao: g.descricao, valor: g.valor }));
+
+    const prompt = `Categorize estas despesas. Categorias Disponíveis: ${JSON.stringify(catDisp)}
+Despesas: ${JSON.stringify(mapeamento)}
+Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_categoria"} ]}`;
+
+    try {
+      const result = await this.callGroq([{role: 'user', content: prompt}], 800, 0.1, true);
+      const parsed = JSON.parse(result);
+      
+      let mudados = 0;
+      if (parsed?.resultados) {
+        parsed.resultados.forEach(res => {
+          const despesa = mesObj.gastosVariaveis.find(g => g.id === res.id);
+          if (despesa) { despesa.categoriaId = res.categoriaId; mudados++; }
+        });
+        if (mudados > 0) { this.dm.save(); this.renderAll(); showToast(`✨ ${mudados} despesas categorizadas!`, 'success'); }
+      }
+    } catch(e) { showToast('Erro ao categorizar: ' + e.message, 'error'); }
+  }
+
+
   // ── RENDER ALL ──
   renderAll() {
     this.updateMonthLabel();
@@ -957,6 +1658,8 @@ class App {
     this.renderReceitas();
     this.renderInvestimentos();
     this.renderConfiguracoes();
+    this.renderCartoes();
+    this.renderFaturas();
     this.checkAlerts();
   }
 
@@ -967,12 +1670,15 @@ class App {
       case 'despesas': this.renderDespesas(); break;
       case 'receitas': this.renderReceitas(); break;
       case 'investimentos': this.renderInvestimentos(); break;
+      case 'cartoes': this.renderCartoes(); this.renderFaturas(); break;
       case 'configuracoes': this.renderConfiguracoes(); break;
     }
   }
 
   // ── DASHBOARD ──
   renderDashboard() {
+    this.checkAndFetchInsight();
+    
     const m = this.currentMonth;
     const totalReceitas = this.calcTotalReceitas(m);
     const resumo = this.calcResumoDespesas(m);
@@ -1055,6 +1761,75 @@ class App {
     this.renderCharts();
   }
 
+  async checkAndFetchInsight() {
+    const apiKey = this.dm.data.groqApiKey;
+    const contentEl = document.getElementById('insightContent');
+    const timerEl = document.getElementById('insightTimer');
+    if (!contentEl) return;
+
+    if (!apiKey) {
+      contentEl.innerText = "Vá em Configurações e insira sua chave da Groq para receber as análises da Inteligência Artificial.";
+      if(timerEl) timerEl.innerText = "IA Desconectada";
+      return;
+    }
+
+    const agora = new Date();
+    const hora = agora.getHours();
+    
+    // Calcula o turno atual: 0 (00h-07h), 1 (08h-15h), 2 (16h-23h)
+    let turnoAtual = 0;
+    if (hora >= 8 && hora < 16) turnoAtual = 1;
+    else if (hora >= 16) turnoAtual = 2;
+    
+    const hojeStr = agora.toISOString().slice(0, 10);
+    const idTurno = `${hojeStr}-${turnoAtual}`;
+
+    const turnosNomes = ["(00:00 - 08:00)", "(08:00 - 16:00)", "(16:00 - 00:00)"];
+
+    if (this.dm.data.insightTurnoId === idTurno && this.dm.data.insightTexto) {
+      contentEl.innerHTML = this.dm.data.insightTexto;
+      if(timerEl) timerEl.innerText = `Turno Atual ${turnosNomes[turnoAtual]}`;
+      return;
+    }
+
+    contentEl.innerHTML = "Lendo e processando seu fluxo de caixa para este turno... 🧠";
+    if(timerEl) timerEl.innerText = "Analisando...";
+    
+    try {
+      // Pega o resumo de contexto
+      const sysPrompt = await this.getSystemPrompt();
+      
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'llama-3.1-8b-instant',
+          messages: [
+            { role: 'system', content: sysPrompt },
+            { role: 'user', content: "AGORA ESQUEÇA SEU PAPEL ANTERIOR. Aja como um analista de dados frio e genial. Leia todo o contexto de números do meu dashboard atual. Me dê APENAS UMA dica, alerta, previsão, padrão oculto ou incentivo baseado nos dados cruciais. Seja extremamente direto e impactante (use no máximo 2 frases marcantes). Use emojis se quiser. Nunca diga 'Olá' ou se apresente. Comece o texto diretamente." }
+          ],
+          temperature: 0.9,
+          max_tokens: 150
+        })
+      });
+
+      if (!res.ok) throw new Error('API Groq Offline');
+      const data = await res.json();
+      const novoInsight = data.choices[0].message.content;
+      
+      this.dm.data.insightTurnoId = idTurno;
+      this.dm.data.insightTexto = novoInsight;
+      this.dm.save();
+      
+      contentEl.innerHTML = novoInsight;
+      if(timerEl) timerEl.innerText = `Turno Atual ${turnosNomes[turnoAtual]}`;
+      
+    } catch (e) {
+      contentEl.innerHTML = "A IA estava pensando fundo demais e não conseguiu responder. Verifique sua conexão ou tente mais tarde.";
+      if(timerEl) timerEl.innerText = "Falha Temporária";
+    }
+  }
+
   // ── CHARTS ──
   renderCharts() {
     this.renderDespesasChart();
@@ -1088,27 +1863,68 @@ class App {
       return;
     }
 
+    const cColor = this.getChartColors();
+    const totalDespesas = values.reduce((a, b) => a + b, 0);
+
+    const centerTextPlugin = {
+      id: 'centerText',
+      beforeDraw(chart) {
+        if (chart.config.type !== 'doughnut') return;
+        const { ctx } = chart;
+        const meta = chart.getDatasetMeta(0);
+        if (!meta || !meta.data || meta.data.length === 0) return;
+        
+        const centerX = meta.data[0].x;
+        const centerY = meta.data[0].y;
+        const innerRadius = chart.innerRadius || 50;
+
+        ctx.restore();
+        ctx.textBaseline = 'middle';
+        const text = formatCurrency(totalDespesas);
+        
+        let fontSize = 20;
+        ctx.font = `800 ${fontSize}px Inter`;
+        while(ctx.measureText(text).width > innerRadius * 1.7 && fontSize > 10) {
+          fontSize -= 1;
+          ctx.font = `800 ${fontSize}px Inter`;
+        }
+        
+        ctx.fillStyle = cColor.text;
+        const textX = Math.round(centerX - ctx.measureText(text).width / 2);
+        const textY = centerY + 8;
+        ctx.fillText(text, textX, textY);
+        
+        ctx.font = `600 12px Inter`;
+        ctx.fillStyle = cColor.text.replace('1)', '0.5)');
+        const subText = 'TOTAL';
+        const subX = Math.round(centerX - ctx.measureText(subText).width / 2);
+        ctx.fillText(subText, subX, textY - 22);
+        ctx.save();
+      }
+    };
+
     this.charts.despesas = new Chart(ctx, {
       type: 'doughnut',
       data: {
         labels,
-        datasets: [{ data: values, backgroundColor: colors.slice(0, labels.length), borderWidth: 0, hoverOffset: 8 }]
+        datasets: [{ data: values, backgroundColor: colors.slice(0, labels.length), borderWidth: 0, hoverOffset: 8, cutout: '75%' }]
       },
       options: {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
         plugins: {
-          legend: { position: 'bottom', labels: { color: '#e8e8f0', font: { family: 'Inter', size: 11 }, padding: 12 } },
+          legend: { position: 'bottom', labels: { color: cColor.text, font: { family: 'Inter', size: 11 }, padding: 12 } },
           tooltip: {
-            backgroundColor: '#1a1a2e',
-            titleColor: '#e8e8f0',
-            bodyColor: '#e8e8f0',
-            borderColor: 'rgba(255,255,255,0.1)',
+            backgroundColor: cColor.tooltipBg,
+            titleColor: cColor.tooltipText,
+            bodyColor: cColor.tooltipText,
+            borderColor: cColor.tooltipBorder,
             borderWidth: 1,
             callbacks: { label: (ctx) => `${ctx.label}: ${formatCurrency(ctx.raw)}` }
           }
         }
-      }
+      },
+      plugins: [centerTextPlugin]
     });
   }
 
@@ -1122,6 +1938,7 @@ class App {
 
     if (this.charts.receitasDespesas) this.charts.receitasDespesas.destroy();
 
+    const cColor = this.getChartColors();
     this.charts.receitasDespesas = new Chart(document.getElementById('chartReceitasDespesas'), {
       type: 'bar',
       data: {
@@ -1135,12 +1952,12 @@ class App {
         responsive: true,
         maintainAspectRatio: true,
         scales: {
-          x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888', font: { family: 'Inter', size: 11 } } },
-          y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888', font: { family: 'Inter', size: 11 }, callback: v => formatCurrency(v) } }
+          x: { grid: { color: cColor.grid }, ticks: { color: cColor.text, font: { family: 'Inter', size: 11 } } },
+          y: { grid: { color: cColor.grid }, ticks: { color: cColor.text, font: { family: 'Inter', size: 11 }, callback: v => formatCurrency(v) } }
         },
         plugins: {
-          legend: { labels: { color: '#e8e8f0', font: { family: 'Inter' } } },
-          tooltip: { backgroundColor: '#1a1a2e', titleColor: '#e8e8f0', bodyColor: '#e8e8f0', callbacks: { label: c => `${c.dataset.label}: ${formatCurrency(c.raw)}` } }
+          legend: { labels: { color: cColor.text, font: { family: 'Inter' } } },
+          tooltip: { backgroundColor: cColor.tooltipBg, titleColor: cColor.tooltipText, bodyColor: cColor.tooltipText, borderColor: cColor.tooltipBorder, borderWidth: 1, callbacks: { label: c => `${c.dataset.label}: ${formatCurrency(c.raw)}` } }
         }
       }
     });
@@ -1152,6 +1969,7 @@ class App {
 
     if (this.charts.diarias) this.charts.diarias.destroy();
 
+    const cColor = this.getChartColors();
     this.charts.diarias = new Chart(document.getElementById('chartDiarias'), {
       type: 'bar',
       data: {
@@ -1165,13 +1983,13 @@ class App {
         responsive: true,
         maintainAspectRatio: true,
         scales: {
-          y: { position: 'left', grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888', font: { family: 'Inter' } }, title: { display: true, text: 'Dias', color: '#888' } },
-          y1: { position: 'right', grid: { display: false }, ticks: { color: '#888', font: { family: 'Inter' }, callback: v => formatCurrency(v) }, title: { display: true, text: 'Valor', color: '#888' } },
-          x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888', font: { family: 'Inter' } } }
+          y: { position: 'left', grid: { color: cColor.grid }, ticks: { color: cColor.text, font: { family: 'Inter' } }, title: { display: true, text: 'Dias', color: cColor.text } },
+          y1: { position: 'right', grid: { display: false }, ticks: { color: cColor.text, font: { family: 'Inter' }, callback: v => formatCurrency(v) }, title: { display: true, text: 'Valor', color: cColor.text } },
+          x: { grid: { color: cColor.grid }, ticks: { color: cColor.text, font: { family: 'Inter' } } }
         },
         plugins: {
-          legend: { labels: { color: '#e8e8f0', font: { family: 'Inter' } } },
-          tooltip: { backgroundColor: '#1a1a2e', titleColor: '#e8e8f0', bodyColor: '#e8e8f0' }
+          legend: { labels: { color: cColor.text, font: { family: 'Inter' } } },
+          tooltip: { backgroundColor: cColor.tooltipBg, titleColor: cColor.tooltipText, bodyColor: cColor.tooltipText, borderColor: cColor.tooltipBorder, borderWidth: 1 }
         }
       }
     });
@@ -1185,6 +2003,7 @@ class App {
 
     if (this.charts.saldo) this.charts.saldo.destroy();
 
+    const cColor = this.getChartColors();
     this.charts.saldo = new Chart(document.getElementById('chartSaldo'), {
       type: 'line',
       data: {
@@ -1206,12 +2025,12 @@ class App {
         responsive: true,
         maintainAspectRatio: true,
         scales: {
-          x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888', font: { family: 'Inter' } } },
-          y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888', font: { family: 'Inter' }, callback: v => formatCurrency(v) } }
+          x: { grid: { color: cColor.grid }, ticks: { color: cColor.text, font: { family: 'Inter' } } },
+          y: { grid: { color: cColor.grid }, ticks: { color: cColor.text, font: { family: 'Inter' }, callback: v => formatCurrency(v) } }
         },
         plugins: {
-          legend: { labels: { color: '#e8e8f0', font: { family: 'Inter' } } },
-          tooltip: { backgroundColor: '#1a1a2e', titleColor: '#e8e8f0', bodyColor: '#e8e8f0', callbacks: { label: c => `Saldo: ${formatCurrency(c.raw)}` } }
+          legend: { labels: { color: cColor.text, font: { family: 'Inter' } } },
+          tooltip: { backgroundColor: cColor.tooltipBg, titleColor: cColor.tooltipText, bodyColor: cColor.tooltipText, borderColor: cColor.tooltipBorder, borderWidth: 1, callbacks: { label: c => `Saldo: ${formatCurrency(c.raw)}` } }
         }
       }
     });
@@ -1602,6 +2421,9 @@ class App {
             <input type="text" class="editable-value" value="${g.descricao}"
               onchange="app.updateGastoVar('${g.id}', 'descricao', this.value)"
               onkeydown="if(event.key==='Enter') this.blur();">
+            <div style="font-size:0.7rem; color:var(--text-muted); margin-top:2px;">
+              ${(this.dm.data.categoriasVariaveis || []).find(c => c.id === g.categoriaId)?.nome || 'Sem Categoria'}
+            </div>
           </td>
           <td class="text-right">
             <input type="text" inputmode="decimal" class="editable-value value-negative" style="text-align:right" value="${g.valor}"
@@ -1626,6 +2448,35 @@ class App {
         </tr>`;
     }
     varBody.innerHTML = varHTML || '<tr><td colspan="4" class="text-center" style="color:var(--text-muted);padding:24px;">Nenhum gasto variável neste mês</td></tr>';
+
+    // Orçamentos Variáveis (Budgeting)
+    const orcGrid = document.getElementById('orcamentoVariavelGrid');
+    if (orcGrid) {
+      let orcHTML = '';
+      const catVars = this.dm.data.categoriasVariaveis || [];
+      catVars.forEach(cat => {
+        const spent = (mes.gastosVariaveis || []).filter(g => g.categoriaId === cat.id).reduce((sum, g) => sum + g.valor, 0);
+        const percent = Math.min(100, (spent / cat.orcamento) * 100);
+        let color = 'var(--green)';
+        if (percent >= 90) color = 'var(--red)';
+        else if (percent >= 70) color = 'var(--amber)';
+
+        orcHTML += `
+          <div style="margin-bottom: 16px;">
+            <div class="flex justify-between items-center mb-1">
+              <span style="font-size:0.85rem;font-weight:600;">${cat.nome}</span>
+              <span style="font-size:0.8rem;color:var(--text-secondary);">${formatCurrency(spent)} / ${formatCurrency(cat.orcamento)}</span>
+            </div>
+            <div class="progress-bar-container" style="height:6px;">
+              <div class="progress-bar" style="height:6px;">
+                <div class="progress-fill" style="width:${percent}%; background:${color}; border-radius:3px;"></div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      orcGrid.innerHTML = orcHTML || '<div class="text-center" style="color:var(--text-muted);font-size:0.85rem;">Nenhuma categoria variável cadastrada.</div>';
+    }
 
     // Total
     document.getElementById('totalDespesasMes').textContent = formatCurrency(totalFixo + totalVar);
@@ -1935,6 +2786,12 @@ class App {
 
     // Goals
     this.renderMetas();
+    
+    // Simulator Init
+    if (!this.simuladorIniciado) {
+      this.setSimuladorTipo('investimento');
+      this.simuladorIniciado = true;
+    }
   }
 
   deleteReservaMov(id) {
@@ -2088,6 +2945,358 @@ class App {
     }
   }
 
+  // ── SIMULADOR FINANCEIRO ──
+  setSimuladorTipo(tipo) {
+    this.simuladorTipo = tipo;
+    const btnInv = document.getElementById('btnSimTipoInv');
+    const btnFin = document.getElementById('btnSimTipoFin');
+    
+    if (tipo === 'investimento') {
+      btnInv.className = 'btn btn-primary btn-sm';
+      btnFin.className = 'btn btn-outline btn-sm';
+      document.getElementById('lblSimValor').innerText = 'Valor Inicial (R$)';
+      document.getElementById('lblSimAporte').innerText = 'Aporte Mensal (R$)';
+      document.getElementById('lblSimResTotal').innerText = 'Total Acumulado';
+      document.getElementById('lblSimResJuros').innerText = 'Juros Ganhos';
+      document.getElementById('simResJurosCard').style.borderBottom = '2px solid var(--green)';
+      document.getElementById('simResJuros').style.color = 'var(--green)';
+    } else {
+      btnFin.className = 'btn btn-primary btn-sm';
+      btnInv.className = 'btn btn-outline btn-sm';
+      document.getElementById('lblSimValor').innerText = 'Valor do Imóvel/Bem (R$)';
+      document.getElementById('lblSimAporte').innerText = 'Entrada (R$)';
+      document.getElementById('lblSimResTotal').innerText = 'Custo Total (Bem + Juros)';
+      document.getElementById('lblSimResJuros').innerText = 'Juros Pagos ao Banco';
+      document.getElementById('simResJurosCard').style.borderBottom = '2px solid var(--red)';
+      document.getElementById('simResJuros').style.color = 'var(--red)';
+    }
+    
+    // Auto-recalculate se já estiver aberto
+    if (!document.getElementById('simuladorResultados').classList.contains('hidden')) {
+      this.calcularSimulador();
+    }
+  }
+
+  calcularSimulador() {
+    this.simuladorTipo = this.simuladorTipo || 'investimento';
+    const P = parseFloat(document.getElementById('simValor').value) || 0;
+    const A = parseFloat(document.getElementById('simAporte').value) || 0;
+    const i = (parseFloat(document.getElementById('simTaxa').value) || 0) / 100;
+    const n = parseInt(document.getElementById('simPrazo').value) || 0;
+    
+    if (n <= 0 || isNaN(P)) {
+      showToast('Preencha os valores corretamente', 'error');
+      return;
+    }
+    
+    document.getElementById('simuladorResultados').classList.remove('hidden');
+    
+    let labels = [];
+    let dataPrincipal = [];
+    let dataJuros = [];
+    
+    let totalAcumulado = 0;
+    let totalPrincipal = 0;
+    let jurosAcumulados = 0;
+    
+    if (this.simuladorTipo === 'investimento') {
+      // Juros Compostos
+      let currentVal = P;
+      let totalAportado = P;
+      
+      for (let m = 0; m <= n; m++) {
+        if (m > 0) {
+          currentVal = (currentVal * (1 + i)) + A;
+          totalAportado += A;
+        }
+        labels.push(`Mês ${m}`);
+        dataPrincipal.push(totalAportado);
+        dataJuros.push(currentVal - totalAportado);
+      }
+      totalAcumulado = currentVal;
+      totalPrincipal = totalAportado;
+      jurosAcumulados = totalAcumulado - totalPrincipal;
+      
+    } else {
+      // Financiamento (Tabela Price Simplificada)
+      const valorFinanciado = P - A;
+      if (valorFinanciado <= 0) {
+         showToast('Entrada maior ou igual ao valor do bem!', 'error');
+         return;
+      }
+      
+      let pmt = 0;
+      if (i === 0) {
+         pmt = valorFinanciado / n;
+      } else {
+         pmt = valorFinanciado * (i * Math.pow(1+i, n)) / (Math.pow(1+i, n) - 1);
+      }
+      
+      let saldoDevedor = valorFinanciado;
+      let jurosTotaisPagos = 0;
+      
+      labels.push(`Mês 0`);
+      dataPrincipal.push(P);
+      dataJuros.push(0);
+      
+      for (let m = 1; m <= n; m++) {
+         const jurosMes = saldoDevedor * i;
+         const amortizacaoMes = pmt - jurosMes;
+         saldoDevedor -= amortizacaoMes;
+         jurosTotaisPagos += jurosMes;
+         
+         labels.push(`Mês ${m}`);
+         dataPrincipal.push(P);
+         dataJuros.push(jurosTotaisPagos);
+      }
+      
+      totalAcumulado = P + jurosTotaisPagos;
+      totalPrincipal = P;
+      jurosAcumulados = jurosTotaisPagos;
+    }
+    
+    document.getElementById('simResTotal').innerText = formatCurrency(totalAcumulado);
+    document.getElementById('simResPrincipal').innerText = formatCurrency(totalPrincipal);
+    document.getElementById('simResJuros').innerText = formatCurrency(jurosAcumulados);
+    
+    this.renderSimuladorChart(labels, dataPrincipal, dataJuros);
+  }
+  
+  renderSimuladorChart(labels, principal, juros) {
+    const ctx = document.getElementById('simuladorChart').getContext('2d');
+    if (this.simChart) this.simChart.destroy();
+    
+    const colorJuros = this.simuladorTipo === 'investimento' ? 'rgba(16, 185, 129, 0.7)' : 'rgba(239, 68, 68, 0.7)';
+    const colorBorderJuros = this.simuladorTipo === 'investimento' ? 'rgba(16, 185, 129, 1)' : 'rgba(239, 68, 68, 1)';
+    const labelJuros = this.simuladorTipo === 'investimento' ? 'Juros Ganhos' : 'Juros Pagos';
+    
+    this.simChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Valor Principal',
+            data: principal,
+            borderColor: 'rgba(99, 102, 241, 1)',
+            backgroundColor: 'rgba(99, 102, 241, 0.2)',
+            fill: true,
+            tension: 0.4
+          },
+          {
+            label: labelJuros,
+            data: juros,
+            borderColor: colorBorderJuros,
+            backgroundColor: colorJuros,
+            fill: true,
+            tension: 0.4
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { position: 'top', labels: { color: 'var(--text-primary)' } },
+          tooltip: {
+             callbacks: {
+                label: function(context) {
+                   let label = context.dataset.label || '';
+                   if (label) label += ': ';
+                   if (context.parsed.y !== null) {
+                      label += new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(context.parsed.y);
+                   }
+                   return label;
+                }
+             }
+          }
+        },
+        scales: {
+          x: {
+             grid: { color: 'rgba(255, 255, 255, 0.05)' },
+             ticks: { color: 'var(--text-secondary)' }
+          },
+          y: {
+             stacked: true,
+             grid: { color: 'rgba(255, 255, 255, 0.05)' },
+             ticks: { color: 'var(--text-secondary)' }
+          }
+        }
+      }
+    });
+  }
+
+  // ── CARTÕES DE CRÉDITO ──
+  saveCartao() {
+    const nome = document.getElementById('cartaoNome').value.trim();
+    const limite = parseFloat(document.getElementById('cartaoLimite').value);
+    const fechamento = parseInt(document.getElementById('cartaoFechamento').value);
+    const vencimento = parseInt(document.getElementById('cartaoVencimento').value);
+    const cor = document.getElementById('cartaoCor').value;
+    
+    if (!nome || isNaN(limite) || isNaN(fechamento) || isNaN(vencimento)) {
+      showToast('Preencha todos os campos do cartão!', 'error');
+      return;
+    }
+    
+    this.dm.data.cartoes.push({ id: generateId(), nome, limite, fechamento, vencimento, cor });
+    this.dm.save();
+    closeModal('modalCartao');
+    this.renderAll();
+    showToast('Cartão salvo!', 'success');
+  }
+
+  saveCompraCartao() {
+    const cartaoId = document.getElementById('compraCartaoId').value;
+    const descricao = document.getElementById('compraDescricao').value.trim();
+    const data = document.getElementById('compraData').value;
+    const valorTotal = parseFloat(document.getElementById('compraValorTotal').value);
+    const parcelas = parseInt(document.getElementById('compraParcelas').value);
+    
+    if (!cartaoId || !descricao || !data || isNaN(valorTotal) || isNaN(parcelas) || parcelas < 1) {
+      showToast('Preencha os campos da compra corretamente!', 'error');
+      return;
+    }
+    
+    const mesInicio = data.substring(0, 7); // YYYY-MM
+    const valorParcela = valorTotal / parcelas;
+    
+    this.dm.data.comprasCartao.push({
+      id: generateId(),
+      cartaoId,
+      descricao,
+      data,
+      valorTotal,
+      parcelas,
+      valorParcela,
+      mesInicio
+    });
+    
+    this.dm.save();
+    closeModal('modalCompraCartao');
+    this.renderAll();
+    showToast('Compra lançada com sucesso!', 'success');
+  }
+
+  renderCartoes() {
+    const grid = document.getElementById('cartoesGrid');
+    if (!grid) return;
+    
+    const cartoes = this.dm.data.cartoes || [];
+    if (cartoes.length === 0) {
+      grid.innerHTML = '<div class="text-center text-muted" style="width:100%; grid-column: 1 / -1;">Nenhum cartão cadastrado.</div>';
+      return;
+    }
+    
+    let html = '';
+    cartoes.forEach(c => {
+      let spentTotal = 0;
+      (this.dm.data.comprasCartao || []).forEach(compra => {
+        if (compra.cartaoId === c.id) {
+          spentTotal += compra.valorTotal; 
+        }
+      });
+      
+      html += `
+        <div class="achievement-card" style="border-top: 4px solid ${c.cor}; background: var(--bg-card); display:flex; flex-direction:column; align-items:flex-start; padding: 15px;">
+          <div style="font-weight: 700; font-size:1.1rem; margin-bottom:5px;">${c.nome}</div>
+          <div class="fs-sm mb-2" style="color:var(--text-secondary);">Fecha dia ${c.fechamento} | Vence dia ${c.vencimento}</div>
+          <div style="width:100%; margin-top: auto;">
+             <div class="flex justify-between fs-sm mb-1">
+               <span style="color:var(--text-primary);">Limite: ${formatCurrency(c.limite)}</span>
+             </div>
+          </div>
+        </div>
+      `;
+    });
+    grid.innerHTML = html;
+  }
+  
+  renderFaturas() {
+    const selMonth = document.getElementById('faturaMonthSelect');
+    const selCartao = document.getElementById('faturaCartaoSelect');
+    const tbody = document.getElementById('faturaItemsBody');
+    const totalEl = document.getElementById('faturaTotalMes');
+    if (!selMonth || !selCartao || !tbody) return;
+    
+    if (selMonth.options.length === 0) {
+      const year = this.dm.data.year || new Date().getFullYear();
+      for(let i=1; i<=12; i++) {
+        selMonth.options.add(new Option(`${MONTHS[i-1]} ${year}`, `${year}-${String(i).padStart(2,'0')}`));
+      }
+      selMonth.value = `${year}-${String(this.currentMonth).padStart(2,'0')}`;
+    }
+    
+    if (selCartao.options.length <= 1) { 
+      selCartao.innerHTML = '<option value="all">Todos os Cartões</option>' + (this.dm.data.cartoes||[]).map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+    }
+    
+    const selectedMonth = selMonth.value;
+    const selectedCartaoId = selCartao.value;
+    
+    let itemsHTML = '';
+    let faturaTotal = 0;
+    
+    const compras = this.dm.data.comprasCartao || [];
+    const cartoesDict = {};
+    (this.dm.data.cartoes||[]).forEach(c => cartoesDict[c.id] = c);
+    
+    compras.forEach(compra => {
+       if (selectedCartaoId !== 'all' && compra.cartaoId !== selectedCartaoId) return;
+       
+       const [y1, m1] = compra.mesInicio.split('-').map(Number);
+       const [y2, m2] = selectedMonth.split('-').map(Number);
+       const diffMonths = (y2 - y1) * 12 + (m2 - m1);
+       
+       if (diffMonths >= 0 && diffMonths < compra.parcelas) {
+          const cartao = cartoesDict[compra.cartaoId];
+          const parcelaAtual = diffMonths + 1;
+          faturaTotal += compra.valorParcela;
+          itemsHTML += `
+            <tr>
+              <td>${compra.data.split('-').reverse().join('/')}</td>
+              <td><span style="border-bottom:2px solid ${cartao?.cor||'#fff'}">${cartao?.nome || 'Desconhecido'}</span></td>
+              <td>${compra.descricao}</td>
+              <td class="text-center">${parcelaAtual}/${compra.parcelas}</td>
+              <td class="text-right value-negative">${formatCurrency(compra.valorParcela)}</td>
+              <td><button class="btn-icon" onclick="app.deleteCompraCartao('${compra.id}')" title="Excluir Compra Inteira">🗑️</button></td>
+            </tr>
+          `;
+       }
+    });
+    
+    tbody.innerHTML = itemsHTML || '<tr><td colspan="6" class="text-center text-muted">Nenhuma compra nesta fatura.</td></tr>';
+    totalEl.textContent = formatCurrency(faturaTotal);
+  }
+
+  deleteCompraCartao(id) {
+    if (!confirm('Deseja excluir esta compra e TODAS as suas parcelas do cartão?')) return;
+    this.dm.data.comprasCartao = this.dm.data.comprasCartao.filter(c => c.id !== id);
+    this.dm.save();
+    this.renderAll();
+  }
+
+  pagarFaturaMes() {
+    const totalText = document.getElementById('faturaTotalMes').textContent;
+    if (confirm(`Deseja lançar o pagamento da fatura no valor de ${totalText} como um Gasto Fixo Pago no mês atual?`)) {
+       const mes = this.dm.getMonth(this.currentMonth);
+       const valor = parseFloat(totalText.replace(/[^\d,-]/g, '').replace(',', '.'));
+       if (valor > 0) {
+         mes.gastosFixos.push({
+           id: generateId(),
+           descricao: 'Fatura de Cartão',
+           valor: valor,
+           compartilhado: false,
+           pago: true
+         });
+         this.dm.save();
+         showToast('Pagamento da fatura lançado em Despesas!', 'success');
+         this.renderAll();
+       }
+    }
+  }
+
   // ── CONFIGURAÇÕES ──
   renderConfiguracoes() {
     // Clinics
@@ -2123,6 +3332,33 @@ class App {
         </td>
       </tr>
     `).join('');
+
+    // Variable categories
+    const cvBody = document.getElementById('categoriasVarBody');
+    if (cvBody) {
+      cvBody.innerHTML = (this.dm.data.categoriasVariaveis || []).map(cat => `
+        <tr>
+          <td>
+            <input type="text" class="editable-value" value="${cat.nome}"
+              onchange="app.updateCatVarNome('${cat.id}',this.value)">
+          </td>
+          <td class="text-right">
+            <input type="number" class="editable-value value-negative" style="text-align:right" value="${cat.orcamento}"
+              onchange="app.updateCatVarOrcamento('${cat.id}',this.value)">
+          </td>
+          <td>
+            <button class="btn-icon" onclick="app.deleteCatVar('${cat.id}')" title="Remover">🗑️</button>
+          </td>
+        </tr>
+      `).join('') || '<tr><td colspan="3" class="text-center text-muted">Nenhuma categoria variável</td></tr>';
+    }
+
+    // API Keys
+    const appsEl = document.getElementById('appsScriptUrl');
+    if (appsEl) appsEl.value = this.dm.data.appsScriptUrl || '';
+    
+    const groqEl = document.getElementById('groqApiKey');
+    if (groqEl) groqEl.value = this.dm.data.groqApiKey || '';
   }
 
   updateClinicaDiaria(id, value) {
@@ -2143,17 +3379,48 @@ class App {
     }
   }
 
-  updateCatFixaCompart(id, value) {
+  updateCatFixaCompart(id, comp) {
     const cat = this.dm.data.categoriasFixas.find(c => c.id === id);
-    if (cat) { cat.compartilhado = value; this.dm.save(); }
+    if (cat) { cat.compartilhado = comp; this.dm.save(); }
   }
 
   deleteCatFixa(id) {
-    if (confirm('Remover esta categoria?')) {
-      this.dm.data.categoriasFixas = this.dm.data.categoriasFixas.filter(c => c.id !== id);
-      this.dm.save();
-      this.renderConfiguracoes();
-    }
+    if (!confirm('Excluir esta categoria padrão de gasto fixo? Os meses atuais não serão afetados automaticamente.')) return;
+    this.dm.data.categoriasFixas = this.dm.data.categoriasFixas.filter(c => c.id !== id);
+    this.dm.save();
+    this.renderConfiguracoes();
+  }
+
+  // ── CATEGORIAS VARIAVEIS (ORÇAMENTOS) ──
+  addCategoriaVar() {
+    const nome = prompt('Nome da Categoria Variável (ex: Alimentação):');
+    if (!nome) return;
+    const orc = parseFloat(prompt('Orçamento Mensal (R$):', '500'));
+    if (isNaN(orc)) return;
+    this.dm.data.categoriasVariaveis.push({ id: generateId(), nome, orcamento: orc });
+    this.dm.save();
+    this.renderConfiguracoes();
+    this.renderAll();
+  }
+
+  updateCatVarNome(id, nome) {
+    const cat = this.dm.data.categoriasVariaveis.find(c => c.id === id);
+    if (cat) { cat.nome = nome; this.dm.save(); this.renderAll(); this.renderConfiguracoes(); }
+  }
+
+  updateCatVarOrcamento(id, orc) {
+    const val = parseFloat(orc);
+    if (isNaN(val)) return;
+    const cat = this.dm.data.categoriasVariaveis.find(c => c.id === id);
+    if (cat) { cat.orcamento = val; this.dm.save(); this.renderAll(); this.renderConfiguracoes(); }
+  }
+
+  deleteCatVar(id) {
+    if (!confirm('Excluir esta categoria de gasto variável?')) return;
+    this.dm.data.categoriasVariaveis = this.dm.data.categoriasVariaveis.filter(c => c.id !== id);
+    this.dm.save();
+    this.renderConfiguracoes();
+    this.renderAll();
   }
 
   // ── EXPORTAÇÃO ──
@@ -2480,7 +3747,44 @@ class App {
         </div>
       `;
     }).join('');
+    this.renderMonthlyChallenge();
   }
+
+  renderMonthlyChallenge() {
+    const descEl = document.getElementById('challengeDesc');
+    const statusEl = document.getElementById('challengeStatus');
+    if (!descEl || !statusEl) return;
+
+    if (this.currentMonth === 1) {
+      descEl.textContent = 'Guarde pelo menos R$ 100 na reserva este mês para ganhar 500 XP!';
+      const mesAtual = this.dm.getMonth(this.currentMonth);
+      let guardado = 0;
+      this.dm.data.reserva.movimentacoes.forEach(m => {
+        if (m.data && m.data.startsWith(`${YEAR}-01`) && m.tipo === 'deposito') guardado += m.valor;
+      });
+      if (guardado >= 100) {
+        statusEl.innerHTML = '<span style="color:var(--green)">Concluído! ✅</span>';
+      } else {
+        statusEl.innerHTML = `<span style="color:var(--amber)">Falta ${formatCurrency(100 - guardado)}</span>`;
+      }
+    } else {
+      descEl.textContent = 'Gaste menos em despesas variáveis do que no mês passado!';
+      const mesPassado = this.dm.getMonth(this.currentMonth - 1);
+      const mesAtual = this.dm.getMonth(this.currentMonth);
+      
+      const gastoPassado = mesPassado.gastosVariaveis.reduce((sum, g) => sum + g.valor, 0);
+      const gastoAtual = mesAtual.gastosVariaveis.reduce((sum, g) => sum + g.valor, 0);
+      
+      if (gastoPassado === 0) {
+        statusEl.innerHTML = '<span style="color:var(--text-muted)">Sem dados</span>';
+      } else if (gastoAtual < gastoPassado) {
+        statusEl.innerHTML = '<span style="color:var(--green)">Vencendo! 🏆</span>';
+      } else {
+        statusEl.innerHTML = '<span style="color:var(--red)">Perdendo 😢</span>';
+      }
+    }
+  }
+
 
   renderExtratoAnual() {
     const yearSelect = document.getElementById('extratoYearSelect');
@@ -2550,6 +3854,7 @@ class App {
     gradient.addColorStop(0, 'rgba(68, 138, 255, 0.5)');
     gradient.addColorStop(1, 'rgba(68, 138, 255, 0.0)');
     
+    const cColor = this.getChartColors();
     this.charts.extrato = new Chart(ctx, {
       type: 'line',
       data: {
@@ -2567,10 +3872,13 @@ class App {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        plugins: { 
+          legend: { display: false },
+          tooltip: { backgroundColor: cColor.tooltipBg, titleColor: cColor.tooltipText, bodyColor: cColor.tooltipText, borderColor: cColor.tooltipBorder, borderWidth: 1 }
+        },
         scales: {
-          y: { grid: { color: 'rgba(255,255,255,0.05)' } },
-          x: { grid: { display: false } }
+          y: { grid: { color: cColor.grid }, ticks: { color: cColor.text } },
+          x: { grid: { display: false }, ticks: { color: cColor.text } }
         }
       }
     });
@@ -2650,4 +3958,12 @@ let app;
 document.addEventListener('DOMContentLoaded', () => {
   app = new App();
   window.app = app;
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(registration => {
+      console.log('ServiceWorker registered successfully.');
+    }).catch(error => {
+      console.log('ServiceWorker registration failed:', error);
+    });
+  }
 });
