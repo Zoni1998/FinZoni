@@ -10,7 +10,7 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0a0a1a">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=18">
+  <link rel="stylesheet" href="style.css?v=23">
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Supabase -->
@@ -36,11 +36,7 @@
     <div class="auth-card">
       <div class="sidebar-logo" style="justify-content: center; margin-bottom: 24px;">
         <div class="logo-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;">
-            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-            <path d="M2 17l10 5 10-5"></path>
-            <path d="M2 12l10 5 10-5"></path>
-          </svg>
+          <img src="assets/logo.png" alt="FinZoni Logo" style="width:100%; height:100%; object-fit:cover; border-radius: var(--radius-md);">
         </div>
         <h1>FinZoni<span>Minha Gestão Financeira</span></h1>
       </div>
@@ -137,11 +133,7 @@
       <div class="sidebar-header">
         <div class="sidebar-logo">
           <div class="logo-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-              <path d="M2 17l10 5 10-5"></path>
-              <path d="M2 12l10 5 10-5"></path>
-            </svg>
+            <img src="assets/logo.png" alt="FinZoni Logo" style="width:100%; height:100%; object-fit:cover; border-radius: inherit;">
           </div>
           <h1>FinZoni<span>Minha Gestão Financeira</span></h1>
         </div>
@@ -240,9 +232,9 @@
           </div>
           
           <!-- Insight Diário da IA -->
-          <div class="card" style="background: linear-gradient(135deg, rgba(138, 5, 190, 0.1), rgba(183, 108, 255, 0.05)); border: 1px solid rgba(138, 5, 190, 0.3); border-left: 4px solid var(--purple); margin-bottom: 20px;">
+          <div class="card" style="border-left: 4px solid var(--purple);">
             <div style="display: flex; gap: 15px; align-items: flex-start;">
-              <div style="font-size: 2rem; background: linear-gradient(135deg, var(--purple), #b76cff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">✨</div>
+              <div style="font-size: 2rem; color: var(--purple);">✨</div>
               <div style="flex: 1;">
                 <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center;">
                   <span>Insight do FinZoni</span>
@@ -297,7 +289,7 @@
               <div class="progress-bar-container" style="margin-top:8px;">
                 <div class="progress-bar">
                   <div class="progress-fill" id="forecastProgressBar"
-                    style="width:0%;background:linear-gradient(90deg, var(--amber), #ffab40)"></div>
+                    style="width:0%;background:var(--amber)"></div>
                 </div>
               </div>
             </div>
@@ -605,7 +597,7 @@
           </div>
 
           <!-- Lançamento Mágico IA -->
-          <div class="card mb-3" style="background: linear-gradient(to right, #f4ebff, #ffffff); border-left: 4px solid var(--purple);">
+          <div class="card mb-3" style="border-left: 4px solid var(--purple);">
             <div style="font-weight: 600; color: var(--purple); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
               <span>✨</span> Lançamento Mágico com IA
             </div>
@@ -1479,6 +1471,10 @@
     ✨
   </button>
 
+  <!-- Animation Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  
   <script src="app.js?v=12"></script>
 </body>
 </html>

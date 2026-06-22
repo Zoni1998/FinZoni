@@ -505,6 +505,14 @@ class App {
     this.updateProfileUI();
     this.updatePrivacyIcon();
     this.renderAll();
+    
+    // Initial GSAP Entrance
+    if (window.gsap) {
+      gsap.fromTo(".sidebar", { x: -30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: "power3.out", clearProps: "all" });
+      gsap.fromTo(".main-header", { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, delay: 0.1, ease: "power3.out", clearProps: "all" });
+      gsap.fromTo(".summary-card", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.08, delay: 0.2, ease: "power3.out", clearProps: "all" });
+      gsap.fromTo(".card", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.05, delay: 0.4, ease: "power3.out", clearProps: "all" });
+    }
   }
 
   togglePrivacy() {
@@ -566,9 +574,22 @@ class App {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(t => {
+          t.classList.remove('active');
+          t.style.opacity = '0';
+        });
         const tab = document.getElementById('tab-' + btn.dataset.tab);
-        if (tab) tab.classList.add('active');
+        if (tab) {
+          tab.classList.add('active');
+          if (window.gsap) {
+             gsap.fromTo(tab, 
+               { opacity: 0, y: 15 }, 
+               { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }
+             );
+          } else {
+             tab.style.opacity = '1';
+          }
+        }
         this.activeTab = btn.dataset.tab;
         this.renderCurrentTab(btn.dataset.tab);
         // Close mobile menu
@@ -1944,8 +1965,8 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       data: {
         labels: MONTHS.map(m => m.substring(0,3)),
         datasets: [
-          { label: 'Receitas', data: receitas, backgroundColor: 'rgba(0, 230, 118, 0.6)', borderRadius: 6 },
-          { label: 'Despesas', data: despesas, backgroundColor: 'rgba(255, 82, 82, 0.6)', borderRadius: 6 }
+          { label: 'Receitas', data: receitas, backgroundColor: '#10b981', borderRadius: 4 },
+          { label: 'Despesas', data: despesas, backgroundColor: '#ef4444', borderRadius: 4 }
         ]
       },
       options: {
@@ -2011,8 +2032,8 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
         datasets: [{
           label: 'Saldo',
           data: saldos,
-          borderColor: '#448aff',
-          backgroundColor: 'rgba(68, 138, 255, 0.1)',
+          borderColor: '#3b82f6',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
           fill: true,
           tension: 0.4,
           pointBackgroundColor: saldos.map(s => s >= 0 ? '#00e676' : '#ff5252'),
@@ -2108,7 +2129,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     // Total card
     const totalPct = totalPrevisto > 0 ? Math.min(100, (totalRealizado / totalPrevisto) * 100) : 0;
     itemsHTML += `
-      <div class="forecast-item" style="border:1px solid var(--border-light);background:linear-gradient(135deg,rgba(68,138,255,0.06),rgba(0,230,118,0.06));">
+      <div class="forecast-item" style="border:1px solid var(--border-light);background:var(--bg-card);">
         <div class="forecast-label" style="font-weight:700;color:var(--text-primary);">💰 Salário Previsto</div>
         <div style="font-size:1.4rem;font-weight:800;color:var(--green);margin:8px 0;">${formatCurrency(totalPrevisto)}</div>
         <div style="font-size:0.82rem;color:var(--text-secondary);">
@@ -3851,8 +3872,8 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     
     const canvasCtx = ctx.getContext('2d');
     const gradient = canvasCtx.createLinearGradient(0, 0, 0, 300);
-    gradient.addColorStop(0, 'rgba(68, 138, 255, 0.5)');
-    gradient.addColorStop(1, 'rgba(68, 138, 255, 0.0)');
+    gradient.addColorStop(0, 'rgba(59, 130, 246, 0.3)');
+    gradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
     
     const cColor = this.getChartColors();
     this.charts.extrato = new Chart(ctx, {
