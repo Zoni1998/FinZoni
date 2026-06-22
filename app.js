@@ -1098,38 +1098,36 @@ class App {
     const producao = Number(this.calcProducaoDoMes(m) || 0);
     const saldoFinal = Number(receitas - despTotal);
     
-    // 2. Transações
-    const trRecs = (mesObj.receitas || []).map(r => `Rec: ${r.descricao} R$${Number(r.valor || 0).toFixed(2)} (Data: ${r.data})`).join('; ');
-    const trFixas = (mesObj.gastosFixos || []).map(g => `Fixo: ${g.descricao} R$${Number(g.valor || 0).toFixed(2)} (Data: ${g.data})`).join('; ');
-    const trVars = (mesObj.gastosVariaveis || []).map(g => `Var: ${g.descricao} R$${Number(g.valor || 0).toFixed(2)} (Cat: ${g.categoriaId}, Data: ${g.data})`).join('; ');
+    // 2. Transações Estruturadas em JSON
+    const trRecs = JSON.stringify((mesObj.receitas || []).map(r => ({ desc: r.descricao, valor: r.valor, data: r.data })));
+    const trFixas = JSON.stringify((mesObj.gastosFixos || []).map(g => ({ desc: g.descricao, valor: g.valor, data: g.data })));
+    const trVars = JSON.stringify((mesObj.gastosVariaveis || []).map(g => ({ desc: g.descricao, valor: g.valor, catId: g.categoriaId, data: g.data })));
 
     // 3. Orçamento de Categorias Variáveis
-    const catVarsText = (this.dm.data.categoriasVariaveis || []).map(cat => {
+    const catVarsText = JSON.stringify((this.dm.data.categoriasVariaveis || []).map(cat => {
       const gastoCat = (mesObj.gastosVariaveis || []).filter(g => g.categoriaId === cat.id).reduce((sum, g) => sum + Number(g.valor || 0), 0);
-      return `${cat.nome} (ID: ${cat.id}): Gasto R$ ${gastoCat.toFixed(2)} de R$ ${Number(cat.orcamento || 0).toFixed(2)}`;
-    }).join('; ');
+      return { categoria: cat.nome, gasto: gastoCat, limite: cat.orcamento };
+    }));
 
-    // 4. Diárias (Produção)
-    let diariasText = '';
+    // 4. Diárias (Produção) Estruturada
+    let diariasArr = [];
     if (mesObj.diarias && mesObj.diarias.modo === 'automatico') {
       const worked = mesObj.diarias.diasTrabalhados || {};
       Object.keys(worked).forEach(d => {
          const dataStr = `${m}-${d.padStart(2, '0')}`;
          worked[d].forEach(e => {
             const clinic = this.dm.data.clinicas.find(c => c.id === e.clinicaId);
-            const cName = clinic ? clinic.nome : 'Extra';
-            diariasText += `Diária: ${cName} R$${Number(e.valor || 0).toFixed(2)} (Data: ${dataStr}); `;
+            diariasArr.push({ clinica: clinic ? clinic.nome : 'Extra', valor: e.valor, data: dataStr });
          });
       });
     } else if (mesObj.diarias && mesObj.diarias.modo === 'manual') {
       const manual = mesObj.diarias.manual || {};
       Object.keys(manual).forEach(id => {
          const clinic = this.dm.data.clinicas.find(c => c.id === id);
-         const cName = clinic ? clinic.nome : 'Extra';
-         diariasText += `Diária Manual: ${cName} -> ${manual[id].diasReais || 0} dias trabalhados, R$${Number(manual[id].valorReal || 0).toFixed(2)}; `;
+         diariasArr.push({ clinica: clinic ? clinic.nome : 'Extra', diasTrabalhados: manual[id].diasReais, valor: manual[id].valorReal });
       });
     }
-    if (!diariasText) diariasText = 'Nenhuma diária registrada.';
+    const diariasText = JSON.stringify(diariasArr);
 
     // 5. Investimentos e Reserva
     const reservaSaldo = Number(this.calcReserva().saldo || 0);
@@ -1225,17 +1223,22 @@ DADOS FINANCEIROS GERAIS DO MÊS ATUAL (${m}):
 HISTÓRICO DE MESES PASSADOS:
 ${historicoMesesText}
 
-TRANSAÇÕES DO MÊS DETALHADAS (Procure nestas listas se perguntarem de dias específicos):
-- Diárias/Produção Trabalhadas: [${diariasText}]
-- Receitas Recebidas: [${trRecs || 'Nenhuma'}]
-- Gastos Fixos Pagos: [${trFixas || 'Nenhuma'}]
-- Gastos Variáveis (do dia a dia): [${trVars || 'Nenhuma'}]
+TRANSAÇÕES DO MÊS DETALHADAS EM JSON (Procure nestes blocos de dados brutos):
+\`\`\`json
+{
+  "diarias_trabalhadas_producao": ${diariasText},
+  "receitas_salario": ${trRecs},
+  "gastos_fixos": ${trFixas},
+  "gastos_variaveis": ${trVars}
+}
+\`\`\`
 
-INSTRUÇÕES CRÍTICAS PARA A SUA ATUAÇÃO:
-1. **É ESTRITAMENTE PROIBIDO agir como um assistente de IA ou atendente de telemarketing.** Não use frases clichês como "Como posso ajudar?", "Aproveite para...", "Se precisar de mais alguma coisa". 
-2. A sua resposta inteira (do começo ao fim) deve parecer ter sido escrita pela pessoa real da Persona escolhida. Impregne o texto com a personalidade, tom de voz, ironia ou seriedade exigidos pelo seu papel.
-3. Formate sempre os valores em R$ e negrito.
-4. Se o usuário perguntar de um gasto (ex: iFood) e ele não estiver na lista de transações, reaja de acordo com a sua Persona (ex: dê uma bronca por não ter anotado, ou diga que não encontrou na análise), mas NUNCA use frases robóticas do tipo "não tenho registro no sistema".`;
+INSTRUÇÕES CRÍTICAS PARA A SUA ATUAÇÃO E INTELIGÊNCIA:
+1. **É ESTRITAMENTE PROIBIDO agir como um assistente de IA.** Não use frases clichês. Aja 100% como a Persona.
+2. Formate sempre os valores em R$ e negrito.
+3. **RACIOCÍNIO MATEMÁTICO AVANÇADO**: Você possui acesso bruto ao banco de dados em formato JSON acima. Quando perguntado sobre gastos, saldos ou dias específicos, OLHE OS DADOS JSON. Faça as somas passo a passo mentalmente antes de responder.
+4. Cruze a "Data" das transações do JSON com o dia de HOJE (${hojeStr}) para identificar transações recentes.
+5. Se o usuário perguntar de um gasto (ex: iFood) e ele não estiver no JSON de gastos_variaveis, reaja de acordo com a sua Persona (ex: dê uma bronca por não ter anotado), mas NUNCA use frases robóticas.`;
   }
 
   async callGroq(messages, max_tokens = 500, temp = 0.7, jsonMode = false) {
@@ -1243,7 +1246,7 @@ INSTRUÇÕES CRÍTICAS PARA A SUA ATUAÇÃO:
     if (!apiKey) throw new Error('Chave da API Groq não configurada na aba de Configurações.');
     
     const body = {
-      model: 'llama-3.1-8b-instant',
+      model: 'llama-3.3-70b-versatile',
       messages,
       temperature: temp,
       max_tokens
@@ -1824,7 +1827,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
         method: 'POST',
         headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'llama-3.1-8b-instant',
+          model: 'llama-3.3-70b-versatile',
           messages: [
             { role: 'system', content: sysPrompt },
             { role: 'user', content: "AGORA ESQUEÇA SEU PAPEL ANTERIOR. Aja como um analista de dados frio e genial. Leia todo o contexto de números do meu dashboard atual. Me dê APENAS UMA dica, alerta, previsão, padrão oculto ou incentivo baseado nos dados cruciais. Seja extremamente direto e impactante (use no máximo 2 frases marcantes). Use emojis se quiser. Nunca diga 'Olá' ou se apresente. Comece o texto diretamente." }
