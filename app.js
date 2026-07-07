@@ -93,15 +93,22 @@ class DataManager {
       }
       
       if (data && data.data) {
-        this.data = data.data;
-        // Ensure sub-objects
-        if (!this.data.perfil) this.data.perfil = { nome: 'Minha Conta', foto: '', nivel: 1, xp: 0 };
-        if (!this.data.metas) this.data.metas = [];
-        if (!this.data.reserva) this.data.reserva = { movimentacoes: [], obs: '' };
-        if (!this.data.categoriasFixas) this.data.categoriasFixas = getDefaultData().categoriasFixas;
-        if (!this.data.categoriasVariaveis) this.data.categoriasVariaveis = getDefaultData().categoriasVariaveis;
-        if (!this.data.cartoes) this.data.cartoes = [];
-        if (!this.data.comprasCartao) this.data.comprasCartao = [];
+              this.data = data.data;
+              // Ensure sub-objects
+              if (!this.data.perfil) this.data.perfil = { nome: 'Minha Conta', foto: '', nivel: 1, xp: 0 };
+              if (!this.data.metas) this.data.metas = [];
+              if (!this.data.reserva) this.data.reserva = { movimentacoes: [], obs: '' };
+
+              // Validate & migrate data
+              this.validateAndMigrate();
+        
+              // Sync fixed expenses sharing with categories
+              for (let m = 1; m <= 12; m++) {
+                app.syncFixedSharing(m);
+              }
+              this.save();
+        
+              return true;
       } else {
         // Auto-Migration from localStorage
         const localRaw = localStorage.getItem('findash_data_v1');
@@ -1023,6 +1030,22 @@ class App {
       total += g.valor;
     });
     return total;
+  }
+
+  // Sincroniza compartilhado dos gastos fixos com as categorias globais
+  syncFixedSharing(month) {
+    const mes = this.dm.getMonth(month);
+    const catMap = {};
+    (this.dm.data.categoriasFixas || []).forEach(c => { catMap[c.nome] = c.compartilhado; });
+    let changed = false;
+    (mes.gastosFixos || []).forEach(g => {
+      const catShared = catMap[g.descricao];
+      if (catShared !== undefined && g.compartilhado !== catShared) {
+        g.compartilhado = catShared;
+        changed = true;
+      }
+    });
+    return changed;
   }
 
   // Salário do mês = diárias do mês ANTERIOR
