@@ -93,22 +93,35 @@ class DataManager {
       }
       
       if (data && data.data) {
-              this.data = data.data;
-              // Ensure sub-objects
-              if (!this.data.perfil) this.data.perfil = { nome: 'Minha Conta', foto: '', nivel: 1, xp: 0 };
-              if (!this.data.metas) this.data.metas = [];
-              if (!this.data.reserva) this.data.reserva = { movimentacoes: [], obs: '' };
+        let parsedData = data.data;
+        if (typeof parsedData === 'string') {
+          if (parsedData === '[object Object]') {
+            parsedData = getDefaultData();
+          } else {
+            try {
+              parsedData = JSON.parse(parsedData);
+            } catch(e) {
+              parsedData = getDefaultData();
+            }
+          }
+        }
+        this.data = parsedData;
+        // Ensure sub-objects
+        if (!this.data.perfil) this.data.perfil = { nome: 'Minha Conta', foto: '', nivel: 1, xp: 0 };
+        if (!this.data.metas) this.data.metas = [];
+        if (!this.data.reserva) this.data.reserva = { movimentacoes: [], obs: '' };
 
-              // Validate & migrate data
-              this.validateAndMigrate();
-        
-              // Sync fixed expenses sharing with categories
-              for (let m = 1; m <= 12; m++) {
-                app.syncFixedSharing(m);
-              }
-              this.save();
-        
-              return true;
+        // Validate & migrate data
+        this.validateAndMigrate();
+  
+        // Sync fixed expenses sharing with categories
+        for (let m = 1; m <= 12; m++) {
+          app.syncFixedSharing(m);
+        }
+        this.ensureAllMonths();
+        this.save();
+  
+        return true;
       } else {
         // Auto-Migration from localStorage
         const localRaw = localStorage.getItem('findash_data_v1');
@@ -124,16 +137,15 @@ class DataManager {
             if (!parsed.comprasCartao) parsed.comprasCartao = [];
             this.data = parsed;
             showToast('Dados do seu PC importados para a Nuvem com sucesso!', 'success');
-            // Save to Supabase immediately
-            this.save();
           } catch (err) {
             this.data = getDefaultData();
           }
         } else {
           this.data = getDefaultData();
         }
+        this.ensureAllMonths();
+        this.save();
       }
-      this.ensureAllMonths();
       return true;
     } catch (e) {
       console.error('Error in load:', e);
@@ -144,9 +156,26 @@ class DataManager {
   async save() {
     if (!this.userId || !sbClient) return;
     try {
-      const { error } = await sbClient
+      const { data: exist } = await sbClient
         .from('finances')
-        .upsert({ user_id: this.userId, data: this.data }, { onConflict: 'user_id' });
+        .select('user_id')
+        .eq('user_id', this.userId)
+        .single();
+
+      let error;
+      const payload = JSON.stringify(this.data);
+      if (exist) {
+        const { error: updateError } = await sbClient
+          .from('finances')
+          .update({ data: payload })
+          .eq('user_id', this.userId);
+        error = updateError;
+      } else {
+        const { error: insertError } = await sbClient
+          .from('finances')
+          .insert({ user_id: this.userId, data: payload });
+        error = insertError;
+      }
       
       if (error) {
         console.error('Error saving data:', error);
@@ -531,7 +560,11 @@ class App {
 
   updatePrivacyIcon() {
     const btn = document.getElementById('btnPrivacy');
-    if (btn) btn.innerHTML = isPrivacyMode ? '🙈' : '👁️';
+    if (btn) {
+      btn.innerHTML = isPrivacyMode 
+        ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`
+        : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+    }
   }
 
   // ── THEME ──
