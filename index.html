@@ -9,14 +9,17 @@
     content="Ferramenta completa de gestão financeira pessoal com controle de receitas, despesas, diárias e investimentos.">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0a0a1a">
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://jbzypqaimerrptxhovzq.supabase.co https://api.groq.com; img-src 'self' data:;">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css?v=23">
+  <!-- DOMPurify for XSS mitigation -->
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js" integrity="sha256-5XFzPjAiv644l+k31WlYvX/LmtKj/1YhP9x+Z/Rk6A4=" crossorigin="anonymous"></script>
   <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js" integrity="sha256-Zw6/gHRGwaA8Ztt0Z3n1hU2Eck8M80W8/7nZJp0D2tY=" crossorigin="anonymous"></script>
   <!-- Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js" integrity="sha256-DPMX6Rz/P6B27H+0U6n3JtX/VwM61S/3Z1m9L9p8U/A=" crossorigin="anonymous"></script>
   <!-- Confetti -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js" integrity="sha256-xRVnO562U3Kq1z3sQ+QWdD+6Gg5hWzT9l1XhI2mO1pE=" crossorigin="anonymous"></script>
 </head>
 
 <body>

@@ -4,11 +4,7 @@ const urlsToCache = [
   './index.html',
   './style.css',
   './app.js',
-  './manifest.json',
-  'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap',
-  'https://cdn.jsdelivr.net/npm/chart.js',
-  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
-  'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js'
+  './manifest.json'
 ];
 
 self.addEventListener('install', event => {

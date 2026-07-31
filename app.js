@@ -2,7 +2,27 @@
    DASHBOARD FINANCEIRO - APPLICATION LOGIC
    ======================================== */
 
+
+function validateFinancialData(data) {
+  if (!data || typeof data !== 'object') return false;
+  // Strip dangerous keys
+  delete data.__proto__;
+  delete data.constructor;
+  return true;
+}
+
 // ── CONSTANTS ──
+function escapeHTML(str) {
+  if (str === null || str === undefined) return '';
+  return String(str).replace(/[&<>'"]/g, tag => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    "'": '&#39;',
+    '"': '&quot;'
+  }[tag]));
+}
+
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const WEEKDAYS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 const STORAGE_KEY = 'findash_data_v1';
@@ -122,8 +142,7 @@ class DataManager {
         this.save();
   
         return true;
-      } else {
-        // Auto-Migration from localStorage
+      } else if (!this.userId) { // Auto-Migration from localStorage
         const localRaw = localStorage.getItem('findash_data_v1');
         if (localRaw) {
           try {
@@ -137,6 +156,7 @@ class DataManager {
             if (!parsed.comprasCartao) parsed.comprasCartao = [];
             this.data = parsed;
             showToast('Dados do seu PC importados para a Nuvem com sucesso!', 'success');
+            localStorage.removeItem('findash_data_v1'); // CLEAR AFTER MIGRATION
           } catch (err) {
             this.data = getDefaultData();
           }
@@ -153,7 +173,12 @@ class DataManager {
     }
   }
 
-  async save() {
+  save() {
+    if (this.saveTimeout) clearTimeout(this.saveTimeout);
+    this.saveTimeout = setTimeout(() => this._save(), 1000);
+  }
+
+  async _save() {
     if (!this.userId || !sbClient) return;
     try {
       const { data: exist } = await sbClient
@@ -757,7 +782,7 @@ class App {
       document.getElementById('gastoVarData').value = `${YEAR}-${String(this.currentMonth).padStart(2,'0')}-01`;
       const catSelect = document.getElementById('gastoVarCategoria');
       if (catSelect) {
-        catSelect.innerHTML = (this.dm.data.categoriasVariaveis || []).map(c => `<option value="${c.id}">${c.nome}</option>`).join('') + '<option value="">Sem categoria</option>';
+        catSelect.innerHTML = (this.dm.data.categoriasVariaveis || []).map(c => `<option value="${c.id}">${escapeHTML(c.nome)}</option>`).join('') + '<option value="">Sem categoria</option>';
       }
       openModal('modalGastoVar');
     });
@@ -786,7 +811,7 @@ class App {
           showToast('Adicione um cartão primeiro!', 'error');
           return;
         }
-        select.innerHTML = this.dm.data.cartoes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+        select.innerHTML = this.dm.data.cartoes.map(c => `<option value="${c.id}">${escapeHTML(c.nome)}</option>`).join('');
         document.getElementById('compraDescricao').value = '';
         document.getElementById('compraData').value = new Date().toISOString().slice(0,10);
         document.getElementById('compraValorTotal').value = '';
@@ -1310,9 +1335,9 @@ INSTRUÇÕES CRÍTICAS PARA A SUA ATUAÇÃO E INTELIGÊNCIA:
     };
     if (jsonMode) body.response_format = { type: "json_object" };
 
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const res = await fetch('${sbClient ? sbClient.supabaseUrl : ''}/functions/v1/groq-proxy', {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      headers: { 'Authorization': `Bearer ${window.supabaseKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
     if (!res.ok) {
@@ -1485,7 +1510,7 @@ REGRAS OBRIGATÓRIAS:
       const responseText = await this.callGroq(msgList, 1000, 0.7);
       
       // 4. Renderiza Resposta
-      resultEl.innerHTML = this.parseMarkdownTable(responseText);
+      resultEl.innerHTML = window.DOMPurify ? window.DOMPurify.sanitize(this.parseMarkdownTable(responseText)) : this.parseMarkdownTable(responseText);
       resultEl.classList.remove('hidden');
       
     } catch(e) {
@@ -1822,7 +1847,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       const previsto = dias * c.diariaPadrao;
       fgHTML += `
         <div class="forecast-item">
-          <div class="forecast-label">${c.nome}</div>
+          <div class="forecast-label">${escapeHTML(c.nome)}</div>
           <div class="forecast-value" style="color:${c.cor}">${formatCurrency(previsto)}</div>
           <div class="fs-sm" style="color:var(--text-muted)">${dias} dias × ${formatCurrency(c.diariaPadrao)}</div>
         </div>`;
@@ -1868,7 +1893,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     const turnosNomes = ["(00:00 - 08:00)", "(08:00 - 16:00)", "(16:00 - 00:00)"];
 
     if (this.dm.data.insightTurnoId === idTurno && this.dm.data.insightTexto) {
-      contentEl.innerHTML = this.dm.data.insightTexto;
+      contentEl.innerHTML = window.DOMPurify ? window.DOMPurify.sanitize(this.dm.data.insightTexto) : this.dm.data.insightTexto;
       if(timerEl) timerEl.innerText = `Turno Atual ${turnosNomes[turnoAtual]}`;
       return;
     }
@@ -1880,9 +1905,9 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       // Pega o resumo de contexto
       const sysPrompt = await this.getSystemPrompt();
       
-      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      const res = await fetch('${sbClient ? sbClient.supabaseUrl : ''}/functions/v1/groq-proxy', {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        headers: { 'Authorization': `Bearer ${window.supabaseKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
           messages: [
@@ -1902,7 +1927,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       this.dm.data.insightTexto = novoInsight;
       this.dm.save();
       
-      contentEl.innerHTML = novoInsight;
+      contentEl.innerHTML = window.DOMPurify ? window.DOMPurify.sanitize(novoInsight) : novoInsight;
       if(timerEl) timerEl.innerText = `Turno Atual ${turnosNomes[turnoAtual]}`;
       
     } catch (e) {
@@ -2134,7 +2159,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     // Legend
     const legend = document.getElementById('clinicLegend');
     legend.innerHTML = this.dm.data.clinicas.map(c =>
-      `<div class="legend-item"><div class="legend-dot" style="background:${c.cor}"></div>${c.nome} (${formatCurrency(c.diariaPadrao)})</div>`
+      `<div class="legend-item"><div class="legend-dot" style="background:${c.cor}"></div>${escapeHTML(c.nome)} (${formatCurrency(c.diariaPadrao)})</div>`
     ).join('');
 
     // Calendar
@@ -2166,7 +2191,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       totalRealizado += realizado;
       return `
         <div class="forecast-item">
-          <div class="forecast-label" style="color:${c.cor}">${c.nome}</div>
+          <div class="forecast-label" style="color:${c.cor}">${escapeHTML(c.nome)}</div>
           <input type="number" class="form-input text-center" value="${dias}" min="0" max="31"
             style="width:80px;margin:8px auto 0;text-align:center;"
             data-clinica-id="${c.id}" 
@@ -2265,7 +2290,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
         <div class="clinic-check-row mb-2" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding:10px 0;border-bottom:1px solid var(--border);">
           <label class="form-check" style="flex:1;min-width:140px;">
             <input type="checkbox" data-clinica-id="${c.id}" ${checked ? 'checked' : ''}>
-            <span style="color:${c.cor};font-weight:600;">${c.nome}</span>
+            <span style="color:${c.cor};font-weight:600;">${escapeHTML(c.nome)}</span>
           </label>
           <div style="display:flex;gap:4px;">
             <input type="number" class="form-input val-diaria" value="${valor}" step="0.01" style="width:100px;" placeholder="Diária" title="Valor da Diária">
@@ -2291,7 +2316,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       grandTotal += t.total;
       html += `
         <tr>
-          <td><span style="color:${c.cor};font-weight:600;">${c.nome}</span></td>
+          <td><span style="color:${c.cor};font-weight:600;">${escapeHTML(c.nome)}</span></td>
           <td class="text-right">${t.dias}</td>
           <td class="text-right">${formatCurrency(t.valor)}</td>
           <td class="text-right" style="color:var(--cyan)">${formatCurrency(t.comissao)}</td>
@@ -2326,7 +2351,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
 
       html += `
         <tr>
-          <td><span style="color:${c.cor};font-weight:600;">${c.nome}</span></td>
+          <td><span style="color:${c.cor};font-weight:600;">${escapeHTML(c.nome)}</span></td>
           <td class="text-right">
             <input type="number" class="editable-value" value="${m.diasPrevistos||0}" min="0"
               onchange="app.updateManual('${c.id}','diasPrevistos',this.value)">
@@ -2452,7 +2477,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       fixHTML += `
         <tr style="opacity: ${g.pago ? '0.6' : '1'}; transition: opacity 0.2s;">
           <td>
-            ${g.descricao}
+            ${escapeHTML(g.descricao)}
             ${g.compartilhado ? '<span class="shared-badge">50/50</span>' : ''}
           </td>
           <td class="text-right">
@@ -2499,7 +2524,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       varHTML += `
         <tr>
           <td>
-            <input type="text" class="editable-value" value="${g.descricao}"
+            <input type="text" class="editable-value" value="${escapeHTML(g.descricao)}"
               onchange="app.updateGastoVar('${g.id}', 'descricao', this.value)"
               onkeydown="if(event.key==='Enter') this.blur();">
             <div style="font-size:0.7rem; color:var(--text-muted); margin-top:2px;">
@@ -2545,7 +2570,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
         orcHTML += `
           <div style="margin-bottom: 16px;">
             <div class="flex justify-between items-center mb-1">
-              <span style="font-size:0.85rem;font-weight:600;">${cat.nome}</span>
+              <span style="font-size:0.85rem;font-weight:600;">${escapeHTML(cat.nome)}</span>
               <span style="font-size:0.8rem;color:var(--text-secondary);">${formatCurrency(spent)} / ${formatCurrency(cat.orcamento)}</span>
             </div>
             <div class="progress-bar-container" style="height:6px;">
@@ -2655,7 +2680,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
           totalSalario += md.valorReal || 0;
           dHTML += `
             <tr>
-              <td><span style="color:${c.cor};font-weight:600;">${c.nome}</span></td>
+              <td><span style="color:${c.cor};font-weight:600;">${escapeHTML(c.nome)}</span></td>
               <td class="text-right">${md.diasReais || 0}</td>
               <td class="text-right value-positive">${formatCurrency(md.valorReal || 0)}</td>
             </tr>`;
@@ -2667,7 +2692,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
           totalSalario += t.total;
           dHTML += `
             <tr>
-              <td><span style="color:${c.cor};font-weight:600;">${c.nome}</span></td>
+              <td><span style="color:${c.cor};font-weight:600;">${escapeHTML(c.nome)}</span></td>
               <td class="text-right">${t.dias}</td>
               <td class="text-right">${formatCurrency(t.valor)}</td>
               <td class="text-right" style="color:var(--cyan)">${formatCurrency(t.comissao)}</td>
@@ -2701,7 +2726,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       oHTML += `
         <tr>
           <td>
-            <input type="text" class="editable-value" value="${r.descricao}"
+            <input type="text" class="editable-value" value="${escapeHTML(r.descricao)}"
               onchange="app.updateReceita('${r.id}', 'descricao', this.value)"
               onkeydown="if(event.key==='Enter') this.blur();">
           </td>
@@ -2759,7 +2784,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
         totalProducao += md.valorReal || 0;
         pHTML += `
           <tr>
-            <td><span style="color:${c.cor};font-weight:600;">${c.nome}</span></td>
+            <td><span style="color:${c.cor};font-weight:600;">${escapeHTML(c.nome)}</span></td>
             <td class="text-right">${md.diasReais || 0}</td>
             <td class="text-right" style="color:var(--amber)">${formatCurrency(md.valorReal || 0)}</td>
           </tr>`;
@@ -2771,7 +2796,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
         totalProducao += t.total;
         pHTML += `
           <tr>
-            <td><span style="color:${c.cor};font-weight:600;">${c.nome}</span></td>
+            <td><span style="color:${c.cor};font-weight:600;">${escapeHTML(c.nome)}</span></td>
             <td class="text-right">${t.dias}</td>
             <td class="text-right">${formatCurrency(t.valor)}</td>
             <td class="text-right" style="color:var(--cyan)">${formatCurrency(t.comissao)}</td>
@@ -2931,7 +2956,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       return `
         <div class="goal-card">
           <div class="goal-header">
-            <div class="goal-name">🎯 ${meta.nome}</div>
+            <div class="goal-name">🎯 ${escapeHTML(meta.nome)}</div>
             <div class="flex gap-1">
               <button class="btn btn-success btn-sm" onclick="app.openUpdateMeta('${meta.id}')">+ Adicionar</button>
               <button class="btn-icon" onclick="app.openModalEditarMeta('${meta.id}')" title="Editar">✏️</button>
@@ -3281,7 +3306,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       
       html += `
         <div class="achievement-card" style="border-top: 4px solid ${c.cor}; background: var(--bg-card); display:flex; flex-direction:column; align-items:flex-start; padding: 15px;">
-          <div style="font-weight: 700; font-size:1.1rem; margin-bottom:5px;">${c.nome}</div>
+          <div style="font-weight: 700; font-size:1.1rem; margin-bottom:5px;">${escapeHTML(c.nome)}</div>
           <div class="fs-sm mb-2" style="color:var(--text-secondary);">Fecha dia ${c.fechamento} | Vence dia ${c.vencimento}</div>
           <div style="width:100%; margin-top: auto;">
              <div class="flex justify-between fs-sm mb-1">
@@ -3310,7 +3335,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     }
     
     if (selCartao.options.length <= 1) { 
-      selCartao.innerHTML = '<option value="all">Todos os Cartões</option>' + (this.dm.data.cartoes||[]).map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+      selCartao.innerHTML = '<option value="all">Todos os Cartões</option>' + (this.dm.data.cartoes||[]).map(c=>`<option value="${c.id}">${escapeHTML(c.nome)}</option>`).join('');
     }
     
     const selectedMonth = selMonth.value;
@@ -3338,7 +3363,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
             <tr>
               <td>${compra.data.split('-').reverse().join('/')}</td>
               <td><span style="border-bottom:2px solid ${cartao?.cor||'#fff'}">${cartao?.nome || 'Desconhecido'}</span></td>
-              <td>${compra.descricao}</td>
+              <td>${escapeHTML(compra.descricao)}</td>
               <td class="text-center">${parcelaAtual}/${compra.parcelas}</td>
               <td class="text-right value-negative">${formatCurrency(compra.valorParcela)}</td>
               <td><button class="btn-icon" onclick="app.deleteCompraCartao('${compra.id}')" title="Excluir Compra Inteira">🗑️</button></td>
@@ -3384,7 +3409,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     const cBody = document.getElementById('clinicasConfigBody');
     cBody.innerHTML = this.dm.data.clinicas.map(c => `
       <tr>
-        <td style="font-weight:600;">${c.nome}</td>
+        <td style="font-weight:600;">${escapeHTML(c.nome)}</td>
         <td class="text-right">
           <input type="number" class="editable-value" value="${c.diariaPadrao}" step="0.01"
             onchange="app.updateClinicaDiaria('${c.id}',this.value)">
@@ -3403,7 +3428,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     const catBody = document.getElementById('categoriasFixasBody');
     catBody.innerHTML = this.dm.data.categoriasFixas.map(cat => `
       <tr>
-        <td>${cat.nome}</td>
+        <td>${escapeHTML(cat.nome)}</td>
         <td class="text-center">
           <input type="checkbox" ${cat.compartilhado ? 'checked' : ''}
             onchange="app.updateCatFixaCompart('${cat.id}',this.checked)">
@@ -3420,7 +3445,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       cvBody.innerHTML = (this.dm.data.categoriasVariaveis || []).map(cat => `
         <tr>
           <td>
-            <input type="text" class="editable-value" value="${cat.nome}"
+            <input type="text" class="editable-value" value="${escapeHTML(cat.nome)}"
               onchange="app.updateCatVarNome('${cat.id}',this.value)">
           </td>
           <td class="text-right">
@@ -3515,7 +3540,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     const m = this.dm.getMonth(month);
 
     let html = `
-      <div style="max-width: 800px; margin: 0 auto; color: #333; font-family: 'Inter', Arial, sans-serif;">
+      <div style="max-width: 800px; margin: 0 auto; color: #333; font-family: 'Outfit', Arial, sans-serif;">
         <h1 style="color: #111128; border-bottom: 2px solid #448aff; padding-bottom: 10px;">Relatório Financeiro</h1>
         <p style="color: #666; font-size: 14px;">Período: ${formatMonth(month)}</p>
 
@@ -3562,7 +3587,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
         const cor = g.pago ? '#00e676' : '#ff5252';
         html += `
           <tr>
-            <td style="padding: 8px; border: 1px solid #ddd;">${g.descricao}</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">${escapeHTML(g.descricao)}</td>
             <td style="padding: 8px; border: 1px solid #ddd;">${g.vencimento ? 'Dia ' + g.vencimento : '-'}</td>
             <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${formatCurrency(minhaParte)}</td>
             <td style="padding: 8px; border: 1px solid #ddd; text-align: center; color: ${cor}; font-weight: bold;">${status}</td>
@@ -3593,7 +3618,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       m.gastosVariaveis.forEach(g => {
         html += `
           <tr>
-            <td style="padding: 8px; border: 1px solid #ddd;">${g.descricao}</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">${escapeHTML(g.descricao)}</td>
             <td style="padding: 8px; border: 1px solid #ddd;">${formatDate(g.data)}</td>
             <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${formatCurrency(g.valor)}</td>
           </tr>
@@ -3646,7 +3671,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       const dAuto = this.calcDiariasAuto(m);
       this.dm.data.clinicas.forEach(c => {
         if (dAuto[c.id] && dAuto[c.id].dias > 0) {
-          diarias.push(`${c.nome}: ${dAuto[c.id].dias} dias - ${formatCurrency(dAuto[c.id].total)}`);
+          diarias.push(`${escapeHTML(c.nome)}: ${dAuto[c.id].dias} dias - ${formatCurrency(dAuto[c.id].total)}`);
         }
       });
     } else {
@@ -3658,7 +3683,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     // Prepare outras receitas
     const outrasReceitas = [];
     (mes.outrasReceitas || []).forEach(r => {
-      outrasReceitas.push(`${r.descricao}: ${formatCurrency(r.valor)}`);
+      outrasReceitas.push(`${escapeHTML(r.descricao)}: ${formatCurrency(r.valor)}`);
     });
 
     // Prepare gastos fixos
@@ -3666,13 +3691,13 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     (mes.gastosFixos || []).forEach(g => {
       const valorStr = formatCurrency(g.compartilhado ? g.valor / 2 : g.valor);
       const statusStr = g.pago ? 'Pago' : 'Pendente';
-      gastosFixos.push(`${g.descricao}: ${valorStr} (${statusStr})`);
+      gastosFixos.push(`${escapeHTML(g.descricao)}: ${valorStr} (${statusStr})`);
     });
 
     // Prepare gastos variáveis
     const gastosVariaveis = [];
     (mes.gastosVariaveis || []).forEach(g => {
-      gastosVariaveis.push(`${g.descricao}: ${formatCurrency(g.valor)} - Data: ${g.data || '-'}`);
+      gastosVariaveis.push(`${escapeHTML(g.descricao)}: ${formatCurrency(g.valor)} - Data: ${g.data || '-'}`);
     });
 
     // Prepare investimentos
@@ -3681,7 +3706,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       reservaSaldo: formatCurrency(res.saldo),
       metas: (this.dm.data.metas || []).map(meta => {
         const pct = meta.valorMeta > 0 ? (meta.valorAtual / meta.valorMeta * 100).toFixed(1) : 0;
-        return `${meta.nome}: ${formatCurrency(meta.valorAtual)} de ${formatCurrency(meta.valorMeta)} (${pct}%)`;
+        return `${escapeHTML(meta.nome)}: ${formatCurrency(meta.valorAtual)} de ${formatCurrency(meta.valorMeta)} (${pct}%)`;
       })
     };
 
@@ -3990,9 +4015,9 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
           const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
           
           if (diffDays < 0) {
-            alerts.push(`<div class="notification-item"><div class="notification-icon">⚠️</div><div class="notification-text">A conta <strong>${g.descricao}</strong> está atrasada há ${Math.abs(diffDays)} dia(s)!</div></div>`);
+            alerts.push(`<div class="notification-item"><div class="notification-icon">⚠️</div><div class="notification-text">A conta <strong>${escapeHTML(g.descricao)}</strong> está atrasada há ${Math.abs(diffDays)} dia(s)!</div></div>`);
           } else if (diffDays <= 3) {
-            alerts.push(`<div class="notification-item"><div class="notification-icon">⏰</div><div class="notification-text">A conta <strong>${g.descricao}</strong> vence em ${diffDays === 0 ? 'hoje' : diffDays + ' dia(s)'}!</div></div>`);
+            alerts.push(`<div class="notification-item"><div class="notification-icon">⏰</div><div class="notification-text">A conta <strong>${escapeHTML(g.descricao)}</strong> vence em ${diffDays === 0 ? 'hoje' : diffDays + ' dia(s)'}!</div></div>`);
           }
         }
       }
