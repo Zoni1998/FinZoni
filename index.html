@@ -1487,9 +1487,19 @@
         <!-- Mensagens serão inseridas aqui via JS -->
       </div>
       
-      <div style="padding-top: 15px; border-top: 1px solid var(--border-color); display: flex; gap: 8px;">
+      <div id="iaAttachmentPreview" style="display: none; padding: 10px; background-color: var(--bg-card); border-radius: 8px; margin-bottom: 10px; font-size: 0.8rem; align-items: center; justify-content: space-between; border: 1px solid var(--border);">
+        <span id="iaAttachmentName" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;">arquivo.pdf</span>
+        <button onclick="app.removeIaAttachment()" style="background: none; border: none; color: var(--red); cursor: pointer;">❌</button>
+      </div>
+      <div style="padding-top: 15px; border-top: 1px solid var(--border); display: flex; gap: 8px; align-items: center;">
+        <button class="btn" style="background-color: var(--bg-input); color: var(--text-secondary); border: 1px solid var(--border); border-radius: 50%; width: 40px; height: 40px; padding: 0; display: flex; justify-content: center; align-items: center; flex-shrink: 0;" onclick="document.getElementById('iaFileInput').click()" title="Anexar arquivo (PDF ou Imagem)">📎</button>
+        <input type="file" id="iaFileInput" style="display: none;" accept="image/*,application/pdf" onchange="app.handleIaFile(event)">
+        
+        <button class="btn" id="btnAudioIA" style="background-color: var(--bg-input); color: var(--text-secondary); border: 1px solid var(--border); border-radius: 50%; width: 40px; height: 40px; padding: 0; display: flex; justify-content: center; align-items: center; flex-shrink: 0;" onmousedown="app.startAudioIA()" onmouseup="app.stopAudioIA()" onmouseleave="app.stopAudioIA()" ontouchstart="app.startAudioIA()" ontouchend="app.stopAudioIA()" title="Segure para falar">🎤</button>
+        
         <input type="text" id="iaChatInput" class="form-input" style="flex: 1;" placeholder="Pergunte sobre seus gastos..." onkeydown="if(event.key === 'Enter') app.enviarMensagemIA()">
-        <button class="btn" style="background-color: var(--purple); color: white; border-radius: 50%; width: 40px; height: 40px; padding: 0; display: flex; justify-content: center; align-items: center;" onclick="app.enviarMensagemIA()" id="btnSendIA">➤</button>
+        
+        <button class="btn" style="background-color: var(--purple); color: white; border-radius: 50%; width: 40px; height: 40px; padding: 0; display: flex; justify-content: center; align-items: center; flex-shrink: 0;" onclick="app.enviarMensagemIA()" id="btnSendIA">➤</button>
       </div>
     </div>
   </div>
