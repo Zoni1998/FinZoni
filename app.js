@@ -270,6 +270,13 @@ class DataManager {
     this.save();
     showToast('Todos os dados foram apagados!', 'info');
   }
+
+  validateAndMigrate() {
+    if (!this.data.categoriasFixas) this.data.categoriasFixas = getDefaultData().categoriasFixas;
+    if (!this.data.categoriasVariaveis) this.data.categoriasVariaveis = getDefaultData().categoriasVariaveis;
+    if (!this.data.cartoes) this.data.cartoes = [];
+    if (!this.data.comprasCartao) this.data.comprasCartao = [];
+  }
 }
 
 // ── UTILITY FUNCTIONS ──
