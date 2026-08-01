@@ -2118,16 +2118,37 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
           model: this.dm.data.nvidiaModel || 'meta/llama-3.1-8b-instruct',
           messages: [
             { role: 'system', content: sysPrompt },
-            { role: 'user', content: "AGORA ESQUEÇA SEU PAPEL ANTERIOR. Aja como um analista de dados frio e genial. Leia todo o contexto de números do meu dashboard atual. Me dê APENAS UMA dica, alerta, previsão, padrão oculto ou incentivo baseado nos dados cruciais. Seja extremamente direto e impactante (use no máximo 2 frases marcantes). Use emojis se quiser. Nunca diga 'Olá' ou se apresente. Comece o texto diretamente." }
+            { role: 'user', content: "Aja como um analista de dados frio e genial. Leia o contexto de números do dashboard. Forneça APENAS a dica final. NUNCA escreva seus pensamentos, NUNCA escreva 'The user wants me to...', NUNCA explique sua lógica. Máximo 2 frases. Use emojis." }
           ],
-          temperature: 0.9,
+          temperature: 0.2,
           max_tokens: 150
         })
       });
 
       if (!res.ok) throw new Error('API NVIDIA Offline');
       const data = await res.json();
-      const novoInsight = data.choices[0].message.content;
+
+      let txt = data.choices[0].message.content;
+      txt = txt.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+      
+      const commonPrefixes = ["The user wants me to", "Here is a", "Let's analyze", "I will", "Based on"];
+      for (const prefix of commonPrefixes) {
+        if (txt.toLowerCase().startsWith(prefix.toLowerCase())) {
+           const splitIndex = txt.indexOf(':');
+           const newlineIndex = txt.indexOf('\n');
+           let breakIdx = -1;
+           if (splitIndex !== -1 && newlineIndex !== -1) breakIdx = Math.min(splitIndex, newlineIndex);
+           else if (splitIndex !== -1) breakIdx = splitIndex;
+           else if (newlineIndex !== -1) breakIdx = newlineIndex;
+           
+           if (breakIdx !== -1) {
+              txt = txt.substring(breakIdx + 1).trim();
+           }
+        }
+      }
+      
+      const novoInsight = txt;
+
       
       this.dm.data.insightTurnoId = idTurno;
       this.dm.data.insightTexto = novoInsight;
