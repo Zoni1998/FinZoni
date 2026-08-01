@@ -1964,7 +1964,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       // Pega o resumo de contexto
       const sysPrompt = await this.getSystemPrompt();
       
-      const res = await fetch('${sbClient ? sbClient.supabaseUrl : ''}/functions/v1/nvidia-proxy', {
+      const res = await fetch(`${sbClient ? sbClient.supabaseUrl : ''}/functions/v1/nvidia-proxy`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${window.supabaseKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
