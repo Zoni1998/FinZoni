@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finzoni-cache-v22';
+const CACHE_NAME = 'finzoni-cache-v23';
 const urlsToCache = [
   './',
   './index.html',
@@ -8,6 +8,7 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', event => {
+  self.skipWaiting(); // Force the new service worker to take over immediately
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -17,48 +18,39 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
+  // Ignora chamadas à API, Supabase ou outros serviços externos
+  if (!event.request.url.startsWith(self.location.origin)) {
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request)
+    // Estratégia Network First, fallback para Cache
+    fetch(event.request)
       .then(response => {
-        // Cache hit - return response
-        if (response) {
-          return response;
+        // Se a resposta for válida, salva no cache e retorna
+        if (response && response.status === 200 && response.type === 'basic') {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, responseToCache);
+          });
         }
-        return fetch(event.request).then(
-          function(response) {
-            // Check if we received a valid response
-            if(!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-
-            var responseToCache = response.clone();
-
-            caches.open(CACHE_NAME)
-              .then(function(cache) {
-                // Don't cache supabase API requests
-                if (!event.request.url.includes('supabase.co')) {
-                  cache.put(event.request, responseToCache);
-                }
-              });
-
-            return response;
-          }
-        );
+        return response;
+      })
+      .catch(() => {
+        // Se a rede falhar (offline), busca no cache
+        return caches.match(event.request);
       })
   );
 });
 
 self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            return caches.delete(cacheName);
-          }
+        cacheNames.filter(cacheName => cacheName !== CACHE_NAME).map(cacheName => {
+          return caches.delete(cacheName);
         })
       );
-    })
+    }).then(() => self.clients.claim()) // Immediately take control of clients
   );
 });

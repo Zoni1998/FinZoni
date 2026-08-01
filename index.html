@@ -9,7 +9,7 @@
     content="Ferramenta completa de gestão financeira pessoal com controle de receitas, despesas, diárias e investimentos.">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0a0a1a">
-  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://jbzypqaimerrptxhovzq.supabase.co https://kqjdslnysmhhwccukbuz.supabase.co https://api.groq.com; img-src 'self' data:;">
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://jbzypqaimerrptxhovzq.supabase.co https://kqjdslnysmhhwccukbuz.supabase.co https://api.groq.com https://api.bcb.gov.br https://economia.awesomeapi.com.br; img-src 'self' data: blob:;">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css?v=21">
   <!-- DOMPurify for XSS mitigation -->
@@ -890,11 +890,7 @@
               </div>
               <div>
                 <select class="form-input" id="extratoYearSelect" onchange="app.renderExtratoAnual()" style="width: 120px;">
-                  <option value="2024">2024</option>
-                  <option value="2025">2025</option>
-                  <option value="2026" selected>2026</option>
-                  <option value="2027">2027</option>
-                  <option value="2028">2028</option>
+                  <!-- Populated dynamically via JS -->
                 </select>
               </div>
             </div>
@@ -1037,20 +1033,8 @@
             </div>
           </div>
 
-          <!-- Integrações -->
-          <div class="card mb-3">
-            <div class="card-header"><span class="card-title">🔗 Integrações (Google Docs)</span></div>
-            <div class="form-group">
-              <label class="form-label">URL do Web App (Google Apps Script)</label>
-              <input type="text" class="form-input" id="appsScriptUrlInput"
-                placeholder="https://script.google.com/macros/s/.../exec"
-                onchange="app.updateAppsScriptUrl(this.value)">
-              <div class="fs-sm mt-1" style="color:var(--text-secondary);margin-top:8px;">
-                Cole aqui o link gerado pelo Google Apps Script para permitir o envio direto de relatórios para o seu
-                Google Docs.
-              </div>
-            </div>
-          </div>
+          <!-- Integrações (Google Docs) moved to first integration card above -->
+
 
           <!-- Data Management -->
           <div class="card mb-3">
