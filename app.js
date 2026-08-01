@@ -133,12 +133,12 @@ class DataManager {
 
         // Validate & migrate data
         this.validateAndMigrate();
+        this.ensureAllMonths();
   
         // Sync fixed expenses sharing with categories
         for (let m = 1; m <= 12; m++) {
           app.syncFixedSharing(m);
         }
-        this.ensureAllMonths();
         this.save();
   
         return true;
@@ -434,7 +434,8 @@ class App {
       }
     } catch (e) {
       console.error(e);
-      showToast('Erro crítico no login', 'error');
+      showToast('Erro crítico no login: ' + (e.message || e), 'error');
+      alert('Erro crítico: ' + e.stack);
     }
   }
 
