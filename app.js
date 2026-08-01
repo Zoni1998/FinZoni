@@ -1188,7 +1188,7 @@ class App {
     const btn = document.getElementById('btnCarregarModelos');
     if (btn) btn.innerText = 'Carregando...';
     try {
-      const res = await fetch(`https://kqjdslnysmhhwccukbuz.supabase.co/functions/v1/nvidia-proxy`, {
+      const res = await fetch(`/api/nvidia`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${window.supabaseKey}` },
         body: JSON.stringify({ action: 'models', apiKey: this.dm.data.nvidiaApiKey })
@@ -1394,7 +1394,7 @@ INSTRUÇÕES CRÍTICAS PARA A SUA ATUAÇÃO E INTELIGÊNCIA:
     };
     if (jsonMode) body.response_format = { type: "json_object" };
 
-    const res = await fetch(`https://kqjdslnysmhhwccukbuz.supabase.co/functions/v1/nvidia-proxy`, {
+    const res = await fetch(`/api/nvidia`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${window.supabaseKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
@@ -1964,7 +1964,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       // Pega o resumo de contexto
       const sysPrompt = await this.getSystemPrompt();
       
-      const res = await fetch(`https://kqjdslnysmhhwccukbuz.supabase.co/functions/v1/nvidia-proxy`, {
+      const res = await fetch(`/api/nvidia`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${window.supabaseKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
