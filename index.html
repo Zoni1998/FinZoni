@@ -254,7 +254,10 @@
               <div style="flex: 1;">
                 <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center;">
                   <span>Insight do FinZoni</span>
-                  <span id="insightTimer" style="font-size: 0.8rem; color: var(--text-secondary); font-weight: normal;">Analisando...</span>
+                  <div style="display: flex; gap: 10px; align-items: center;">
+                    <span id="insightTimer" style="font-size: 0.8rem; color: var(--text-secondary); font-weight: normal;">Analisando...</span>
+                    <button class="btn-icon" style="padding: 2px 5px; font-size: 0.8rem; border: 1px solid var(--border-color); border-radius: 4px;" onclick="app.forcarNovoInsight()" title="Forçar novo insight">🔄</button>
+                  </div>
                 </div>
                 <div id="insightContent" style="color: var(--text-secondary); line-height: 1.5; font-size: 0.95rem;">
                   Carregando sua dica financeira do turno...
