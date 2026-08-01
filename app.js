@@ -2065,8 +2065,9 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
 
   
   forcarNovoInsight() {
-    this.dm.update('insightTurnoId', null);
-    this.dm.update('insightTexto', null);
+    this.dm.data.insightTurnoId = null;
+    this.dm.data.insightTexto = null;
+    this.dm.save();
     this.checkAndFetchInsight();
   }
 
