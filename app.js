@@ -2190,11 +2190,17 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       const novoInsight = txt;
 
       
+            // Formata markdown básico antes de salvar e exibir
+      const formattedInsight = novoInsight
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // negrito
+        .replace(/\*(.*?)\*/g, '<em>$1</em>') // itálico
+        .replace(/\n/g, '<br/>'); // quebra de linha
+
       this.dm.data.insightTurnoId = idTurno;
-      this.dm.data.insightTexto = novoInsight;
+      this.dm.data.insightTexto = formattedInsight;
       this.dm.save();
       
-      contentEl.innerHTML = window.DOMPurify ? window.DOMPurify.sanitize(novoInsight) : novoInsight;
+      contentEl.innerHTML = window.DOMPurify ? window.DOMPurify.sanitize(formattedInsight) : formattedInsight;
       if(timerEl) timerEl.innerText = `Turno Atual ${turnosNomes[turnoAtual]}`;
       
     } catch (e) {
