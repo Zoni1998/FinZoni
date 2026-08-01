@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finzoni-cache-v3';
+const CACHE_NAME = 'finzoni-cache-v4';
 const urlsToCache = [
   './',
   './index.html',
