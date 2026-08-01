@@ -1381,7 +1381,9 @@ INSTRUÇÕES CRÍTICAS PARA A SUA ATUAÇÃO E INTELIGÊNCIA:
 3. Formate sempre os valores em R$ e negrito.
 4. **RACIOCÍNIO MATEMÁTICO INVISÍVEL**: Faça as somas passo a passo MENTALMENTE e invisivelmente. Entregue apenas o resultado final confiante e exato.
 5. Cruze a "Data" das transações do JSON com o dia de HOJE (${hojeStr}) para identificar transações recentes, mas não explique isso ao usuário.
-6. Se o usuário perguntar de um gasto (ex: iFood) e ele não estiver nos dados, reaja de acordo com a sua Persona (ex: dê uma bronca por ele não ter anotado), mas NUNCA use frases robóticas.`;
+6. Se o usuário perguntar de um gasto (ex: iFood) e ele não estiver nos dados, reaja de acordo com a sua Persona (ex: dê uma bronca por ele não ter anotado), mas NUNCA use frases robóticas.
+7. REGRA DE OURO E ABSOLUTA: NUNCA, SOB NENHUMA HIPÓTESE, ESCREVA O SEU RACIOCÍNIO. O USUÁRIO ODEIA LER PENSAMENTOS DE IA. ENTREGUE APENAS A RESPOSTA FINAL. NUNCA EXPLIQUE COMO VOCÊ CHEGOU NA RESPOSTA.
+7. REGRA DE OURO: NUNCA, SOB NENHUMA HIPÓTESE, ESCREVA O QUE VOCÊ ESTÁ PENSANDO. NUNCA diga "O usuário quer que eu...". APENAS responda diretamente.`;
   }
 
   async callNvidia(messages, max_tokens = 500, temp = 0.7, jsonMode = false, tools = null) {
@@ -1417,7 +1419,45 @@ INSTRUÇÕES CRÍTICAS PARA A SUA ATUAÇÃO E INTELIGÊNCIA:
     if (tools) {
       return data.choices[0].message;
     }
-    return data.choices[0].message.content;
+    
+    let txt = data.choices[0].message.content;
+    
+    // Strip <think> tags
+    txt = txt.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+    
+    // Strip common AI thought monologues
+    const commonPrefixes = [
+      "The user wants me to", "The user is asking", "Here is a", "Let's analyze", "I will", "Based on", 
+      "I need to check", "Looking at", "The summary says", "Let me check", "To answer this", "The current month"
+    ];
+    let removedPrefix = true;
+    while(removedPrefix) {
+      removedPrefix = false;
+      for (const prefix of commonPrefixes) {
+        if (txt.toLowerCase().startsWith(prefix.toLowerCase())) {
+           const doubleNewline = txt.indexOf('\n\n');
+           const singleNewline = txt.indexOf('\n');
+           let breakIdx = -1;
+           if (doubleNewline !== -1) breakIdx = doubleNewline;
+           else if (singleNewline !== -1 && singleNewline < 200) breakIdx = singleNewline;
+           
+           if (breakIdx !== -1) {
+              txt = txt.substring(breakIdx + 1).trim();
+              removedPrefix = true;
+           } else {
+              // If we can't find a line break, maybe the whole thing is just thoughts and no answer?
+              // Try finding a period after 50 chars? Let's just break at first period.
+              const period = txt.indexOf('.');
+              if (period !== -1) {
+                txt = txt.substring(period + 1).trim();
+                removedPrefix = true;
+              }
+           }
+        }
+      }
+    }
+    
+    return txt;
   }
 
   // --- CONSULTORIA DE APORTES (MARKET DATA) ---
