@@ -57,7 +57,7 @@ function getDefaultData() {
     ],
     cartoes: [],
     comprasCartao: [],
-    groqApiKey: '',
+    nvidiaApiKey: '',
     reserva: {
       movimentacoes: [],
       obs: ''
@@ -1159,10 +1159,55 @@ class App {
     showToast('URL do Apps Script salva!', 'success');
   }
 
-  saveGroqKey() {
-    const el = document.getElementById('groqApiKey');
+  saveNvidiaModel() {
+    const el = document.getElementById('nvidiaModelSelect');
+    if (el) {
+      this.dm.data.nvidiaModel = el.value;
+      this.dm.save();
+      showToast('Modelo atualizado e salvo!', 'success');
+    }
+  }
+
+  async carregarModelosNvidia() {
+    if (!this.dm.data.nvidiaApiKey) {
+      showToast('Configure a chave da NVIDIA primeiro.', 'error');
+      return;
+    }
+    const btn = document.getElementById('btnCarregarModelos');
+    if (btn) btn.innerText = 'Carregando...';
+    try {
+      const res = await fetch(`${sbClient ? sbClient.supabaseUrl : ''}/functions/v1/nvidia-proxy`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${window.supabaseKey}` },
+        body: JSON.stringify({ action: 'models', apiKey: this.dm.data.nvidiaApiKey })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erro ao carregar modelos');
+      
+      const select = document.getElementById('nvidiaModelSelect');
+      if (select && data.data) {
+        select.innerHTML = '';
+        data.data.forEach(model => {
+          const opt = document.createElement('option');
+          opt.value = model.id;
+          opt.innerText = model.id;
+          if (model.id === this.dm.data.nvidiaModel) opt.selected = true;
+          select.appendChild(opt);
+        });
+        showToast('Modelos carregados!', 'success');
+      }
+    } catch (e) {
+      console.error(e);
+      showToast('Erro: ' + e.message, 'error');
+    } finally {
+      if (btn) btn.innerText = 'Carregar da Nuvem';
+    }
+  }
+
+  saveNvidiaKey() {
+    const el = document.getElementById('nvidiaApiKey');
     if (!el) return;
-    this.dm.data.groqApiKey = el.value.trim();
+    this.dm.data.nvidiaApiKey = el.value.trim();
     this.dm.save();
     showToast('Chave da API salva com sucesso!', 'success');
   }
@@ -1323,19 +1368,21 @@ INSTRUÇÕES CRÍTICAS PARA A SUA ATUAÇÃO E INTELIGÊNCIA:
 6. Se o usuário perguntar de um gasto (ex: iFood) e ele não estiver nos dados, reaja de acordo com a sua Persona (ex: dê uma bronca por ele não ter anotado), mas NUNCA use frases robóticas.`;
   }
 
-  async callGroq(messages, max_tokens = 500, temp = 0.7, jsonMode = false) {
-    const apiKey = this.dm.data.groqApiKey;
-    if (!apiKey) throw new Error('Chave da API Groq não configurada na aba de Configurações.');
+  async callNvidia(messages, max_tokens = 500, temp = 0.7, jsonMode = false) {
+    const apiKey = this.dm.data.nvidiaApiKey;
+    if (!apiKey) throw new Error('Chave da API NVIDIA não configurada na aba de Configurações.');
     
     const body = {
-      model: 'llama-3.3-70b-versatile',
+      action: 'chat',
+      apiKey: apiKey,
+      model: this.dm.data.nvidiaModel || 'meta/llama-3.1-8b-instruct',
       messages,
       temperature: temp,
       max_tokens
     };
     if (jsonMode) body.response_format = { type: "json_object" };
 
-    const res = await fetch('${sbClient ? sbClient.supabaseUrl : ''}/functions/v1/groq-proxy', {
+    const res = await fetch(`${sbClient ? sbClient.supabaseUrl : ''}/functions/v1/nvidia-proxy`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${window.supabaseKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
@@ -1435,8 +1482,8 @@ INSTRUÇÕES CRÍTICAS PARA A SUA ATUAÇÃO E INTELIGÊNCIA:
     const marketEl = document.getElementById('consultoriaMarketData');
     const btn = document.getElementById('btnGerarConsultoria');
     
-    if (!this.dm.data.groqApiKey) {
-      showToast('Configure a chave da API Groq nas Configurações!', 'error');
+    if (!this.dm.data.nvidiaApiKey) {
+      showToast('Configure a chave da API NVIDIA nas Configurações!', 'error');
       return;
     }
     
@@ -1507,7 +1554,7 @@ REGRAS OBRIGATÓRIAS:
       ];
 
       // 3. Chama LLM
-      const responseText = await this.callGroq(msgList, 1000, 0.7);
+      const responseText = await this.callNvidia(msgList, 1000, 0.7);
       
       // 4. Renderiza Resposta
       resultEl.innerHTML = window.DOMPurify ? window.DOMPurify.sanitize(this.parseMarkdownTable(responseText)) : this.parseMarkdownTable(responseText);
@@ -1523,7 +1570,7 @@ REGRAS OBRIGATÓRIAS:
   }
 
   async consultarIA() {
-    if (!this.dm.data.groqApiKey) {
+    if (!this.dm.data.nvidiaApiKey) {
       showToast('Configure a Chave Groq na aba Configurações.', 'error');
       return;
     }
@@ -1638,7 +1685,7 @@ REGRAS OBRIGATÓRIAS:
 
     try {
       // Retornando temp para 0.7 para manter a lógica matemática e o bom português
-      const responseText = await this.callGroq(this.conversationHistory, 500, 0.7);
+      const responseText = await this.callNvidia(this.conversationHistory, 500, 0.7);
       this.conversationHistory.push({ role: 'assistant', content: responseText });
     } catch(e) {
       this.conversationHistory.push({ role: 'assistant', content: `❌ Erro: ${e.message}` });
@@ -1650,7 +1697,7 @@ REGRAS OBRIGATÓRIAS:
     if (!descricao || descricao.trim().length < 3) return;
     const catLabel = document.getElementById('categoriaSugestaoLabel');
     const catSelect = document.getElementById('gastoVarCategoria');
-    if (!catLabel || !catSelect || !this.dm.data.groqApiKey) return;
+    if (!catLabel || !catSelect || !this.dm.data.nvidiaApiKey) return;
     
     catLabel.style.display = 'block';
     catLabel.innerText = '✨ IA analisando transação...';
@@ -1663,7 +1710,7 @@ Categorias: ${JSON.stringify(catDisp)}
 Retorne JSON com {"categoriaId": "id_da_categoria_escolhida"}. Se não conseguir, devolva a id da primeira. OBRIGATÓRIO DEVOLVER UM JSON VALIDO.`;
 
     try {
-      const result = await this.callGroq([{role: 'user', content: prompt}], 150, 0.1, true);
+      const result = await this.callNvidia([{role: 'user', content: prompt}], 150, 0.1, true);
       const obj = JSON.parse(result);
       if (obj.categoriaId) {
         catSelect.value = obj.categoriaId;
@@ -1678,7 +1725,7 @@ Retorne JSON com {"categoriaId": "id_da_categoria_escolhida"}. Se não conseguir
     const btn = document.getElementById('btnMagico');
     const text = input.value.trim();
     if(!text) return;
-    if(!this.dm.data.groqApiKey) { showToast('Configure a API Key da Groq primeiro.', 'error'); return; }
+    if(!this.dm.data.nvidiaApiKey) { showToast('Configure a API Key da Groq primeiro.', 'error'); return; }
 
     input.disabled = true;
     btn.innerHTML = '✨ Processando...';
@@ -1692,7 +1739,7 @@ Extraia os dados em formato JSON estrito, adivinhando a categoria correta:
 { "descricao": "nome", "valor": float_positivo, "data": "YYYY-MM-DD", "tipo": "variavel|fixo|receita", "categoriaId": "id_da_categoria_se_variavel_senao_null" }`;
 
     try {
-      const result = await this.callGroq([{role: 'user', content: prompt}], 300, 0.1, true);
+      const result = await this.callNvidia([{role: 'user', content: prompt}], 300, 0.1, true);
       const parsed = JSON.parse(result);
       
       const m = parsed.data.slice(0,7);
@@ -1722,7 +1769,7 @@ Extraia os dados em formato JSON estrito, adivinhando a categoria correta:
   }
 
   async autoCategorizarHistorico() {
-    if(!this.dm.data.groqApiKey) { showToast('Configure a API Key.', 'error'); return; }
+    if(!this.dm.data.nvidiaApiKey) { showToast('Configure a API Key.', 'error'); return; }
     const m = this.currentMonth;
     const mesObj = this.dm.getMonth(m);
     
@@ -1740,7 +1787,7 @@ Despesas: ${JSON.stringify(mapeamento)}
 Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_categoria"} ]}`;
 
     try {
-      const result = await this.callGroq([{role: 'user', content: prompt}], 800, 0.1, true);
+      const result = await this.callNvidia([{role: 'user', content: prompt}], 800, 0.1, true);
       const parsed = JSON.parse(result);
       
       let mudados = 0;
@@ -1868,7 +1915,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
   }
 
   async checkAndFetchInsight() {
-    const apiKey = this.dm.data.groqApiKey;
+    const apiKey = this.dm.data.nvidiaApiKey;
     const contentEl = document.getElementById('insightContent');
     const timerEl = document.getElementById('insightTimer');
     if (!contentEl) return;
@@ -1905,7 +1952,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       // Pega o resumo de contexto
       const sysPrompt = await this.getSystemPrompt();
       
-      const res = await fetch('${sbClient ? sbClient.supabaseUrl : ''}/functions/v1/groq-proxy', {
+      const res = await fetch('${sbClient ? sbClient.supabaseUrl : ''}/functions/v1/nvidia-proxy', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${window.supabaseKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1919,7 +1966,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
         })
       });
 
-      if (!res.ok) throw new Error('API Groq Offline');
+      if (!res.ok) throw new Error('API NVIDIA Offline');
       const data = await res.json();
       const novoInsight = data.choices[0].message.content;
       
@@ -3463,8 +3510,24 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     const appsEl = document.getElementById('appsScriptUrl');
     if (appsEl) appsEl.value = this.dm.data.appsScriptUrl || '';
     
-    const groqEl = document.getElementById('groqApiKey');
-    if (groqEl) groqEl.value = this.dm.data.groqApiKey || '';
+    const groqEl = document.getElementById('nvidiaApiKey');
+    if (groqEl) groqEl.value = this.dm.data.nvidiaApiKey || '';
+
+    const modelEl = document.getElementById('nvidiaModelSelect');
+    if (modelEl) {
+      const currentModel = this.dm.data.nvidiaModel || 'meta/llama-3.1-8b-instruct';
+      let found = false;
+      for (let i = 0; i < modelEl.options.length; i++) {
+        if (modelEl.options[i].value === currentModel) found = true;
+      }
+      if (!found) {
+        const opt = document.createElement('option');
+        opt.value = currentModel;
+        opt.innerText = currentModel;
+        modelEl.appendChild(opt);
+      }
+      modelEl.value = currentModel;
+    }
   }
 
   updateClinicaDiaria(id, value) {

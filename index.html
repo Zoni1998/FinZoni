@@ -948,12 +948,21 @@
             <div class="card mb-3">
               <h2 class="card-title">✨ Inteligência Artificial</h2>
               <div class="form-group mt-3">
-                <label class="form-label">Chave da API (Groq)</label>
+                <label class="form-label">Chave da API (NVIDIA)</label>
                 <div class="flex gap-2">
-                  <input type="password" class="form-input" id="groqApiKey" placeholder="gsk_...">
-                  <button class="btn" style="background-color: var(--purple); color: white;" onclick="app.saveGroqKey()">Salvar Chave</button>
+                  <input type="password" class="form-input" id="nvidiaApiKey" placeholder="nvapi-...">
+                  <button class="btn" style="background-color: var(--purple); color: white;" onclick="app.saveNvidiaKey()">Salvar Chave</button>
                 </div>
-                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 5px;">Acesse <a href="https://console.groq.com" target="_blank" style="color:var(--purple);">console.groq.com</a> para gerar sua chave gratuitamente. A chave fica salva apenas no seu PC.</div>
+                <div class="form-group mt-3">
+                  <label class="form-label">Modelo de Inteligência Artificial</label>
+                  <div class="flex gap-2">
+                    <select class="form-input" id="nvidiaModelSelect" onchange="app.saveNvidiaModel()">
+                      <option value="meta/llama-3.1-8b-instruct">meta/llama-3.1-8b-instruct (Padrão)</option>
+                    </select>
+                    <button class="btn btn-secondary" onclick="app.carregarModelosNvidia()" id="btnCarregarModelos">Carregar da Nuvem</button>
+                  </div>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 5px;">Acesse <a href="https://build.nvidia.com" target="_blank" style="color:var(--purple);">build.nvidia.com</a> para gerar sua chave. A chave fica salva de forma segura na nuvem se você estiver logado.</div>
               </div>
             </div>
 
