@@ -126,10 +126,6 @@ class DataManager {
           }
         }
         this.data = parsedData;
-        // Ensure sub-objects
-        if (!this.data.perfil) this.data.perfil = { nome: 'Minha Conta', foto: '', nivel: 1, xp: 0 };
-        if (!this.data.metas) this.data.metas = [];
-        if (!this.data.reserva) this.data.reserva = { movimentacoes: [], obs: '' };
 
         // Validate & migrate data
         this.validateAndMigrate();
@@ -272,10 +268,18 @@ class DataManager {
   }
 
   validateAndMigrate() {
+    if (!this.data) this.data = getDefaultData();
+    if (!this.data.perfil) this.data.perfil = { nome: 'Minha Conta', foto: '', nivel: 1, xp: 0 };
+    if (!this.data.metas) this.data.metas = [];
+    if (!this.data.reserva) this.data.reserva = { movimentacoes: [], obs: '' };
     if (!this.data.categoriasFixas) this.data.categoriasFixas = getDefaultData().categoriasFixas;
     if (!this.data.categoriasVariaveis) this.data.categoriasVariaveis = getDefaultData().categoriasVariaveis;
     if (!this.data.cartoes) this.data.cartoes = [];
     if (!this.data.comprasCartao) this.data.comprasCartao = [];
+    if (!this.data.meses) this.data.meses = {};
+    if (this.data.appsScriptUrl === undefined) this.data.appsScriptUrl = '';
+    if (this.data.nvidiaApiKey === undefined) this.data.nvidiaApiKey = '';
+    if (this.data.nvidiaModel === undefined) this.data.nvidiaModel = 'meta/llama-3.1-8b-instruct';
   }
 }
 
