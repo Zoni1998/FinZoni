@@ -335,7 +335,11 @@ function closeModal(id) {
 
 // ── MAIN APP ──
 class App {
-  constructor() {
+  
+  iaAttachedFile = null;
+  iaAudioRecognition = null;
+  iaAudioIsRecording = false;
+constructor() {
     this.dm = new DataManager();
     this.currentMonth = new Date().getMonth() + 1; // 1-based
     this.charts = {};
@@ -1380,7 +1384,7 @@ INSTRUÇÕES CRÍTICAS PARA A SUA ATUAÇÃO E INTELIGÊNCIA:
 6. Se o usuário perguntar de um gasto (ex: iFood) e ele não estiver nos dados, reaja de acordo com a sua Persona (ex: dê uma bronca por ele não ter anotado), mas NUNCA use frases robóticas.`;
   }
 
-  async callNvidia(messages, max_tokens = 500, temp = 0.7, jsonMode = false) {
+  async callNvidia(messages, max_tokens = 500, temp = 0.7, jsonMode = false, tools = null) {
     const apiKey = this.dm.data.nvidiaApiKey;
     if (!apiKey) throw new Error('Chave da API NVIDIA não configurada na aba de Configurações.');
     
@@ -1393,10 +1397,14 @@ INSTRUÇÕES CRÍTICAS PARA A SUA ATUAÇÃO E INTELIGÊNCIA:
       max_tokens
     };
     if (jsonMode) body.response_format = { type: "json_object" };
+    if (tools && tools.length > 0) {
+      body.tools = tools;
+      body.tool_choice = "auto";
+    }
 
     const res = await fetch(`/api/nvidia`, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${window.supabaseKey}`, 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
     if (!res.ok) {
@@ -1404,6 +1412,11 @@ INSTRUÇÕES CRÍTICAS PARA A SUA ATUAÇÃO E INTELIGÊNCIA:
       throw new Error(err.error?.message || `Erro API: ${res.status}`);
     }
     const data = await res.json();
+    
+    // Return the full message object to allow tool_calls parsing
+    if (tools) {
+      return data.choices[0].message;
+    }
     return data.choices[0].message.content;
   }
 
@@ -1657,16 +1670,28 @@ REGRAS OBRIGATÓRIAS:
     let html = '';
     for (let i = 1; i < this.conversationHistory.length; i++) {
       const msg = this.conversationHistory[i];
+      if (msg.role === 'system' || msg.role === 'tool') continue; // Don't show system or tool results to user directly
+      if (msg.tool_calls) continue; // Don't show the tool call raw JSON to user
+      
       const isUser = msg.role === 'user';
       const bg = isUser ? 'var(--purple)' : 'var(--bg-card)';
       const color = isUser ? '#fff' : 'var(--text-primary)';
       const border = isUser ? 'none' : '1px solid var(--border-color)';
       const align = isUser ? 'flex-end' : 'flex-start';
-      const txt = msg.content.replace(/\n/g, '<br/>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      
+      let txt = '';
+      if (msg.displayHtml) {
+         txt = msg.displayHtml;
+      } else if (typeof msg.content === 'string') {
+         txt = msg.content.replace(/\n/g, '<br/>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      } else if (Array.isArray(msg.content)) {
+         // Fallback if not mapped
+         txt = msg.content.map(c => c.type === 'text' ? c.text : '[Image]').join('<br/>');
+      }
       
       html += `
         <div style="display:flex; justify-content:${align}; width:100%;">
-          <div style="background:${bg}; color:${color}; border:${border}; padding:12px 16px; border-radius:12px; max-width:85%; font-size:0.95rem; line-height:1.5; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+          <div style="background:${bg}; color:${color}; border:${border}; padding:12px 16px; border-radius:12px; max-width:85%; font-size:0.95rem; line-height:1.5; box-shadow:0 1px 2px rgba(0,0,0,0.05); overflow-wrap: break-word;">
             ${txt}
           </div>
         </div>
@@ -1674,6 +1699,118 @@ REGRAS OBRIGATÓRIAS:
     }
     histDiv.innerHTML = html;
     histDiv.scrollTop = histDiv.scrollHeight;
+  }
+
+  
+  handleIaFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    this.iaAttachedFile = file;
+    document.getElementById('iaAttachmentName').innerText = file.name;
+    document.getElementById('iaAttachmentPreview').style.display = 'flex';
+  }
+
+  removeIaAttachment() {
+    this.iaAttachedFile = null;
+    document.getElementById('iaFileInput').value = '';
+    document.getElementById('iaAttachmentPreview').style.display = 'none';
+  }
+
+  async lerPdfParaTexto(file) {
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let fullText = '';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        fullText += textContent.items.map(s => s.str).join(' ') + '\n';
+      }
+      return fullText;
+    } catch (e) {
+      console.error('Erro ao ler PDF:', e);
+      return 'ERRO_AO_LER_PDF';
+    }
+  }
+
+  async lerImagemParaBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  
+  startAudioIA() {
+    if (this.iaAudioIsRecording) return;
+    
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      showToast('Seu navegador não suporta reconhecimento de voz.', 'error');
+      return;
+    }
+    
+    this.iaAudioRecognition = new SpeechRecognition();
+    this.iaAudioRecognition.lang = 'pt-BR';
+    this.iaAudioRecognition.interimResults = true;
+    
+    this.iaAudioRecognition.onstart = () => {
+      this.iaAudioIsRecording = true;
+      document.getElementById('btnAudioIA').style.backgroundColor = 'var(--danger-color)';
+      document.getElementById('btnAudioIA').style.color = 'white';
+      document.getElementById('iaChatInput').placeholder = 'Ouvindo...';
+    };
+    
+    this.iaAudioRecognition.onresult = (event) => {
+      let interimTranscript = '';
+      let finalTranscript = '';
+      
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        } else {
+          interimTranscript += event.results[i][0].transcript;
+        }
+      }
+      
+      const input = document.getElementById('iaChatInput');
+      if (finalTranscript) {
+         input.value += (input.value ? ' ' : '') + finalTranscript;
+      }
+    };
+    
+    this.iaAudioRecognition.onerror = (event) => {
+      console.error('Speech recognition error', event.error);
+      this.stopAudioIA();
+    };
+    
+    this.iaAudioRecognition.onend = () => {
+      this.stopAudioIA();
+    };
+    
+    this.iaAudioRecognition.start();
+  }
+
+  stopAudioIA() {
+    if (!this.iaAudioIsRecording) return;
+    this.iaAudioIsRecording = false;
+    
+    if (this.iaAudioRecognition) {
+      this.iaAudioRecognition.stop();
+    }
+    
+    document.getElementById('btnAudioIA').style.backgroundColor = 'var(--card-bg)';
+    document.getElementById('btnAudioIA').style.color = 'var(--text-secondary)';
+    document.getElementById('iaChatInput').placeholder = 'Pergunte sobre seus gastos...';
+    
+    // Automatically send message after stopping if input is not empty
+    setTimeout(() => {
+        const input = document.getElementById('iaChatInput').value.trim();
+        if(input.length > 0) this.enviarMensagemIA();
+    }, 500);
   }
 
   async enviarMensagemIA() {
@@ -1966,9 +2103,11 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       
       const res = await fetch(`/api/nvidia`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${window.supabaseKey}`, 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
+          action: 'chat',
+          apiKey: this.dm.data.nvidiaApiKey,
+          model: this.dm.data.nvidiaModel || 'meta/llama-3.1-8b-instruct',
           messages: [
             { role: 'system', content: sysPrompt },
             { role: 'user', content: "AGORA ESQUEÇA SEU PAPEL ANTERIOR. Aja como um analista de dados frio e genial. Leia todo o contexto de números do meu dashboard atual. Me dê APENAS UMA dica, alerta, previsão, padrão oculto ou incentivo baseado nos dados cruciais. Seja extremamente direto e impactante (use no máximo 2 frases marcantes). Use emojis se quiser. Nunca diga 'Olá' ou se apresente. Comece o texto diretamente." }
