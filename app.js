@@ -2071,6 +2071,49 @@ REGRAS OBRIGATÓRIAS:
             "required": ["id"]
           }
         }
+,
+      {
+        "type": "function",
+        "function": {
+          "name": "adicionar_cartao",
+          "description": "Adiciona um novo cartão de crédito.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "nome": { "type": "string", "description": "Nome do cartão (ex: Nubank, Mercado Pago)" },
+              "limite": { "type": "number", "description": "Limite total do cartão (ex: 5000.00)" },
+              "fechamento": { "type": "number", "description": "Dia do fechamento (1 a 31)" },
+              "vencimento": { "type": "number", "description": "Dia do vencimento da fatura (1 a 31)" }
+            },
+            "required": ["nome", "limite", "fechamento", "vencimento"]
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "listar_cartoes",
+          "description": "Lista todos os cartões de crédito cadastrados e seus IDs.",
+          "parameters": { "type": "object", "properties": {} }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "adicionar_compra_cartao",
+          "description": "Lança uma nova compra parcelada ou à vista em um cartão de crédito.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "cartaoId": { "type": "string", "description": "ID do cartão onde a compra foi feita." },
+              "descricao": { "type": "string", "description": "Descrição da compra (ex: TV, Supermercado)" },
+              "data": { "type": "string", "description": "Data da compra (YYYY-MM-DD)" },
+              "valorTotal": { "type": "number", "description": "Valor total da compra (ex: 2000.00)" },
+              "parcelas": { "type": "number", "description": "Quantidade de parcelas (1 para à vista)" }
+            },
+            "required": ["cartaoId", "descricao", "data", "valorTotal", "parcelas"]
+          }
+        }
       }
     ];
 
@@ -2208,6 +2251,39 @@ REGRAS OBRIGATÓRIAS:
               } else {
                  result = "Erro: Despesa fixa não encontrada.";
               }
+            }
+
+            else if (funcName === 'adicionar_cartao') {
+              const c = {
+                id: crypto.randomUUID(),
+                nome: args.nome,
+                limite: parseFloat(args.limite),
+                fechamento: parseInt(args.fechamento),
+                vencimento: parseInt(args.vencimento),
+                cor: '#8a05be'
+              };
+              if (!this.dm.data.cartoes) this.dm.data.cartoes = [];
+              this.dm.data.cartoes.push(c);
+              modifiedData = true;
+              result = `Cartão adicionado. ID: ${c.id}`;
+            }
+            else if (funcName === 'listar_cartoes') {
+              result = JSON.stringify(this.dm.data.cartoes || []);
+            }
+            else if (funcName === 'adicionar_compra_cartao') {
+              const compra = {
+                id: crypto.randomUUID(),
+                cartaoId: args.cartaoId,
+                descricao: args.descricao,
+                data: args.data,
+                valorTotal: parseFloat(args.valorTotal),
+                parcelas: parseInt(args.parcelas),
+                valorParcela: parseFloat(args.valorTotal) / parseInt(args.parcelas)
+              };
+              if (!this.dm.data.comprasCartao) this.dm.data.comprasCartao = [];
+              this.dm.data.comprasCartao.push(compra);
+              modifiedData = true;
+              result = `Compra no cartão adicionada com sucesso. ID: ${compra.id}`;
             }
             else {
               result = "Ferramenta não reconhecida.";
