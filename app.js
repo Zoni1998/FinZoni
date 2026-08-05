@@ -1,3 +1,46 @@
+
+window.groqProxy = async (body) => {
+  const apiKey = body.apiKey;
+  const action = body.action || 'chat';
+  
+  if (!apiKey) {
+    return { error: { message: 'Chave API não configurada' } };
+  }
+  
+  try {
+    if (action === 'models') {
+      const res = await fetch('https://api.groq.com/openai/v1/models', {
+        headers: { 'Authorization': `Bearer ${apiKey}` }
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      return { data: data, error: null };
+    } else {
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json' 
+        },
+        body: JSON.stringify({
+          model: body.model || 'llama-3.1-8b-instant',
+          messages: body.messages,
+          temperature: body.temperature || 0.7,
+          max_tokens: body.max_tokens || 1024,
+          tools: body.tools,
+          tool_choice: body.tool_choice,
+          response_format: body.response_format
+        })
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      return { data: data, error: null };
+    }
+  } catch (err) {
+    return { data: null, error: err };
+  }
+};
+
 /* ========================================
    DASHBOARD FINANCEIRO - APPLICATION LOGIC
    ======================================== */
@@ -1234,8 +1277,8 @@ constructor() {
     const btn = document.getElementById('btnCarregarModelos');
     if (btn) btn.innerText = 'Carregando...';
     try {
-      const { data, error } = await sbClient.functions.invoke('nvidia-proxy', {
-        body: { action: 'models', apiKey: this.dm.data.nvidiaApiKey }
+      const { data, error } = await window.groqProxy({
+        action: 'models', apiKey: this.dm.data.nvidiaApiKey
       });
       if (error) throw new Error(error.message);
       if (data && data.error) throw new Error(data.error || 'Erro ao carregar modelos');
@@ -1433,7 +1476,7 @@ INSTRUÇÃ•ES CRÍTICAS PARA A SUA ATUAÇÃO E INTELIGÊNCIA:
     const body = {
       action: 'chat',
       apiKey: apiKey,
-      model: this.dm.data.nvidiaModel || 'meta/llama-3.1-8b-instruct',
+      model: this.dm.data.nvidiaModel || 'llama-3.1-8b-instant',
       messages,
       temperature: temp,
       max_tokens
@@ -1444,8 +1487,8 @@ INSTRUÇÃ•ES CRÍTICAS PARA A SUA ATUAÇÃO E INTELIGÊNCIA:
       body.tool_choice = "auto";
     }
 
-    const { data: feData, error } = await sbClient.functions.invoke('nvidia-proxy', {
-      body: body
+    const { data: feData, error } = await window.groqProxy({
+      ...body
     });
     if (error) throw new Error(error.message);
     const res = { ok: true, status: 200, json: async () => feData };
@@ -2189,18 +2232,16 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       // Pega o resumo de contexto
       const sysPrompt = await this.getSystemPrompt();
 
-      const { data: aiData, error } = await sbClient.functions.invoke('nvidia-proxy', {
-        body: {
+      const { data: aiData, error } = await window.groqProxy({
           action: 'chat',
           apiKey: this.dm.data.nvidiaApiKey,
-          model: this.dm.data.nvidiaModel || 'meta/llama-3.1-8b-instruct',
+          model: this.dm.data.nvidiaModel || 'llama-3.1-8b-instant',
           messages: [
             { role: 'system', content: sysPrompt },
             { role: 'user', content: "Aja como um analista de dados frio e genial. Leia o contexto de números do dashboard. Forneça APENAS a dica final. NUNCA escreva seus pensamentos, NUNCA escreva 'The user wants me to...', NUNCA explique sua lógica. Máximo 2 frases. Use emojis." }
           ],
           temperature: 0.2,
           max_tokens: 150
-        }
       });
 
       if (error) throw new Error(error.message);
