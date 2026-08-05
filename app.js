@@ -2223,7 +2223,9 @@ REGRAS OBRIGATÓRIAS:
           if (modifiedData) {
              this.dm.save();
              this.renderAll();
-          }\n\n          const lInd = document.getElementById('iaLoadingIndicator');
+          }
+
+          const lInd = document.getElementById('iaLoadingIndicator');
           if (lInd) lInd.remove();
           addLoading();
 
