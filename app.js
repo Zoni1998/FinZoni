@@ -3294,7 +3294,10 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     }
 
     // Total
-    document.getElementById('totalDespesasMes').textContent = formatCurrency(totalFixo + totalVar);
+    const resumo = this.calcResumoDespesas(this.currentMonth);
+    document.getElementById('despesasPagasMes').textContent = formatCurrency(resumo.pago);
+    document.getElementById('despesasPendentesMes').textContent = formatCurrency(resumo.pendente);
+    document.getElementById('totalDespesasMes').textContent = formatCurrency(resumo.total);
   }
 
   ensureFixedExpenses() {
@@ -3321,11 +3324,25 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
         const strVal = String(value).replace(',', '.');
         g[field] = parseFloat(strVal) || 0;
       }
-      else if (field === 'vencimento') g[field] = value;
-      else g[field] = value;
+      else if (field === 'vencimento') {
+        g[field] = value;
+      }
+      else if (field === 'pago' || field === 'compartilhado') {
+        g[field] = (value === true || value === 'true');
+      }
+      else {
+        g[field] = value;
+      }
       this.dm.save();
-      this.renderDespesas();
-      this.renderDashboard();
+      if (field === 'pago' || field === 'compartilhado') {
+        setTimeout(() => {
+          this.renderDespesas();
+          this.renderDashboard();
+        }, 150);
+      } else {
+        this.renderDespesas();
+        this.renderDashboard();
+      }
     }
   }
 
