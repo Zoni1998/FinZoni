@@ -1917,7 +1917,7 @@ REGRAS OBRIGATÓRIAS:
     }, 500);
   }
 
-  async enviarMensagemIA() {
+    async enviarMensagemIA() {
     const inputEl = document.getElementById('iaChatInput');
     const text = inputEl.value.trim();
     if (!text) return;
@@ -1927,22 +1927,277 @@ REGRAS OBRIGATÓRIAS:
     this.renderChatHistory();
 
     const histDiv = document.getElementById('iaChatHistory');
-    histDiv.innerHTML += `
-      <div id="iaLoadingIndicator" style="display:flex; justify-content:flex-start; width:100%; margin-top:5px;">
-        <div style="background:var(--bg-card); border:1px solid var(--border-color); color:var(--text-primary); padding:12px 16px; border-radius:12px; font-size:0.9rem; opacity:0.7;">
-          <span style="display:inline-block; animation: blink 1.4s infinite both;">✨</span> Pensando...
+    const addLoading = () => {
+      histDiv.innerHTML += `
+        <div id="iaLoadingIndicator" style="display:flex; justify-content:flex-start; width:100%; margin-top:5px;">
+          <div style="background:var(--bg-card); border:1px solid var(--border-color); color:var(--text-primary); padding:12px 16px; border-radius:12px; font-size:0.9rem; opacity:0.7;">
+            <span style="display:inline-block; animation: blink 1.4s infinite both;">✨</span> Processando...
+          </div>
         </div>
-      </div>
-    `;
-    histDiv.scrollTop = histDiv.scrollHeight;
+      `;
+      histDiv.scrollTop = histDiv.scrollHeight;
+    };
+    addLoading();
+
+    const tools = [
+      {
+        "type": "function",
+        "function": {
+          "name": "resumo_financeiro",
+          "description": "Obtém o saldo atual e o resumo financeiro (receitas, despesas, saldo restante).",
+          "parameters": { "type": "object", "properties": {} }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "listar_categorias",
+          "description": "Lista todas as categorias variáveis disponíveis e seus IDs.",
+          "parameters": { "type": "object", "properties": {} }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "listar_despesas_variaveis",
+          "description": "Lista as despesas variáveis (gastos extras) cadastradas. Retorna id, descricao, valor, data.",
+          "parameters": { "type": "object", "properties": {} }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "adicionar_despesa",
+          "description": "Adiciona uma nova despesa variável (gasto variável).",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "descricao": { "type": "string", "description": "Nome da despesa (ex: Almoço Burger King)" },
+              "valor": { "type": "number", "description": "Valor numérico (ex: 35.50)" },
+              "data": { "type": "string", "description": "Data no formato YYYY-MM-DD" },
+              "categoriaId": { "type": "string", "description": "ID da categoria." }
+            },
+            "required": ["descricao", "valor", "data"]
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "excluir_despesa",
+          "description": "Remove uma despesa variável pelo seu ID.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string", "description": "ID da despesa a ser removida" }
+            },
+            "required": ["id"]
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "adicionar_receita",
+          "description": "Adiciona uma nova receita (entrada de dinheiro).",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "descricao": { "type": "string", "description": "Nome da receita (ex: Salário)" },
+              "valor": { "type": "number", "description": "Valor numérico (ex: 2000.00)" },
+              "data": { "type": "string", "description": "Data no formato YYYY-MM-DD" }
+            },
+            "required": ["descricao", "valor", "data"]
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "listar_receitas",
+          "description": "Lista todas as receitas (entradas). Retorna id, descricao, valor, data.",
+          "parameters": { "type": "object", "properties": {} }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "excluir_receita",
+          "description": "Remove uma receita pelo seu ID.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string", "description": "ID da receita" }
+            },
+            "required": ["id"]
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "adicionar_despesa_fixa",
+          "description": "Adiciona um gasto fixo (que se repete todo mês).",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "descricao": { "type": "string", "description": "Nome (ex: Conta de Luz)" },
+              "valor": { "type": "number", "description": "Valor numérico (ex: 150.00)" },
+              "vencimento": { "type": "number", "description": "Dia do vencimento (1 a 31)" },
+              "compartilhado": { "type": "boolean", "description": "Se é dividido (divide o valor por 2)" }
+            },
+            "required": ["descricao", "valor", "vencimento"]
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "listar_despesas_fixas",
+          "description": "Lista despesas fixas (contas mensais).",
+          "parameters": { "type": "object", "properties": {} }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "excluir_despesa_fixa",
+          "description": "Remove uma despesa fixa pelo ID.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string", "description": "ID da despesa fixa" }
+            },
+            "required": ["id"]
+          }
+        }
+      }
+    ];
 
     try {
-      // Retornando temp para 0.7 para manter a lógica matemática e o bom português
-      const responseText = await this.callNvidia(this.conversationHistory, 500, 0.7);
-      this.conversationHistory.push({ role: 'assistant', content: responseText });
+      let runLoop = true;
+      while (runLoop) {
+        const responseMessage = await this.callNvidia(this.conversationHistory, 1000, 0.7, false, tools);
+        
+        if (responseMessage.tool_calls) {
+          this.conversationHistory.push(responseMessage);
+          
+          let modifiedData = false;
+
+          for (const toolCall of responseMessage.tool_calls) {
+            const funcName = toolCall.function.name;
+            const args = JSON.parse(toolCall.function.arguments || '{}');
+            let result = "";
+
+            if (funcName === 'resumo_financeiro') {
+              let totalReceitas = (this.dm.data.receitas || []).reduce((sum, r) => sum + parseFloat(r.valor), 0);
+              let totalGastosFixos = (this.dm.data.gastosFixos || []).reduce((sum, r) => sum + (r.compartilhado ? parseFloat(r.valor)/2 : parseFloat(r.valor)), 0);
+              let totalGastosVar = (this.dm.data.gastosVariaveis || []).reduce((sum, r) => sum + parseFloat(r.valor), 0);
+              let saldo = totalReceitas - totalGastosFixos - totalGastosVar;
+              result = JSON.stringify({ receitas: totalReceitas, gastosFixos: totalGastosFixos, gastosVariaveis: totalGastosVar, saldo_restante: saldo });
+            } 
+            else if (funcName === 'listar_categorias') {
+              const cats = (this.dm.data.categoriasVariaveis || []).map(c => ({ id: c.id, nome: c.nome }));
+              result = JSON.stringify(cats);
+            }
+            else if (funcName === 'listar_despesas_variaveis') {
+              const despesas = (this.dm.data.gastosVariaveis || []).map(d => ({
+                 id: d.id, descricao: d.descricao, valor: d.valor, data: d.data, categoriaId: d.categoriaId
+              }));
+              result = JSON.stringify(despesas);
+            }
+            else if (funcName === 'adicionar_despesa') {
+              const gasto = {
+                id: crypto.randomUUID(),
+                descricao: args.descricao,
+                valor: parseFloat(args.valor),
+                data: args.data,
+                categoriaId: args.categoriaId || (this.dm.data.categoriasVariaveis && this.dm.data.categoriasVariaveis.length > 0 ? this.dm.data.categoriasVariaveis[0].id : "")
+              };
+              if (!this.dm.data.gastosVariaveis) this.dm.data.gastosVariaveis = [];
+              this.dm.data.gastosVariaveis.push(gasto);
+              modifiedData = true;
+              result = `Despesa adicionada com sucesso. ID gerado: ${gasto.id}`;
+            }
+            else if (funcName === 'excluir_despesa') {
+              this.dm.data.gastosVariaveis = (this.dm.data.gastosVariaveis || []).filter(g => g.id !== args.id);
+              modifiedData = true;
+              result = "Despesa removida com sucesso.";
+            }
+            else if (funcName === 'adicionar_receita') {
+              const receita = {
+                id: crypto.randomUUID(),
+                descricao: args.descricao,
+                valor: parseFloat(args.valor),
+                data: args.data
+              };
+              if (!this.dm.data.receitas) this.dm.data.receitas = [];
+              this.dm.data.receitas.push(receita);
+              modifiedData = true;
+              result = `Receita adicionada. ID: ${receita.id}`;
+            }
+            else if (funcName === 'listar_receitas') {
+              result = JSON.stringify(this.dm.data.receitas || []);
+            }
+            else if (funcName === 'excluir_receita') {
+              this.dm.data.receitas = (this.dm.data.receitas || []).filter(r => r.id !== args.id);
+              modifiedData = true;
+              result = "Receita excluída.";
+            }
+            else if (funcName === 'adicionar_despesa_fixa') {
+              const fixa = {
+                id: crypto.randomUUID(),
+                descricao: args.descricao,
+                valor: parseFloat(args.valor),
+                vencimento: parseInt(args.vencimento),
+                compartilhado: !!args.compartilhado
+              };
+              if (!this.dm.data.gastosFixos) this.dm.data.gastosFixos = [];
+              this.dm.data.gastosFixos.push(fixa);
+              modifiedData = true;
+              result = `Despesa fixa adicionada. ID: ${fixa.id}`;
+            }
+            else if (funcName === 'listar_despesas_fixas') {
+              result = JSON.stringify(this.dm.data.gastosFixos || []);
+            }
+            else if (funcName === 'excluir_despesa_fixa') {
+              this.dm.data.gastosFixos = (this.dm.data.gastosFixos || []).filter(r => r.id !== args.id);
+              modifiedData = true;
+              result = "Despesa fixa excluída.";
+            }
+            else {
+              result = "Ferramenta não reconhecida.";
+            }
+
+            this.conversationHistory.push({
+              role: 'tool',
+              tool_call_id: toolCall.id,
+              content: result
+            });
+          }
+
+          if (modifiedData) {
+             this.dm.save();
+             this.renderAll();
+          }
+
+          const lInd = document.getElementById('iaLoadingIndicator');
+          if (lInd) lInd.remove();
+          addLoading();
+
+        } else {
+          if (responseMessage.content) {
+             this.conversationHistory.push({ role: 'assistant', content: responseMessage.content });
+          }
+          runLoop = false;
+        }
+      }
     } catch(e) {
-      this.conversationHistory.push({ role: 'assistant', content: `âŒ Erro: ${e.message}` });
+      this.conversationHistory.push({ role: 'assistant', content: `❌ Erro: ${e.message}` });
     }
+    
+    const lInd = document.getElementById('iaLoadingIndicator');
+    if (lInd) lInd.remove();
     this.renderChatHistory();
   }
 
