@@ -2071,7 +2071,7 @@ REGRAS OBRIGATÓRIAS:
             "required": ["id"]
           }
         }
-,
+      },
       {
         "type": "function",
         "function": {
