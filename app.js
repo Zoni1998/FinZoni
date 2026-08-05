@@ -2084,27 +2084,49 @@ REGRAS OBRIGATÓRIAS:
           
           let modifiedData = false;
 
+          const findGastoVariavel = (id) => {
+             for (const m in this.dm.data.meses || {}) {
+                if (!this.dm.data.meses[m].gastosVariaveis) continue;
+                const idx = this.dm.data.meses[m].gastosVariaveis.findIndex(g => g.id === id);
+                if (idx > -1) return { mes: m, idx };
+             }
+             return null;
+          };
+          
+          const findReceita = (id) => {
+             for (const m in this.dm.data.meses || {}) {
+                if (!this.dm.data.meses[m].receitas) continue;
+                const idx = this.dm.data.meses[m].receitas.findIndex(g => g.id === id);
+                if (idx > -1) return { mes: m, idx };
+             }
+             return null;
+          };
+          
+          const findGastoFixo = (id) => {
+             for (const m in this.dm.data.meses || {}) {
+                if (!this.dm.data.meses[m].gastosFixos) continue;
+                const idx = this.dm.data.meses[m].gastosFixos.findIndex(g => g.id === id);
+                if (idx > -1) return { mes: m, idx };
+             }
+             return null;
+          };
+
           for (const toolCall of responseMessage.tool_calls) {
             const funcName = toolCall.function.name;
             const args = JSON.parse(toolCall.function.arguments || '{}');
             let result = "";
 
             if (funcName === 'resumo_financeiro') {
-              let totalReceitas = (this.dm.data.receitas || []).reduce((sum, r) => sum + parseFloat(r.valor), 0);
-              let totalGastosFixos = (this.dm.data.gastosFixos || []).reduce((sum, r) => sum + (r.compartilhado ? parseFloat(r.valor)/2 : parseFloat(r.valor)), 0);
-              let totalGastosVar = (this.dm.data.gastosVariaveis || []).reduce((sum, r) => sum + parseFloat(r.valor), 0);
-              let saldo = totalReceitas - totalGastosFixos - totalGastosVar;
-              result = JSON.stringify({ receitas: totalReceitas, gastosFixos: totalGastosFixos, gastosVariaveis: totalGastosVar, saldo_restante: saldo });
+              const res = this.dm.getResumoDoMes(this.currentYear, this.currentMonth);
+              result = JSON.stringify(res);
             } 
             else if (funcName === 'listar_categorias') {
               const cats = (this.dm.data.categoriasVariaveis || []).map(c => ({ id: c.id, nome: c.nome }));
               result = JSON.stringify(cats);
             }
             else if (funcName === 'listar_despesas_variaveis') {
-              const despesas = (this.dm.data.gastosVariaveis || []).map(d => ({
-                 id: d.id, descricao: d.descricao, valor: d.valor, data: d.data, categoriaId: d.categoriaId
-              }));
-              result = JSON.stringify(despesas);
+              const mesObj = this.dm.getMonth(this.currentMonth);
+              result = JSON.stringify(mesObj.gastosVariaveis || []);
             }
             else if (funcName === 'adicionar_despesa') {
               const gasto = {
@@ -2114,15 +2136,22 @@ REGRAS OBRIGATÓRIAS:
                 data: args.data,
                 categoriaId: args.categoriaId || (this.dm.data.categoriasVariaveis && this.dm.data.categoriasVariaveis.length > 0 ? this.dm.data.categoriasVariaveis[0].id : "")
               };
-              if (!this.dm.data.gastosVariaveis) this.dm.data.gastosVariaveis = [];
-              this.dm.data.gastosVariaveis.push(gasto);
+              const m = (args.data || "").slice(0, 7) || this.currentMonth;
+              const mesObj = this.dm.getMonth(m);
+              if (!mesObj.gastosVariaveis) mesObj.gastosVariaveis = [];
+              mesObj.gastosVariaveis.push(gasto);
               modifiedData = true;
               result = `Despesa adicionada com sucesso. ID gerado: ${gasto.id}`;
             }
             else if (funcName === 'excluir_despesa') {
-              this.dm.data.gastosVariaveis = (this.dm.data.gastosVariaveis || []).filter(g => g.id !== args.id);
-              modifiedData = true;
-              result = "Despesa removida com sucesso.";
+              const loc = findGastoVariavel(args.id);
+              if (loc) {
+                 this.dm.data.meses[loc.mes].gastosVariaveis.splice(loc.idx, 1);
+                 modifiedData = true;
+                 result = "Despesa removida com sucesso.";
+              } else {
+                 result = "Erro: Despesa não encontrada.";
+              }
             }
             else if (funcName === 'adicionar_receita') {
               const receita = {
@@ -2131,18 +2160,26 @@ REGRAS OBRIGATÓRIAS:
                 valor: parseFloat(args.valor),
                 data: args.data
               };
-              if (!this.dm.data.receitas) this.dm.data.receitas = [];
-              this.dm.data.receitas.push(receita);
+              const m = (args.data || "").slice(0, 7) || this.currentMonth;
+              const mesObj = this.dm.getMonth(m);
+              if (!mesObj.receitas) mesObj.receitas = [];
+              mesObj.receitas.push(receita);
               modifiedData = true;
               result = `Receita adicionada. ID: ${receita.id}`;
             }
             else if (funcName === 'listar_receitas') {
-              result = JSON.stringify(this.dm.data.receitas || []);
+              const mesObj = this.dm.getMonth(this.currentMonth);
+              result = JSON.stringify(mesObj.receitas || []);
             }
             else if (funcName === 'excluir_receita') {
-              this.dm.data.receitas = (this.dm.data.receitas || []).filter(r => r.id !== args.id);
-              modifiedData = true;
-              result = "Receita excluída.";
+              const loc = findReceita(args.id);
+              if (loc) {
+                 this.dm.data.meses[loc.mes].receitas.splice(loc.idx, 1);
+                 modifiedData = true;
+                 result = "Receita excluída.";
+              } else {
+                 result = "Erro: Receita não encontrada.";
+              }
             }
             else if (funcName === 'adicionar_despesa_fixa') {
               const fixa = {
@@ -2152,18 +2189,25 @@ REGRAS OBRIGATÓRIAS:
                 vencimento: parseInt(args.vencimento),
                 compartilhado: !!args.compartilhado
               };
-              if (!this.dm.data.gastosFixos) this.dm.data.gastosFixos = [];
-              this.dm.data.gastosFixos.push(fixa);
+              const mesObj = this.dm.getMonth(this.currentMonth);
+              if (!mesObj.gastosFixos) mesObj.gastosFixos = [];
+              mesObj.gastosFixos.push(fixa);
               modifiedData = true;
               result = `Despesa fixa adicionada. ID: ${fixa.id}`;
             }
             else if (funcName === 'listar_despesas_fixas') {
-              result = JSON.stringify(this.dm.data.gastosFixos || []);
+              const mesObj = this.dm.getMonth(this.currentMonth);
+              result = JSON.stringify(mesObj.gastosFixos || []);
             }
             else if (funcName === 'excluir_despesa_fixa') {
-              this.dm.data.gastosFixos = (this.dm.data.gastosFixos || []).filter(r => r.id !== args.id);
-              modifiedData = true;
-              result = "Despesa fixa excluída.";
+              const loc = findGastoFixo(args.id);
+              if (loc) {
+                 this.dm.data.meses[loc.mes].gastosFixos.splice(loc.idx, 1);
+                 modifiedData = true;
+                 result = "Despesa fixa excluída.";
+              } else {
+                 result = "Erro: Despesa fixa não encontrada.";
+              }
             }
             else {
               result = "Ferramenta não reconhecida.";
@@ -2179,9 +2223,7 @@ REGRAS OBRIGATÓRIAS:
           if (modifiedData) {
              this.dm.save();
              this.renderAll();
-          }
-
-          const lInd = document.getElementById('iaLoadingIndicator');
+          }\n\n          const lInd = document.getElementById('iaLoadingIndicator');
           if (lInd) lInd.remove();
           addLoading();
 
