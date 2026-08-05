@@ -55,7 +55,7 @@ function validateFinancialData(data) {
   return true;
 }
 
-// â”€â”€ CONSTANTS â”€â”€
+// ── CONSTANTS ──
 function escapeHTML(str) {
   if (str === null || str === undefined) return '';
   return String(str).replace(/[&<>'"]/g, tag => ({
@@ -72,7 +72,7 @@ const WEEKDAYS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 const STORAGE_KEY = 'findash_data_v1';
 const YEAR = new Date().getFullYear();
 
-// â”€â”€ DEFAULT DATA â”€â”€
+// ── DEFAULT DATA ──
 function getDefaultData() {
   return {
     year: YEAR,
@@ -126,7 +126,7 @@ function getDefaultMonth() {
   };
 }
 
-// â”€â”€ SUPABASE CONFIG â”€â”€
+// ── SUPABASE CONFIG ──
 const SUPABASE_URL = 'https://jbzypqaimerrptxhovzq.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_hQ2QoIaF4eL9JlX_49NzHQ_hobaAnLi';
 let sbClient = null;
@@ -135,7 +135,7 @@ if (window.supabase) {
   sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 }
 
-// â”€â”€ DATA MANAGER â”€â”€
+// ── DATA MANAGER ──
 class DataManager {
   constructor() {
     this.data = getDefaultData();
@@ -331,7 +331,7 @@ class DataManager {
   }
 }
 
-// â”€â”€ UTILITY FUNCTIONS â”€â”€
+// ── UTILITY FUNCTIONS ──
 let isPrivacyMode = localStorage.getItem('findash_privacy') === 'true';
 
 function formatCurrency(value) {
@@ -384,7 +384,7 @@ function closeModal(id) {
 }
 
 
-// â”€â”€ MAIN APP â”€â”€
+// ── MAIN APP ──
 class App {
   
   iaAttachedFile = null;
@@ -660,7 +660,7 @@ constructor() {
     }
   }
 
-  // â”€â”€ THEME â”€â”€
+  // ── THEME ──
   populateYearSelector() {
     const select = document.getElementById('extratoYearSelect');
     if (!select) return;
@@ -715,7 +715,7 @@ constructor() {
     if (mainSelector) mainSelector.value = theme;
   }
 
-  // â”€â”€ NAVIGATION â”€â”€
+  // ── NAVIGATION ──
   bindNavigation() {
     document.querySelectorAll('.nav-item[data-tab]').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -771,7 +771,7 @@ constructor() {
     if (mode === 'manual') this.renderManualTable();
   }
 
-  // â”€â”€ MONTH SELECTOR â”€â”€
+  // ── MONTH SELECTOR ──
   bindMonthSelector() {
     document.getElementById('prevMonth').addEventListener('click', () => this.changeMonth(-1));
     document.getElementById('nextMonth').addEventListener('click', () => this.changeMonth(1));
@@ -811,7 +811,7 @@ constructor() {
     document.getElementById('currentMonthLabel').textContent = `${MONTHS[this.currentMonth - 1]} ${YEAR}`;
   }
 
-  // â”€â”€ NOTES â”€â”€
+  // ── NOTES ──
   bindNotes() {
     document.getElementById('dashNotas').addEventListener('input', (e) => {
       this.dm.getMonth(this.currentMonth).notas = e.target.value;
@@ -823,7 +823,7 @@ constructor() {
     });
   }
 
-  // â”€â”€ EXPORT / IMPORT â”€â”€
+  // ── EXPORT / IMPORT ──
   bindExportImport() {
     document.getElementById('btnExport').addEventListener('click', () => this.dm.exportData());
     document.getElementById('btnExportConfig').addEventListener('click', () => this.dm.exportData());
@@ -855,7 +855,7 @@ constructor() {
     });
   }
 
-  // â”€â”€ MODALS â”€â”€
+  // ── MODALS ──
   bindModals() {
     // Variable Expense
     document.getElementById('btnAddGastoVar').addEventListener('click', () => {
@@ -974,7 +974,7 @@ constructor() {
     document.getElementById('btnSalvarCatFixa').addEventListener('click', () => this.saveCatFixa());
   }
 
-  // â”€â”€ SAVE FUNCTIONS â”€â”€
+  // ── SAVE FUNCTIONS ──
   saveGastoVar() {
     const desc = document.getElementById('gastoVarDescricao').value.trim();
     const valor = parseFloat(document.getElementById('gastoVarValor').value);
@@ -1123,7 +1123,7 @@ constructor() {
     showToast('Categoria adicionada!', 'success');
   }
 
-  // â”€â”€ CALCULATIONS â”€â”€
+  // ── CALCULATIONS ──
   calcDiariasAuto(month) {
     const mes = this.dm.getMonth(month);
     const totals = {};
@@ -1930,7 +1930,7 @@ REGRAS OBRIGATÓRIAS:
     histDiv.innerHTML += `
       <div id="iaLoadingIndicator" style="display:flex; justify-content:flex-start; width:100%; margin-top:5px;">
         <div style="background:var(--bg-card); border:1px solid var(--border-color); color:var(--text-primary); padding:12px 16px; border-radius:12px; font-size:0.9rem; opacity:0.7;">
-          <span style="display:inline-block; animation: blink 1.4s infinite both;">âœ¨</span> Pensando...
+          <span style="display:inline-block; animation: blink 1.4s infinite both;">✨</span> Pensando...
         </div>
       </div>
     `;
@@ -1953,7 +1953,7 @@ REGRAS OBRIGATÓRIAS:
     if (!catLabel || !catSelect || !this.dm.data.nvidiaApiKey) return;
     
     catLabel.style.display = 'block';
-    catLabel.innerText = 'âœ¨ IA analisando transação...';
+    catLabel.innerText = '✨ IA analisando transação...';
 
     const catDisp = (this.dm.data.categoriasVariaveis || []).map(c => ({ id: c.id, nome: c.nome }));
     if (catDisp.length === 0) { catLabel.style.display = 'none'; return; }
@@ -1967,7 +1967,7 @@ Retorne JSON com {"categoriaId": "id_da_categoria_escolhida"}. Se não conseguir
       const obj = JSON.parse(result);
       if (obj.categoriaId) {
         catSelect.value = obj.categoriaId;
-        catLabel.innerText = 'âœ¨ Categoria auto-preenchida';
+        catLabel.innerText = '✨ Categoria auto-preenchida';
         setTimeout(() => { catLabel.style.display = 'none'; }, 2000);
       } else { catLabel.style.display = 'none'; }
     } catch(e) { catLabel.style.display = 'none'; }
@@ -1981,7 +1981,7 @@ Retorne JSON com {"categoriaId": "id_da_categoria_escolhida"}. Se não conseguir
     if(!this.dm.data.nvidiaApiKey) { showToast('Configure a API Key da Groq primeiro.', 'error'); return; }
 
     input.disabled = true;
-    btn.innerHTML = 'âœ¨ Processando...';
+    btn.innerHTML = '✨ Processando...';
 
     const catDisp = (this.dm.data.categoriasVariaveis || []).map(c => ({ id: c.id, nome: c.nome }));
     const hoje = new Date().toISOString().slice(0,10);
@@ -2012,7 +2012,7 @@ Extraia os dados em formato JSON estrito, adivinhando a categoria correta:
 
       this.dm.save();
       this.renderAll();
-      showToast('âœ¨ Lançamento Mágico adicionado!', 'success');
+      showToast('✨ Lançamento Mágico adicionado!', 'success');
       input.value = '';
     } catch(e) { showToast('Erro na IA: ' + e.message, 'error'); }
 
@@ -2030,7 +2030,7 @@ Extraia os dados em formato JSON estrito, adivinhando a categoria correta:
     if(semCat.length === 0) { showToast('Não há despesas variáveis sem categoria neste mês!', 'info'); return; }
 
     if(!confirm(`Deseja categorizar magicamente ${semCat.length} despesas de ${m} usando IA?`)) return;
-    showToast('âœ¨ Analisando histórico...', 'info');
+    showToast('✨ Analisando histórico...', 'info');
 
     const catDisp = (this.dm.data.categoriasVariaveis || []).map(c => ({ id: c.id, nome: c.nome }));
     const mapeamento = semCat.map(g => ({ id: g.id, descricao: g.descricao, valor: g.valor }));
@@ -2049,13 +2049,13 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
           const despesa = mesObj.gastosVariaveis.find(g => g.id === res.id);
           if (despesa) { despesa.categoriaId = res.categoriaId; mudados++; }
         });
-        if (mudados > 0) { this.dm.save(); this.renderAll(); showToast(`âœ¨ ${mudados} despesas categorizadas!`, 'success'); }
+        if (mudados > 0) { this.dm.save(); this.renderAll(); showToast(`✨ ${mudados} despesas categorizadas!`, 'success'); }
       }
     } catch(e) { showToast('Erro ao categorizar: ' + e.message, 'error'); }
   }
 
 
-  // â”€â”€ RENDER ALL â”€â”€
+  // ── RENDER ALL ──
   renderAll() {
     this.updateMonthLabel();
     this.renderDashboard();
@@ -2081,7 +2081,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     }
   }
 
-  // â”€â”€ DASHBOARD â”€â”€
+  // ── DASHBOARD ──
   renderDashboard() {
     this.checkAndFetchInsight();
     
@@ -2270,7 +2270,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     }
   }
 
-  // â”€â”€ CHARTS â”€â”€
+  // ── CHARTS ──
   renderCharts() {
     this.renderDespesasChart();
     this.renderReceitasDespesasChart();
@@ -2476,7 +2476,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     });
   }
 
-  // â”€â”€ DIÃRIAS â”€â”€
+  // ── DIÃRIAS ──
   renderDiarias() {
     const mes = this.dm.getMonth(this.currentMonth);
 
@@ -2753,7 +2753,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     return { pago, pendente, total: pago + pendente };
   }
 
-  // â”€â”€ DESPESAS â”€â”€
+  // ── DESPESAS ──
   renderDespesas() {
     const mes = this.dm.getMonth(this.currentMonth);
     const today = new Date().getDate();
@@ -2986,7 +2986,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     this.renderDashboard();
   }
 
-  // â”€â”€ RECEITAS â”€â”€
+  // ── RECEITAS ──
   renderReceitas() {
     const m = this.currentMonth;
     const mes = this.dm.getMonth(m);
@@ -2995,7 +2995,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     const nextMonth = m + 1;
     const nextMonthName = nextMonth <= 12 ? MONTHS[nextMonth - 1] : 'Janeiro (próx. ano)';
 
-    // â”€â”€ SECTION 1: Salary (diárias from PREVIOUS month) â”€â”€
+    // ── SECTION 1: Salary (diárias from PREVIOUS month) ──
     const dBody = document.getElementById('receitaDiariasBody');
     let dHTML = '';
     let totalSalario = 0;
@@ -3036,7 +3036,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       }
     } else {
       document.getElementById('salarioMesDesc').textContent =
-        'Janeiro não possui mês anterior no sistema â€” preencha manualmente em "Outras Receitas" se necessário';
+        'Janeiro não possui mês anterior no sistema — preencha manualmente em "Outras Receitas" se necessário';
     }
 
     dHTML += `
@@ -3050,7 +3050,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     dBody.innerHTML = dHTML;
     document.getElementById('receitaDiariasTotal').textContent = formatCurrency(totalSalario);
 
-    // â”€â”€ SECTION 2: Other income (this month) â”€â”€
+    // ── SECTION 2: Other income (this month) ──
     const oBody = document.getElementById('outrasReceitasBody');
     let oHTML = '';
     let totalOutras = 0;
@@ -3088,7 +3088,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     }
     oBody.innerHTML = oHTML || '<tr><td colspan="4" class="text-center" style="color:var(--text-muted);padding:24px;">Nenhuma receita extra neste mês</td></tr>';
 
-    // â”€â”€ TOTALS â”€â”€
+    // ── TOTALS ──
     const totalReceitas = totalSalario + totalOutras;
     const resumo = this.calcResumoDespesas(this.currentMonth);
     const saldo = totalReceitas - resumo.total;
@@ -3101,7 +3101,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     saldoEl.textContent = formatCurrency(saldo);
     saldoEl.className = 'card-value ' + (saldo >= 0 ? 'value-positive' : 'value-negative');
 
-    // â”€â”€ SECTION 3: Production this month (for next month's salary) â”€â”€
+    // ── SECTION 3: Production this month (for next month's salary) ──
     const pBody = document.getElementById('producaoMesBody');
     let pHTML = '';
     let totalProducao = 0;
@@ -3109,7 +3109,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     document.getElementById('producaoMesTitle').textContent =
       `📋 Produção de ${MONTHS[m - 1]} (será salário de ${nextMonthName})`;
     document.getElementById('producaoMesDesc').textContent =
-      `Diárias trabalhadas neste mês â€” esse valor será sua receita em ${nextMonthName}`;
+      `Diárias trabalhadas neste mês — esse valor será sua receita em ${nextMonthName}`;
 
     if (mes.diarias.modo === 'manual') {
       const manual = mes.diarias.manual || {};
@@ -3175,7 +3175,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     }
   }
 
-  // â”€â”€ INVESTIMENTOS â”€â”€
+  // ── INVESTIMENTOS ──
   renderInvestimentos() {
     const appsScriptInput = document.getElementById('appsScriptUrlInput');
     if (appsScriptInput) appsScriptInput.value = this.dm.data.appsScriptUrl || '';
@@ -3272,7 +3272,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       const histHTML = (meta.historico || []).slice(-5).map((h, idx) => {
         const actualIdx = Math.max(0, meta.historico.length - 5) + idx;
         return `<div class="fs-sm" style="color:var(--text-muted);padding:4px 0;border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-          <span>${h.data} â€” ${formatCurrency(h.valor)} ${h.obs ? 'â€” ' + h.obs : ''}</span>
+          <span>${h.data} — ${formatCurrency(h.valor)} ${h.obs ? '— ' + h.obs : ''}</span>
           <button class="btn-icon" style="opacity:0.5; padding:2px;" onclick="app.deleteAporteMeta('${meta.id}', ${actualIdx})" title="Remover aporte">🗑️</button>
         </div>`;
       }).join('');
@@ -3385,7 +3385,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     }
   }
 
-  // â”€â”€ SIMULADOR FINANCEIRO â”€â”€
+  // ── SIMULADOR FINANCEIRO ──
   setSimuladorTipo(tipo) {
     this.simuladorTipo = tipo;
     const btnInv = document.getElementById('btnSimTipoInv');
@@ -3567,7 +3567,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     });
   }
 
-  // â”€â”€ CARTÃ•ES DE CRÉDITO â”€â”€
+  // ── CARTÃ•ES DE CRÉDITO ──
   saveCartao() {
     const nome = document.getElementById('cartaoNome').value.trim();
     const limite = parseFloat(document.getElementById('cartaoLimite').value);
@@ -3737,7 +3737,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     }
   }
 
-  // â”€â”€ CONFIGURAÇÕES â”€â”€
+  // ── CONFIGURAÇÕES ──
   renderConfiguracoes() {
     // Clinics
     const cBody = document.getElementById('clinicasConfigBody');
@@ -3847,7 +3847,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     this.renderConfiguracoes();
   }
 
-  // â”€â”€ CATEGORIAS VARIAVEIS (ORÇAMENTOS) â”€â”€
+  // ── CATEGORIAS VARIAVEIS (ORÇAMENTOS) ──
   addCategoriaVar() {
     const nome = prompt('Nome da Categoria Variável (ex: Alimentação):');
     if (!nome) return;
@@ -3879,7 +3879,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     this.renderAll();
   }
 
-  // â”€â”€ EXPORTAÇÃO â”€â”€
+  // ── EXPORTAÇÃO ──
   generateReportHTML(month) {
     const totalReceitas = this.calcTotalReceitas(month);
     const resumo = this.calcResumoDespesas(month);
@@ -4409,7 +4409,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
 
 }
 
-// â”€â”€ INITIALIZE â”€â”€
+// ── INITIALIZE ──
 let app;
 document.addEventListener('DOMContentLoaded', () => {
   app = new App();
