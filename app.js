@@ -1,4 +1,4 @@
-﻿/* ========================================
+/* ========================================
    DASHBOARD FINANCEIRO - APPLICATION LOGIC
    ======================================== */
 
@@ -1238,9 +1238,7 @@ constructor() {
         body: { action: 'models', apiKey: this.dm.data.nvidiaApiKey }
       });
       if (error) throw new Error(error.message);
-      const res = { ok: true, json: async () => data };
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Erro ao carregar modelos');
+      if (data && data.error) throw new Error(data.error || 'Erro ao carregar modelos');
       
       const select = document.getElementById('nvidiaModelSelect');
       if (select && data.data) {

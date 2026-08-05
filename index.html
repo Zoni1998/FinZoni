@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
@@ -9,7 +9,7 @@
     content="Ferramenta completa de gestão financeira pessoal com controle de receitas, despesas, diárias e investimentos.">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0a0a1a">
-  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://jbzypqaimerrptxhovzq.supabase.co https://kqjdslnysmhhwccukbuz.supabase.co https://api.groq.com https://api.bcb.gov.br https://economia.awesomeapi.com.br; img-src 'self' data: blob:;">
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data: https://cdnjs.cloudflare.com; connect-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://jbzypqaimerrptxhovzq.supabase.co https://kqjdslnysmhhwccukbuz.supabase.co https://api.groq.com https://api.bcb.gov.br https://economia.awesomeapi.com.br; img-src 'self' data: blob:;">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css?v=333">
   <!-- DOMPurify for XSS mitigation -->
@@ -1493,11 +1493,15 @@
     ✨
   </button>
 
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
   <!-- Animation Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
   
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="app.js?v=333"></script>
 </body>
 </html>

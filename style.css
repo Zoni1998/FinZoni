@@ -1,4 +1,4 @@
-﻿/* ========================================
+/* ========================================
    DASHBOARD FINANCEIRO - DESIGN SYSTEM
    Premium Dark Mode + Glassmorphism
    ======================================== */
@@ -1370,4 +1370,43 @@ body {
 
   .forecast-grid { grid-template-columns: 1fr; }
   .charts-grid { grid-template-columns: 1fr; }
+}
+
+/* Toast Notifications */
+.toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 10000;
+}
+
+.toast {
+  padding: 12px 20px;
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+  font-size: 0.9rem;
+}
+
+.toast.success { border-left: 4px solid var(--green); }
+.toast.error { border-left: 4px solid var(--red); }
+.toast.info { border-left: 4px solid var(--blue); }
+.toast.warning { border-left: 4px solid var(--orange); }
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
