@@ -42,6 +42,19 @@ serve(async (req: Request) => {
         throw new Error('Invalid request format: "messages" array is required');
       }
 
+      const payload: Record<string, unknown> = {
+        model: requestData.model || 'meta/llama-3.1-8b-instruct',
+        messages: requestData.messages,
+        temperature: requestData.temperature ?? 0.7,
+        top_p: requestData.top_p ?? 1,
+        max_tokens: requestData.max_tokens || 1024,
+      };
+      if (Array.isArray(requestData.tools) && requestData.tools.length > 0) {
+        payload.tools = requestData.tools;
+        payload.tool_choice = requestData.tool_choice || 'auto';
+      }
+      if (requestData.response_format) payload.response_format = requestData.response_format;
+
       const response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -49,13 +62,7 @@ serve(async (req: Request) => {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: JSON.stringify({
-          model: requestData.model || 'meta/llama-3.1-8b-instruct',
-          messages: requestData.messages,
-          temperature: requestData.temperature || 0.7,
-          top_p: requestData.top_p || 1,
-          max_tokens: requestData.max_tokens || 1024,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
