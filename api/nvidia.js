@@ -1,3 +1,13 @@
+async function fetchNvidia(url, options = {}, timeoutMs = 22000) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 export default async function handler(req, res) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -18,7 +28,7 @@ export default async function handler(req, res) {
     }
 
     if (action === 'models') {
-      const response = await fetch('https://integrate.api.nvidia.com/v1/models', {
+      const response = await fetchNvidia('https://integrate.api.nvidia.com/v1/models', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${apiKey}`,
@@ -54,7 +64,7 @@ export default async function handler(req, res) {
         }
         if (requestData.response_format) payload.response_format = requestData.response_format;
 
-        lastResponse = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+        lastResponse = await fetchNvidia('https://integrate.api.nvidia.com/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${apiKey}`,
@@ -85,6 +95,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid action' });
     }
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    const timedOut = error?.name === 'AbortError';
+    return res.status(timedOut ? 504 : 500).json({ error: timedOut ? 'NVIDIA_TIMEOUT' : error.message });
   }
 }
