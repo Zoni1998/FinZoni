@@ -5,6 +5,16 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+async function fetchNvidia(url: string, options: RequestInit = {}, timeoutMs = 22000) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 serve(async (req: Request) => {
   // Handle CORS preflight request
   if (req.method === 'OPTIONS') {
@@ -23,7 +33,7 @@ serve(async (req: Request) => {
     }
 
     if (action === 'models') {
-      const response = await fetch('https://integrate.api.nvidia.com/v1/models', {
+      const response = await fetchNvidia('https://integrate.api.nvidia.com/v1/models', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${apiKey}`,
@@ -55,7 +65,7 @@ serve(async (req: Request) => {
       }
       if (requestData.response_format) payload.response_format = requestData.response_format;
 
-      const response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+      const response = await fetchNvidia('https://integrate.api.nvidia.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${apiKey}`,
@@ -75,9 +85,10 @@ serve(async (req: Request) => {
       throw new Error(`Invalid action: ${action}`);
     }
   } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    const timedOut = error?.name === 'AbortError';
+    return new Response(JSON.stringify({ error: timedOut ? 'NVIDIA_TIMEOUT' : error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 400,
+      status: timedOut ? 504 : 400,
     })
   }
 })
