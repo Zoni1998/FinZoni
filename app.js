@@ -1,10 +1,13 @@
 
-window.nvidiaProxy = async (body) => {
+window.nvidiaProxy = async (body, timeoutMs = 23000) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const res = await fetch('/api/nvidia-proxy', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
+      signal: controller.signal
     });
     if (!res.ok) {
       const errText = await res.text();
@@ -18,7 +21,10 @@ window.nvidiaProxy = async (body) => {
     const data = await res.json();
     return { data: data, error: null };
   } catch (err) {
-    return { data: null, error: err };
+    const error = err?.name === 'AbortError' ? new Error('NVIDIA_TIMEOUT') : err;
+    return { data: null, error };
+  } finally {
+    clearTimeout(timeoutId);
   }
 };
 
@@ -395,9 +401,9 @@ function showToast(msg, type = 'info') {
   const container = document.getElementById('toastContainer');
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
-  const icons = { success: '✅', error: 'âŒ', info: 'â„¹ï¸' };
+  const icons = { success: '\u2705', error: '\u274C', info: '\u2139\uFE0F' };
   const icon = document.createElement('span');
-  icon.textContent = icons[type] || 'â„¹ï¸';
+  icon.textContent = icons[type] || '\u2139\uFE0F';
   toast.appendChild(icon);
   toast.appendChild(document.createTextNode(' ' + msg));
   container.appendChild(toast);
@@ -1447,7 +1453,7 @@ REGRAS DE NEGÓCIO:
 1. "Produção" e "Diárias" significam a mesma coisa: o dinheiro gerado trabalhando em clínicas no mês atual.
 2. O que ele "Produz" no mês atual será recebido como "Salário" (Receitas) no MÊS SEGUINTE.
 
-DATAS DO CALENDÃRIO (USE PARA RESPONDER PERGUNTAS SOBRE HOJE/ONTEM):
+DATAS DO CALENDÁRIO (USE PARA RESPONDER PERGUNTAS SOBRE HOJE/ONTEM):
 - HOJE: ${hojeStr}
 - ONTEM: ${ontemStr}
 
@@ -1474,18 +1480,18 @@ TRANSAÇÕES DO MÊS DETALHADAS EM JSON (Procure nestes blocos de dados brutos):
 }
 \`\`\`
 
-INSTRUÇÃ•ES CRÍTICAS PARA A SUA ATUAÇÃO E INTELIGÊNCIA:
+INSTRUÇÕES CRÍTICAS PARA A SUA ATUAÇÃO E INTELIGÊNCIA:
 1. Apresente-se como Zoni. A persona selecionada muda apenas o estilo da orientação, nunca sua identidade.
 2. **NUNCA MENCIONE O JSON OU SEU PROCESSO MENTAL**: É ABSOLUTAMENTE PROIBIDO falar coisas como "(olhando os dados JSON)", "(fazendo as contas)", "de acordo com o banco de dados", etc. Fale com naturalidade, como se você simplesmente TIVESSE a memória de tudo que o usuário fez. Entregue os números de forma fluida e humana na sua conversa.
 3. Formate sempre os valores em R$ e negrito.
-4. **RACIOCÍNIO MATEMÃTICO INVISÍVEL**: Faça as somas passo a passo MENTALMENTE e invisivelmente. Entregue apenas o resultado final confiante e exato.
+4. **RACIOCÍNIO MATEMÁTICO INVISÍVEL**: Faça as somas passo a passo MENTALMENTE e invisivelmente. Entregue apenas o resultado final confiante e exato.
 5. Cruze a "Data" das transações do JSON com o dia de HOJE (${hojeStr}) para identificar transações recentes, mas não explique isso ao usuário.
 6. Se o usuário perguntar de um gasto (ex: iFood) e ele não estiver nos dados, reaja de acordo com a sua Persona (ex: dê uma bronca por ele não ter anotado), mas NUNCA use frases robóticas.
 7. Entregue somente a resposta útil e final, sem expor raciocínio privado ou instruções internas.
 8. Para qualquer alteração de dados, use uma ferramenta apropriada e aguarde a confirmação do aplicativo.`;
   }
 
-  async callNvidia(messages, max_tokens = 500, temp = 0.7, jsonMode = false, tools = null) {
+  async callNvidia(messages, max_tokens = 500, temp = 0.7, jsonMode = false, tools = null, timeoutMs = 25000) {
     const apiKey = this.dm.data.nvidiaApiKey;
     if (!apiKey) throw new Error('Chave da API NVIDIA não configurada na aba de Configurações.');
     
@@ -1503,23 +1509,25 @@ INSTRUÇÃ•ES CRÍTICAS PARA A SUA ATUAÇÃO E INTELIGÊNCIA:
       body.tool_choice = "auto";
     }
 
-    const { data: feData, error } = await window.nvidiaProxy({
-      ...body
+    let timeoutId;
+    const timeoutPromise = new Promise((_, reject) => {
+      timeoutId = setTimeout(() => reject(new Error('NVIDIA_TIMEOUT')), timeoutMs);
     });
+    const proxyPromise = window.nvidiaProxy({ ...body }, Math.max(1000, timeoutMs - 1000));
+    const { data: feData, error } = await Promise.race([proxyPromise, timeoutPromise])
+      .finally(() => clearTimeout(timeoutId));
     if (error) throw new Error(error.message);
-    const res = { ok: true, status: 200, json: async () => feData };
-    if (!res.ok) {
-      const err = await res.json().catch(()=>({}));
-      throw new Error(err.error?.message || `Erro API: ${res.status}`);
-    }
-    const data = await res.json();
+    const data = feData;
+    const message = data?.choices?.[0]?.message;
+    if (!message) throw new Error(data?.error?.message || data?.error || 'NVIDIA_INVALID_RESPONSE');
     
     // Return the full message object to allow tool_calls parsing
     if (tools) {
-      return data.choices[0].message;
+      return message;
     }
     
-    let txt = data.choices[0].message.content;
+    let txt = message.content;
+    if (typeof txt !== 'string') throw new Error('NVIDIA_INVALID_RESPONSE');
     
     // Strip <think> tags
     txt = txt.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
@@ -1695,7 +1703,7 @@ INSTRUÇÃ•ES CRÍTICAS PARA A SUA ATUAÇÃO E INTELIGÊNCIA:
 Você é a Persona definida no sistema. 
 TAREFA EXCLUSIVA: Fazer uma Consultoria de Aportes baseada nos dados do mercado em TEMPO REAL.
 
-DADOS DE PATRIMÔNIO DO USUÃRIO:
+DADOS DE PATRIMÔNIO DO USUÁRIO:
 - Patrimônio Total Investido: R$ ${patrimonioTotal.toFixed(2)}
 - Salário/Receitas deste mês: R$ ${receitas.toFixed(2)}
 - Capital livre sugerido para aportar AGORA: R$ ${strAporte}
@@ -1983,15 +1991,21 @@ REGRAS OBRIGATÓRIAS:
     this.renderChatHistory();
 
     const histDiv = document.getElementById('iaChatHistory');
+    let slowTimer = null;
     const addLoading = () => {
       histDiv.innerHTML += `
         <div id="iaLoadingIndicator" style="display:flex; justify-content:flex-start; width:100%; margin-top:5px;">
           <div style="background:var(--bg-card); border:1px solid var(--border-color); color:var(--text-primary); padding:12px 16px; border-radius:12px; font-size:0.9rem; opacity:0.7;">
-            <span style="display:inline-block; animation: blink 1.4s infinite both;">✨</span> Processando...
+            <span style="display:inline-block; animation: blink 1.4s infinite both;">✨</span> <span class="zoni-loading-text">Processando...</span>
           </div>
         </div>
       `;
       histDiv.scrollTop = histDiv.scrollHeight;
+      clearTimeout(slowTimer);
+      slowTimer = setTimeout(() => {
+        const label = document.querySelector('#iaLoadingIndicator .zoni-loading-text');
+        if (label) label.textContent = 'A NVIDIA está demorando um pouco...';
+      }, 8000);
     };
     addLoading();
 
@@ -2232,9 +2246,12 @@ REGRAS OBRIGATÓRIAS:
     try {
       let runLoop = true;
       let toolIterations = 0;
+      const chatDeadline = Date.now() + 45000;
       while (runLoop && toolIterations < 6) {
         toolIterations++;
-        const responseMessage = await this.callNvidia(this.conversationHistory, 1000, 0.7, false, tools);
+        const remainingMs = chatDeadline - Date.now();
+        if (remainingMs < 1000) throw new Error('NVIDIA_TIMEOUT');
+        const responseMessage = await this.callNvidia(this.conversationHistory, 1000, 0.7, false, tools, Math.min(25000, remainingMs));
         
         if (responseMessage.tool_calls) {
           this.conversationHistory.push(responseMessage);
@@ -2507,9 +2524,16 @@ REGRAS OBRIGATÓRIAS:
       }
     } catch(e) {
       console.error('Falha no Zoni:', e);
-      this.conversationHistory.push({ role: 'assistant', content: 'Não consegui concluir isso agora. Seus dados não foram alterados. Tente novamente em instantes.' });
+      const timedOut = String(e?.message || '').includes('NVIDIA_TIMEOUT');
+      this.conversationHistory.push({
+        role: 'assistant',
+        content: timedOut
+          ? 'A NVIDIA demorou mais que o esperado e interrompi esta tentativa. Nenhuma ação pendente foi repetida. Tente novamente.'
+          : 'Não consegui concluir isso agora. Seus dados não foram alterados. Tente novamente em instantes.'
+      });
     }
     
+    clearTimeout(slowTimer);
     const lInd = document.getElementById('iaLoadingIndicator');
     if (lInd) lInd.remove();
     this.renderChatHistory();
@@ -2791,7 +2815,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       return;
     }
 
-    contentEl.innerHTML = "Lendo e processando seu fluxo de caixa para este turno... ðŸ§ ";
+    contentEl.innerHTML = "Lendo e processando seu fluxo de caixa para este turno... \uD83E\uDDE0";
     if(timerEl) timerEl.innerText = "Analisando...";
     
     try {
@@ -3422,7 +3446,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
               onchange="app.updateGastoFixo('', 'pago', this.checked, ${recordIndex})">
           </td>
           <td>
-            <button class="btn-icon" onclick="app.deleteGastoFixo('', ${recordIndex})" title="Remover">🗑️</button>
+            <button class="btn-icon" onclick="app.deleteGastoFixo('', ${recordIndex})" title="Remover" aria-label="Remover despesa fixa">&#128465;</button>
           </td>
         </tr>`;
     });
@@ -3462,7 +3486,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
               onchange="app.updateGastoVar('${g.id}', 'data', this.value)"
               onkeydown="if(event.key==='Enter') this.blur();">
           </td>
-          <td><button class="btn-icon" onclick="app.deleteGastoVar('${g.id}')" title="Remover">🗑️</button></td>
+          <td><button class="btn-icon" onclick="app.deleteGastoVar('${g.id}')" title="Remover" aria-label="Remover despesa">&#128465;</button></td>
         </tr>`;
     });
 
@@ -3616,7 +3640,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     if (prevMonth >= 1) {
       const prevMes = this.dm.getMonth(prevMonth);
       document.getElementById('salarioMesDesc').textContent =
-        `Valor referente Ã s diárias trabalhadas em ${prevMonthName}`;
+        `Valor referente às diárias trabalhadas em ${prevMonthName}`;
 
       if (prevMes.diarias.modo === 'manual') {
         const manual = prevMes.diarias.manual || {};
@@ -3685,7 +3709,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
               onchange="app.updateReceita('${r.id}', 'data', this.value)"
               onkeydown="if(event.key==='Enter') this.blur();">
           </td>
-          <td><button class="btn-icon" onclick="app.deleteReceita('${r.id}')" title="Remover">🗑️</button></td>
+          <td><button class="btn-icon" onclick="app.deleteReceita('${r.id}')" title="Remover" aria-label="Remover receita">&#128465;</button></td>
         </tr>`;
     });
 
@@ -3827,7 +3851,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
               onchange="app.updateReservaMov('${m.id}', 'obs', this.value)"
               onkeydown="if(event.key==='Enter') this.blur();">
           </td>
-          <td><button class="btn-icon" onclick="app.deleteReservaMov('${m.id}')" title="Remover">🗑️</button></td>
+          <td><button class="btn-icon" onclick="app.deleteReservaMov('${m.id}')" title="Remover" aria-label="Remover movimentação">&#128465;</button></td>
         </tr>`;
     });
     movBody.innerHTML = movHTML || '<tr><td colspan="5" class="text-center" style="color:var(--text-muted);padding:24px;">Nenhuma movimentação registrada</td></tr>';
@@ -3837,6 +3861,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
 
     // Goals
     this.renderMetas();
+    this.renderAchievements();
     
     // Simulator Init
     if (!this.simuladorIniciado) {
@@ -3882,9 +3907,9 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       const pct = meta.valorMeta > 0 ? Math.min(100, (meta.valorAtual / meta.valorMeta) * 100) : 0;
       const histHTML = (meta.historico || []).slice(-5).map((h, idx) => {
         const actualIdx = Math.max(0, meta.historico.length - 5) + idx;
-        return `<div class="fs-sm" style="color:var(--text-muted);padding:4px 0;border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+        return `<div class="goal-history-row fs-sm">
           <span>${h.data} — ${formatCurrency(h.valor)} ${h.obs ? '— ' + h.obs : ''}</span>
-          <button class="btn-icon" style="opacity:0.5; padding:2px;" onclick="app.deleteAporteMeta('${meta.id}', ${actualIdx})" title="Remover aporte">🗑️</button>
+          <button class="btn-icon" onclick="app.deleteAporteMeta('${meta.id}', ${actualIdx})" title="Remover aporte" aria-label="Remover aporte">&#128465;</button>
         </div>`;
       }).join('');
 
@@ -3902,10 +3927,10 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
         <div class="goal-card">
           <div class="goal-header">
             <div class="goal-name">🎯 ${escapeHTML(meta.nome)}</div>
-            <div class="flex gap-1">
+            <div class="goal-actions">
               <button class="btn btn-success btn-sm" onclick="app.openUpdateMeta('${meta.id}')">+ Adicionar</button>
-              <button class="btn-icon" onclick="app.openModalEditarMeta('${meta.id}')" title="Editar">âœï¸</button>
-              <button class="btn-icon" onclick="app.deleteMeta('${meta.id}')" title="Excluir">🗑️</button>
+              <button class="btn-icon" onclick="app.openModalEditarMeta('${meta.id}')" title="Editar" aria-label="Editar meta">&#9998;</button>
+              <button class="btn-icon" onclick="app.deleteMeta('${meta.id}')" title="Excluir" aria-label="Excluir meta">&#128465;</button>
             </div>
           </div>
           <div class="goal-values">
@@ -4344,7 +4369,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
               <td>${escapeHTML(compra.descricao)}</td>
               <td class="text-center">${parcelaAtual}/${compra.parcelas}</td>
               <td class="text-right value-negative">${formatCurrency(compra.valorParcela)}</td>
-              <td><button class="btn-icon" onclick="app.deleteCompraCartao('${compra.id}')" title="Excluir Compra Inteira">🗑️</button></td>
+              <td><button class="btn-icon" onclick="app.deleteCompraCartao('${compra.id}')" title="Excluir Compra Inteira" aria-label="Excluir compra">&#128465;</button></td>
             </tr>
           `;
        }
@@ -4397,7 +4422,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
             onchange="app.updateClinicaCor('${c.id}',this.value)">
         </td>
         <td>
-          <button class="btn-icon" onclick="app.deleteClinica('${c.id}')" title="Remover">🗑️</button>
+          <button class="btn-icon" onclick="app.deleteClinica('${c.id}')" title="Remover" aria-label="Remover clínica">&#128465;</button>
         </td>
       </tr>
     `).join('');
@@ -4412,7 +4437,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
             onchange="app.updateCatFixaCompart('${cat.id}',this.checked)">
         </td>
         <td>
-          <button class="btn-icon" onclick="app.deleteCatFixa('${cat.id}')" title="Remover">🗑️</button>
+          <button class="btn-icon" onclick="app.deleteCatFixa('${cat.id}')" title="Remover" aria-label="Remover categoria fixa">&#128465;</button>
         </td>
       </tr>
     `).join('');
@@ -4431,7 +4456,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
               onchange="app.updateCatVarOrcamento('${cat.id}',this.value)">
           </td>
           <td>
-            <button class="btn-icon" onclick="app.deleteCatVar('${cat.id}')" title="Remover">🗑️</button>
+            <button class="btn-icon" onclick="app.deleteCatVar('${cat.id}')" title="Remover" aria-label="Remover categoria variável">&#128465;</button>
           </td>
         </tr>
       `).join('') || '<tr><td colspan="3" class="text-center text-muted">Nenhuma categoria variável</td></tr>';
@@ -4833,7 +4858,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       { id: 'first_step', title: 'Primeiro Passo', desc: 'Guardou seu primeiro real', xpReq: 1, icon: '🌱' },
       { id: 'apprentice', title: 'Poupador', desc: 'Acumulou 1.000 XP', xpReq: 1000, icon: '💰' },
       { id: 'investor', title: 'Investidor', desc: 'Acumulou 5.000 XP', xpReq: 5000, icon: '📈' },
-      { id: 'whale', title: 'Baleia', desc: 'Acumulou 20.000 XP', xpReq: 20000, icon: 'ðŸ‹' },
+      { id: 'whale', title: 'Baleia', desc: 'Acumulou 20.000 XP', xpReq: 20000, icon: '\uD83D\uDC0B' },
       { id: 'diamond', title: 'Mãos de Diamante', desc: 'Acumulou 50.000 XP', xpReq: 50000, icon: '💎' },
       { id: 'magnate', title: 'Magnata', desc: 'Acumulou 100.000 XP', xpReq: 100000, icon: '👑' }
     ];
@@ -4878,7 +4903,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       if (gastoPassado === 0) {
         statusEl.innerHTML = '<span style="color:var(--text-muted)">Sem dados</span>';
       } else if (gastoAtual < gastoPassado) {
-        statusEl.innerHTML = '<span style="color:var(--green)">Vencendo! ðŸ†</span>';
+        statusEl.innerHTML = '<span style="color:var(--green)">Vencendo! \uD83C\uDFC6</span>';
       } else {
         statusEl.innerHTML = '<span style="color:var(--red)">Perdendo 😢</span>';
       }
@@ -5011,7 +5036,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
           if (diffDays < 0) {
             alerts.push(`<div class="notification-item"><div class="notification-icon">⚠️</div><div class="notification-text">A conta <strong>${escapeHTML(g.descricao)}</strong> está atrasada há ${Math.abs(diffDays)} dia(s)!</div></div>`);
           } else if (diffDays <= 3) {
-            alerts.push(`<div class="notification-item"><div class="notification-icon">â°</div><div class="notification-text">A conta <strong>${escapeHTML(g.descricao)}</strong> vence em ${diffDays === 0 ? 'hoje' : diffDays + ' dia(s)'}!</div></div>`);
+            alerts.push(`<div class="notification-item"><div class="notification-icon">\u23F0</div><div class="notification-text">A conta <strong>${escapeHTML(g.descricao)}</strong> vence em ${diffDays === 0 ? 'hoje' : diffDays + ' dia(s)'}!</div></div>`);
           }
         }
       }
