@@ -140,6 +140,7 @@ class DataManager {
   constructor() {
     this.data = getDefaultData();
     this.userId = null;
+    this.savePromise = Promise.resolve(true);
   }
 
   async load() {
@@ -215,11 +216,32 @@ class DataManager {
 
   save() {
     if (this.saveTimeout) clearTimeout(this.saveTimeout);
-    this.saveTimeout = setTimeout(() => this._save(), 1000);
+    this.saveTimeout = setTimeout(() => {
+      this.saveTimeout = null;
+      this.queueSave();
+    }, 1000);
   }
 
-  async _save() {
-    if (!this.userId || !sbClient) return;
+  saveNow() {
+    if (this.saveTimeout) {
+      clearTimeout(this.saveTimeout);
+      this.saveTimeout = null;
+    }
+    return this.queueSave();
+  }
+
+  queueSave() {
+    // Capture the state at the moment of the action and serialize writes so a
+    // slower, older request can never overwrite a newer checkbox state.
+    const payload = JSON.stringify(this.data);
+    this.savePromise = this.savePromise
+      .catch(() => false)
+      .then(() => this._save(payload));
+    return this.savePromise;
+  }
+
+  async _save(payload = JSON.stringify(this.data)) {
+    if (!this.userId || !sbClient) return false;
     try {
       const { data: exist } = await sbClient
         .from('finances')
@@ -228,7 +250,6 @@ class DataManager {
         .single();
 
       let error;
-      const payload = JSON.stringify(this.data);
       if (exist) {
         const { error: updateError } = await sbClient
           .from('finances')
@@ -245,10 +266,13 @@ class DataManager {
       if (error) {
         console.error('Error saving data:', error);
         showToast('Erro ao salvar na nuvem!', 'error');
+        return false;
       }
+      return true;
     } catch (e) {
       console.error('Error in save:', e);
       showToast('Erro ao salvar na nuvem!', 'error');
+      return false;
     }
   }
 
@@ -3316,7 +3340,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     }
   }
 
-  updateGastoFixo(id, field, value) {
+  async updateGastoFixo(id, field, value) {
     const mes = this.dm.getMonth(this.currentMonth);
     const g = mes.gastosFixos.find(x => x.id === id);
     if (g) {
@@ -3333,13 +3357,14 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       else {
         g[field] = value;
       }
-      this.dm.save();
       if (field === 'pago' || field === 'compartilhado') {
-        setTimeout(() => {
-          this.renderDespesas();
-          this.renderDashboard();
-        }, 150);
+        // Reflect the change immediately and persist this exact state before
+        // allowing a later save to overtake it.
+        this.renderDespesas();
+        this.renderDashboard();
+        await this.dm.saveNow();
       } else {
+        this.dm.save();
         this.renderDespesas();
         this.renderDashboard();
       }
