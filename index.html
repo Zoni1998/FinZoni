@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard Financeiro Pessoal</title>
   <meta name="description"
-    content="Ferramenta completa de gestÃ£o financeira pessoal com controle de receitas, despesas, diÃ¡rias e investimentos.">
+    content="Ferramenta completa de gestão financeira pessoal com controle de receitas, despesas, diárias e investimentos.">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0a0a1a">
   <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data: https://cdnjs.cloudflare.com; connect-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://jbzypqaimerrptxhovzq.supabase.co https://kqjdslnysmhhwccukbuz.supabase.co https://api.groq.com https://api.bcb.gov.br https://economia.awesomeapi.com.br; img-src 'self' data: blob:;">
@@ -30,9 +30,9 @@
   <div class="auth-overlay" id="authOverlay">
     <div style="position: absolute; top: 20px; right: 20px; z-index: 10;">
       <select class="form-input" style="width: auto; background: var(--bg-glass); border: 1px solid var(--border); backdrop-filter: blur(10px); color: var(--text-primary); cursor: pointer;" onchange="app.changeTheme(this.value)" id="authThemeSelector">
-        <option value="dark">ðŸŒ™ Modo Escuro</option>
-        <option value="amoled">ðŸŒ‘ AMOLED (Preto)</option>
-        <option value="light">â˜€ï¸ Modo Claro</option>
+        <option value="dark">🌙 Modo Escuro</option>
+        <option value="amoled">🌑 AMOLED (Preto)</option>
+        <option value="light">☀️ Modo Claro</option>
       </select>
     </div>
 
@@ -41,7 +41,7 @@
         <div class="logo-icon">
           <img src="assets/logo.png" alt="FinZoni Logo" style="width:100%; height:100%; object-fit:cover; border-radius: var(--radius-md);">
         </div>
-        <h1>FinZoni<span>Minha GestÃ£o Financeira</span></h1>
+        <h1>FinZoni<span>Minha Gestão Financeira</span></h1>
       </div>
       
       <!-- Login View -->
@@ -85,7 +85,7 @@
             <label class="form-label">Senha</label>
             <input type="password" id="registerPassword" class="form-input" required placeholder="Crie uma senha forte" autocomplete="new-password">
           </div>
-          <button type="submit" class="btn btn-success" style="width:100%; margin-top: 16px;">Criar Conta GrÃ¡tis</button>
+          <button type="submit" class="btn btn-success" style="width:100%; margin-top: 16px;">Criar Conta Grátis</button>
         </form>
       </div>
 
@@ -93,7 +93,7 @@
       <div id="authResetView" class="auth-view" style="display: none;">
         <h3 style="font-size: 1.1rem; text-align: center; margin-bottom: 16px; color: var(--text-primary);">Recuperar Senha</h3>
         <p style="font-size: 0.85rem; color: var(--text-secondary); text-align: center; margin-bottom: 20px;">
-          Digite seu e-mail para receber um link de redefiniÃ§Ã£o de senha.
+          Digite seu e-mail para receber um link de redefinição de senha.
         </p>
         <form onsubmit="event.preventDefault(); app.handlePasswordReset();">
           <div class="form-group">
@@ -102,7 +102,7 @@
           </div>
           <button type="submit" class="btn btn-primary" style="width:100%; margin-top: 8px;">Enviar Link</button>
           <div style="text-align: center; margin-top: 16px;">
-            <a href="#" onclick="app.showAuthView('login')" style="font-size: 0.8rem; color: var(--text-muted); text-decoration: none; transition: color 0.2s;">â† Voltar para o Login</a>
+            <a href="#" onclick="app.showAuthView('login')" style="font-size: 0.8rem; color: var(--text-muted); text-decoration: none; transition: color 0.2s;">← Voltar para o Login</a>
           </div>
         </form>
       </div>
@@ -126,19 +126,19 @@
 
   <div class="app-container" id="appContainer" style="display: none;">
     <!-- Mobile Menu Button -->
-    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Abrir menu">â˜°</button>
+    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Abrir menu">☰</button>
 
     <!-- Mobile Overlay -->
     <div class="mobile-overlay" id="mobileOverlay"></div>
 
-    <!-- â•â•â•â•â•â•â•â•â•â•â• SIDEBAR â•â•â•â•â•â•â•â•â•â•â• -->
+    <!-- ═══════════ SIDEBAR ═══════════ -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <div class="sidebar-logo">
           <div class="logo-icon">
             <img src="assets/logo.png" alt="FinZoni Logo" style="width:100%; height:100%; object-fit:cover; border-radius: inherit;">
           </div>
-          <h1>FinZoni<span>Minha GestÃ£o Financeira</span></h1>
+          <h1>FinZoni<span>Minha Gestão Financeira</span></h1>
         </div>
       </div>
       <div class="sidebar-profile" onclick="app.openProfileModal()" title="Editar Perfil">
@@ -156,7 +156,7 @@
           <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg></span> Dashboard
         </button>
         <button class="nav-item" data-tab="diarias" id="nav-diarias">
-          <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></span> DiÃ¡rias
+          <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></span> Diárias
         </button>
         <button class="nav-item" data-tab="despesas" id="nav-despesas">
           <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6"/></svg></span> Despesas
@@ -168,7 +168,7 @@
           <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg></span> Investimentos
         </button>
         <button class="nav-item" data-tab="cartoes" id="nav-cartoes">
-          <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span> CartÃµes
+          <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span> Cartões
         </button>
         <button class="nav-item" data-tab="extrato" id="nav-extrato">
           <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span> Extrato Anual
@@ -179,29 +179,29 @@
           <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg></span> Sair da Conta
         </button>
         <button class="nav-item" data-tab="configuracoes" id="nav-configuracoes">
-          <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span> ConfiguraÃ§Ãµes
+          <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span> Configurações
         </button>
       </div>
     </aside>
 
-    <!-- â•â•â•â•â•â•â•â•â•â•â• MAIN CONTENT â•â•â•â•â•â•â•â•â•â•â• -->
+    <!-- ═══════════ MAIN CONTENT ═══════════ -->
     <main class="main-content">
       <!-- Header -->
       <header class="main-header">
         <div class="month-selector">
-          <button class="month-nav-btn" id="prevMonth" aria-label="MÃªs anterior">
+          <button class="month-nav-btn" id="prevMonth" aria-label="Mês anterior">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
           <span class="current-month" id="currentMonthLabel">Janeiro 2026</span>
-          <button class="month-nav-btn" id="nextMonth" aria-label="PrÃ³ximo mÃªs">
+          <button class="month-nav-btn" id="nextMonth" aria-label="Próximo mês">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 5l6 6-6 6"/></svg>
           </button>
         </div>
         <div class="header-actions">
           <select id="mainThemeSelector" class="form-input" style="width:110px; padding: 6px 10px; font-size: 0.8rem; border-radius: 8px;" onchange="app.changeTheme(this.value)">
-            <option value="dark">ðŸŒ™ Escuro</option>
-            <option value="light">â˜€ï¸ Claro</option>
-            <option value="amoled">ðŸŒ‘ AMOLED</option>
+            <option value="dark">🌙 Escuro</option>
+            <option value="light">☀️ Claro</option>
+            <option value="amoled">🌑 AMOLED</option>
           </select>
           <div class="search-bar">
             <span class="search-icon">
@@ -212,7 +212,7 @@
           <button class="btn btn-ghost btn-icon" id="btnPrivacy" title="Modo Privacidade" onclick="app.togglePrivacy()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           </button>
-          <button class="btn btn-ghost btn-icon" id="btnNotifications" title="NotificaÃ§Ãµes" style="position: relative;" onclick="app.toggleNotifications()">
+          <button class="btn btn-ghost btn-icon" id="btnNotifications" title="Notificações" style="position: relative;" onclick="app.toggleNotifications()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
             <span class="notification-badge" id="notificationBadge" style="display:none;">0</span>
           </button>
@@ -227,7 +227,7 @@
           <input type="file" id="importFileInput" accept=".json" style="display:none">
         </div>
         
-        <!-- Painel de NotificaÃ§Ãµes -->
+        <!-- Painel de Notificações -->
         <div class="notifications-panel" id="notificationsPanel" style="display: none;">
           <div class="notifications-header">Alertas de Vencimento</div>
           <div class="notifications-body" id="notificationsBody">
@@ -238,25 +238,25 @@
 
       <div class="page-content">
 
-        <!-- â•â•â•â•â•â•â•â•â•â•â• TAB: DASHBOARD â•â•â•â•â•â•â•â•â•â•â• -->
+        <!-- ═══════════ TAB: DASHBOARD ═══════════ -->
         <div class="tab-content active" id="tab-dashboard">
           <div class="section-header">
             <div>
-              <div class="section-title">ðŸ“Š VisÃ£o Geral</div>
-              <div class="section-subtitle">Gere um resumo detalhado deste mÃªs.</div>
+              <div class="section-title">📊 Visão Geral</div>
+              <div class="section-subtitle">Gere um resumo detalhado deste mês.</div>
             </div>
           </div>
           
-          <!-- Insight DiÃ¡rio da IA -->
+          <!-- Insight Diário da IA -->
           <div class="card" style="border-left: 4px solid var(--purple);">
             <div style="display: flex; gap: 15px; align-items: flex-start;">
-              <div style="font-size: 2rem; color: var(--purple);">âœ¨</div>
+              <div style="font-size: 2rem; color: var(--purple);">✨</div>
               <div style="flex: 1;">
                 <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center;">
                   <span>Insight do FinZoni</span>
                   <div style="display: flex; gap: 10px; align-items: center;">
                     <span id="insightTimer" style="font-size: 0.8rem; color: var(--text-secondary); font-weight: normal;">Analisando...</span>
-                    <button class="btn-icon" style="padding: 2px 5px; font-size: 0.8rem; border: 1px solid var(--border-color); border-radius: 4px;" onclick="app.forcarNovoInsight()" title="ForÃ§ar novo insight">ðŸ”„</button>
+                    <button class="btn-icon" style="padding: 2px 5px; font-size: 0.8rem; border: 1px solid var(--border-color); border-radius: 4px;" onclick="app.forcarNovoInsight()" title="Forçar novo insight">🔄</button>
                   </div>
                 </div>
                 <div id="insightContent" style="color: var(--text-secondary); line-height: 1.5; font-size: 0.95rem;">
@@ -269,10 +269,10 @@
           <!-- Summary Cards -->
           <div class="summary-grid" id="summaryCards">
             <div class="summary-card income">
-              <div class="card-icon">ðŸ“ˆ</div>
+              <div class="card-icon">📈</div>
               <div class="card-label">Receitas</div>
               <div class="card-value" id="dashTotalReceitas">R$ 0,00</div>
-              <div class="card-sub" id="dashReceitasSub">Receita total do mÃªs</div>
+              <div class="card-sub" id="dashReceitasSub">Receita total do mês</div>
             </div>
             <div class="summary-card expense"
               style="display: flex; flex-direction: column; justify-content: center; padding: 16px;">
@@ -288,23 +288,23 @@
               <div class="card-value" style="color:var(--red); font-size:1.4rem;" id="dashFaltaPagar">R$ 0,00</div>
             </div>
             <div class="summary-card balance">
-              <div class="card-icon">ðŸ’¸</div>
-              <div class="card-label">SalÃ¡rio DisponÃ­vel</div>
+              <div class="card-icon">💸</div>
+              <div class="card-label">Salário Disponível</div>
               <div class="card-value" id="dashSalarioDisponivel">R$ 0,00</div>
               <div class="card-sub">Receitas - Contas Pagas</div>
             </div>
             <div class="summary-card balance">
-              <div class="card-icon">ðŸ’Ž</div>
+              <div class="card-icon">💎</div>
               <div class="card-label">Saldo</div>
               <div class="card-value" id="dashSaldo">R$ 0,00</div>
               <div class="card-sub" id="dashSaldoSub">Receitas - Despesas</div>
             </div>
             <div class="summary-card diarias">
-              <div class="card-icon">ðŸŽ¯</div>
-              <div class="card-label">ProduÃ§Ã£o</div>
+              <div class="card-icon">🎯</div>
+              <div class="card-label">Produção</div>
               <div class="card-value" id="dashTotalDiarias">R$ 0,00</div>
-              <div class="card-sub">PrevisÃ£o: <span id="forecastPercent" style="font-weight:700;color:var(--amber)">0%
-                  alcanÃ§ado</span></div>
+              <div class="card-sub">Previsão: <span id="forecastPercent" style="font-weight:700;color:var(--amber)">0%
+                  alcançado</span></div>
               <div class="progress-bar-container" style="margin-top:8px;">
                 <div class="progress-bar">
                   <div class="progress-fill" id="forecastProgressBar"
@@ -318,8 +318,8 @@
           <div class="forecast-card" id="forecastSection">
             <div class="section-header">
               <div>
-                <div class="section-title">ðŸ“‹ PrevisÃ£o de SalÃ¡rio</div>
-                <div class="section-subtitle">Baseado nos dias previstos por clÃ­nica</div>
+                <div class="section-title">📋 Previsão de Salário</div>
+                <div class="section-subtitle">Baseado nos dias previstos por clínica</div>
               </div>
             </div>
             <div class="forecast-grid" id="forecastGrid"></div>
@@ -329,13 +329,13 @@
           <div class="card mb-3"
             style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
             <div>
-              <div class="card-title">ðŸ“„ RelatÃ³rio Financeiro</div>
-              <div class="fs-sm" style="color:var(--text-muted); margin-top:4px;">Gere um resumo detalhado deste mÃªs.
+              <div class="card-title">📄 Relatório Financeiro</div>
+              <div class="fs-sm" style="color:var(--text-muted); margin-top:4px;">Gere um resumo detalhado deste mês.
               </div>
             </div>
             <div class="flex gap-2 flex-wrap">
-              <button class="btn btn-ghost" onclick="app.exportPDF()">â¬‡ï¸ Baixar PDF</button>
-              <button class="btn btn-primary" onclick="app.exportGoogleDocs()">ðŸ“ Enviar para o Google Docs</button>
+              <button class="btn btn-ghost" onclick="app.exportPDF()">⬇️ Baixar PDF</button>
+              <button class="btn btn-primary" onclick="app.exportGoogleDocs()">📝 Enviar para o Google Docs</button>
             </div>
           </div>
 
@@ -352,34 +352,34 @@
           </div>
           <div class="charts-grid">
             <div class="chart-card">
-              <div class="card-header"><span class="card-title">DiÃ¡rias por ClÃ­nica</span></div>
+              <div class="card-header"><span class="card-title">Diárias por Clínica</span></div>
               <canvas id="chartDiarias"></canvas>
             </div>
             <div class="chart-card">
-              <div class="card-header"><span class="card-title">EvoluÃ§Ã£o do Saldo (Anual)</span></div>
+              <div class="card-header"><span class="card-title">Evolução do Saldo (Anual)</span></div>
               <canvas id="chartSaldo"></canvas>
             </div>
           </div>
 
           <!-- Notes -->
           <div class="notes-area card">
-            <div class="card-header"><span class="card-title">ðŸ“ ObservaÃ§Ãµes do MÃªs</span></div>
-            <textarea class="form-textarea" id="dashNotas" placeholder="AnotaÃ§Ãµes livres sobre o mÃªs..."></textarea>
+            <div class="card-header"><span class="card-title">📝 Observações do Mês</span></div>
+            <textarea class="form-textarea" id="dashNotas" placeholder="Anotações livres sobre o mês..."></textarea>
           </div>
         </div>
 
-        <!-- â•â•â•â•â•â•â•â•â•â•â• TAB: DIÃRIAS â•â•â•â•â•â•â•â•â•â•â• -->
+        <!-- ═══════════ TAB: DIÁRIAS ═══════════ -->
         <div class="tab-content" id="tab-diarias">
           <!-- Mode Toggle -->
           <div class="mode-toggle">
-            <button class="mode-btn active" id="modeAuto">ðŸ“… AutomÃ¡tico (dia a dia)</button>
-            <button class="mode-btn" id="modeManual">ðŸ“‹ Manual (resumo)</button>
+            <button class="mode-btn active" id="modeAuto">📅 Automático (dia a dia)</button>
+            <button class="mode-btn" id="modeManual">📋 Manual (resumo)</button>
           </div>
 
           <!-- Forecast Days Config -->
           <div class="card mb-3">
             <div class="card-header">
-              <span class="card-title">ðŸ“‹ Dias Previstos no MÃªs</span>
+              <span class="card-title">📋 Dias Previstos no Mês</span>
             </div>
             <div class="forecast-grid" id="diasPrevistosGrid"></div>
           </div>
@@ -390,21 +390,21 @@
 
             <div class="card mb-3">
               <div class="card-header">
-                <span class="card-title">CalendÃ¡rio de Trabalho</span>
+                <span class="card-title">Calendário de Trabalho</span>
               </div>
               <div class="calendar-grid" id="calendarGrid"></div>
             </div>
 
             <!-- Accumulated totals -->
             <div class="card">
-              <div class="card-header"><span class="card-title">ðŸ’° Acumulado por ClÃ­nica</span></div>
+              <div class="card-header"><span class="card-title">💰 Acumulado por Clínica</span></div>
               <table class="data-table">
                 <thead>
                   <tr>
-                    <th>ClÃ­nica</th>
+                    <th>Clínica</th>
                     <th class="text-right">Dias</th>
-                    <th class="text-right">DiÃ¡rias</th>
-                    <th class="text-right" style="color:var(--cyan)">ComissÃ£o</th>
+                    <th class="text-right">Diárias</th>
+                    <th class="text-right" style="color:var(--cyan)">Comissão</th>
                     <th class="text-right">Total</th>
                   </tr>
                 </thead>
@@ -416,16 +416,16 @@
           <!-- MANUAL MODE -->
           <div id="diariasManualSection" class="hidden">
             <div class="card">
-              <div class="card-header"><span class="card-title">Resumo Mensal por ClÃ­nica</span></div>
+              <div class="card-header"><span class="card-title">Resumo Mensal por Clínica</span></div>
               <table class="data-table">
                 <thead>
                   <tr>
-                    <th>ClÃ­nica</th>
+                    <th>Clínica</th>
                     <th class="text-right">Dias Previstos</th>
                     <th class="text-right">Valor Previsto</th>
                     <th class="text-right">Dias Reais</th>
                     <th class="text-right">Valor Real</th>
-                    <th class="text-right">DiferenÃ§a</th>
+                    <th class="text-right">Diferença</th>
                   </tr>
                 </thead>
                 <tbody id="manualTableBody"></tbody>
@@ -434,18 +434,18 @@
           </div>
         </div>
 
-        <!-- â•â•â•â•â•â•â•â•â•â•â• TAB: DESPESAS â•â•â•â•â•â•â•â•â•â•â• -->
+        <!-- ═══════════ TAB: DESPESAS ═══════════ -->
         <div class="tab-content" id="tab-despesas">
           <!-- Fixed Expenses -->
           <div class="card mb-3">
             <div class="card-header">
-              <span class="card-title">ðŸ“Œ Gastos Fixos</span>
+              <span class="card-title">📌 Gastos Fixos</span>
               <button class="btn btn-ghost btn-sm" id="btnAddGastoFixo">+ Adicionar</button>
             </div>
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>DescriÃ§Ã£o</th>
+                  <th>Descrição</th>
                   <th class="text-right">Venc.</th>
                   <th class="text-right">Valor Total</th>
                   <th class="text-center">Compartilhado</th>
@@ -461,13 +461,13 @@
           <!-- Variable Expenses -->
           <div class="card mb-3">
             <div class="card-header">
-              <span class="card-title">ðŸ›’ Gastos VariÃ¡veis</span>
+              <span class="card-title">🛒 Gastos Variáveis</span>
               <button class="btn btn-ghost btn-sm" id="btnAddGastoVar">+ Adicionar</button>
             </div>
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>DescriÃ§Ã£o</th>
+                  <th>Descrição</th>
                   <th class="text-right">Valor</th>
                   <th>Data</th>
                   <th></th>
@@ -480,7 +480,7 @@
           <!-- Variable Expenses Budget -->
           <div class="card mb-3">
             <div class="card-header">
-              <span class="card-title">ðŸ“Š OrÃ§amento VariÃ¡vel (Budget)</span>
+              <span class="card-title">📊 Orçamento Variável (Budget)</span>
             </div>
             <div id="orcamentoVariavelGrid"></div>
           </div>
@@ -489,7 +489,7 @@
           <div class="card" style="border-left: 3px solid var(--red);">
             <div class="flex justify-between items-center flex-wrap gap-4">
               <div style="flex: 1; min-width: 200px;">
-                <div class="card-title">Resumo do MÃªs</div>
+                <div class="card-title">Resumo do Mês</div>
                 <div class="fs-sm" style="color: var(--text-muted); margin-top:4px;">Contas Pagas vs Pendentes</div>
               </div>
 
@@ -512,24 +512,24 @@
           </div>
         </div>
 
-        <!-- â•â•â•â•â•â•â•â•â•â•â• TAB: RECEITAS â•â•â•â•â•â•â•â•â•â•â• -->
+        <!-- ═══════════ TAB: RECEITAS ═══════════ -->
         <div class="tab-content" id="tab-receitas">
           <!-- Salary from previous month -->
           <div class="card mb-3" style="border-left: 3px solid var(--green);">
             <div class="card-header">
-              <span class="card-title" id="salarioMesTitle">ðŸ’° SalÃ¡rio do MÃªs (DiÃ¡rias do mÃªs anterior)</span>
+              <span class="card-title" id="salarioMesTitle">💰 Salário do Mês (Diárias do mês anterior)</span>
               <span class="badge badge-green" id="receitaDiariasTotal">R$ 0,00</span>
             </div>
             <p class="fs-sm mb-2" style="color:var(--text-secondary);" id="salarioMesDesc">
-              Valor referente Ã s diÃ¡rias trabalhadas no mÃªs anterior
+              Valor referente às diárias trabalhadas no mês anterior
             </p>
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>ClÃ­nica</th>
+                  <th>Clínica</th>
                   <th class="text-right">Dias Trabalhados</th>
-                  <th class="text-right">DiÃ¡rias</th>
-                  <th class="text-right" style="color:var(--cyan)">ComissÃ£o</th>
+                  <th class="text-right">Diárias</th>
+                  <th class="text-right" style="color:var(--cyan)">Comissão</th>
                   <th class="text-right">Total</th>
                 </tr>
               </thead>
@@ -540,13 +540,13 @@
           <!-- Other Income -->
           <div class="card mb-3">
             <div class="card-header">
-              <span class="card-title">ðŸ’µ Outras Receitas do MÃªs</span>
+              <span class="card-title">💵 Outras Receitas do Mês</span>
               <button class="btn btn-ghost btn-sm" id="btnAddReceita">+ Adicionar</button>
             </div>
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>DescriÃ§Ã£o</th>
+                  <th>Descrição</th>
                   <th class="text-right">Valor</th>
                   <th>Data</th>
                   <th></th>
@@ -560,8 +560,8 @@
           <div class="card mb-3" style="border-left: 3px solid var(--green);">
             <div class="flex justify-between items-center">
               <div>
-                <div class="card-title">Total de Receitas do MÃªs</div>
-                <div class="fs-sm" style="color: var(--text-muted); margin-top:4px;">SalÃ¡rio (diÃ¡rias mÃªs anterior) +
+                <div class="card-title">Total de Receitas do Mês</div>
+                <div class="fs-sm" style="color: var(--text-muted); margin-top:4px;">Salário (diárias mês anterior) +
                   outras receitas</div>
               </div>
               <div class="card-value value-positive" style="font-size:1.5rem;" id="totalReceitasMes">R$ 0,00</div>
@@ -572,7 +572,7 @@
           <div class="card mb-3" style="border-left: 3px solid var(--blue);">
             <div class="flex justify-between items-center">
               <div>
-                <div class="card-title">Saldo do MÃªs</div>
+                <div class="card-title">Saldo do Mês</div>
                 <div class="fs-sm" style="color: var(--text-muted); margin-top:4px;">Receitas - Despesas</div>
               </div>
               <div class="card-value" style="font-size:1.5rem;" id="saldoMesReceitas">R$ 0,00</div>
@@ -582,19 +582,19 @@
           <!-- Production for next month (informational) -->
           <div class="card" style="border-left: 3px solid var(--amber);">
             <div class="card-header">
-              <span class="card-title" id="producaoMesTitle">ðŸ“‹ ProduÃ§Ã£o deste MÃªs (serÃ¡ salÃ¡rio do prÃ³ximo mÃªs)</span>
+              <span class="card-title" id="producaoMesTitle">📋 Produção deste Mês (será salário do próximo mês)</span>
               <span class="badge badge-amber" id="producaoMesTotal">R$ 0,00</span>
             </div>
             <p class="fs-sm mb-2" style="color:var(--text-secondary);" id="producaoMesDesc">
-              DiÃ¡rias trabalhadas neste mÃªs â€” esse valor serÃ¡ sua receita no mÃªs seguinte
+              Diárias trabalhadas neste mês — esse valor será sua receita no mês seguinte
             </p>
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>ClÃ­nica</th>
+                  <th>Clínica</th>
                   <th class="text-right">Dias</th>
-                  <th class="text-right">DiÃ¡rias</th>
-                  <th class="text-right" style="color:var(--cyan)">ComissÃ£o</th>
+                  <th class="text-right">Diárias</th>
+                  <th class="text-right" style="color:var(--cyan)">Comissão</th>
                   <th class="text-right">Total</th>
                 </tr>
               </thead>
@@ -603,11 +603,11 @@
           </div>
         </div>
 
-        <!-- â•â•â•â•â•â•â•â•â•â•â• TAB: LANÃ‡AMENTOS â•â•â•â•â•â•â•â•â•â•â• -->
+        <!-- ═══════════ TAB: LANÇAMENTOS ═══════════ -->
         <div class="tab-content" id="tab-lancamentos">
           <div class="section-header">
             <div>
-              <div class="section-title">ðŸ’¸ LanÃ§amentos</div>
+              <div class="section-title">💸 Lançamentos</div>
               <div class="section-subtitle">Registre e gerencie suas despesas e receitas.</div>
             </div>
             <div class="flex gap-2">
@@ -615,33 +615,33 @@
             </div>
           </div>
 
-          <!-- LanÃ§amento MÃ¡gico IA -->
+          <!-- Lançamento Mágico IA -->
           <div class="card mb-3" style="border-left: 4px solid var(--purple);">
             <div style="font-weight: 600; color: var(--purple); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-              <span>âœ¨</span> LanÃ§amento MÃ¡gico com IA
+              <span>✨</span> Lançamento Mágico com IA
             </div>
             <div class="flex gap-2">
               <input type="text" id="magicoInput" class="form-input" placeholder="Ex: Comprei um lanche no burger king por 35 reais hoje" style="flex:1;" onkeydown="if(event.key === 'Enter') app.enviarLancamentoMagico()">
-              <button class="btn" style="background-color: var(--purple); color: white;" onclick="app.enviarLancamentoMagico()" id="btnMagico">LanÃ§ar MÃ¡gica</button>
+              <button class="btn" style="background-color: var(--purple); color: white;" onclick="app.enviarLancamentoMagico()" id="btnMagico">Lançar Mágica</button>
             </div>
-            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 5px;">A InteligÃªncia Artificial preencherÃ¡ valor, data e categoria para vocÃª!</div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 5px;">A Inteligência Artificial preencherá valor, data e categoria para você!</div>
           </div>
 
           <div class="card">
             <div class="flex items-center gap-2 mb-3" style="justify-content: space-between;">
-              <h2 class="card-title">Extrato do MÃªs</h2>
-              <button class="btn btn-outline" style="font-size: 0.8rem; padding: 4px 8px; color: var(--purple); border-color: var(--purple);" onclick="app.autoCategorizarHistorico()">âœ¨ Auto-Categorizar Sem Categoria</button>
+              <h2 class="card-title">Extrato do Mês</h2>
+              <button class="btn btn-outline" style="font-size: 0.8rem; padding: 4px 8px; color: var(--purple); border-color: var(--purple);" onclick="app.autoCategorizarHistorico()">✨ Auto-Categorizar Sem Categoria</button>
             </div>
           </div>
         </div>
 
-        <!-- â•â•â•â•â•â•â•â•â•â•â• TAB: INVESTIMENTOS â•â•â•â•â•â•â•â•â•â•â• -->
+        <!-- ═══════════ TAB: INVESTIMENTOS ═══════════ -->
         <div class="tab-content" id="tab-investimentos">
           
           <!-- Gamification / Conquistas -->
           <div class="section-header" style="margin-bottom: 16px;">
             <div>
-              <div class="section-title">ðŸ† Conquistas e NÃ­vel</div>
+              <div class="section-title">🏆 Conquistas e Nível</div>
               <div class="section-subtitle">Acompanhe seu progresso como investidor</div>
             </div>
           </div>
@@ -655,8 +655,8 @@
           <div class="challenge-panel card mb-4" style="border-left: 3px solid var(--purple);">
             <div class="flex justify-between items-center flex-wrap gap-4">
               <div style="flex: 1;">
-                <div class="card-title">âš”ï¸ Desafio do MÃªs</div>
-                <div class="fs-sm" style="color: var(--text-secondary); margin-top:4px;" id="challengeDesc">Gaste menos em despesas variÃ¡veis do que no mÃªs anterior para ganhar bÃ´nus de XP!</div>
+                <div class="card-title">⚔️ Desafio do Mês</div>
+                <div class="fs-sm" style="color: var(--text-secondary); margin-top:4px;" id="challengeDesc">Gaste menos em despesas variáveis do que no mês anterior para ganhar bônus de XP!</div>
               </div>
               <div style="text-align: right; min-width: 120px;">
                 <div class="fs-sm" style="color: var(--text-muted);">Status do Desafio</div>
@@ -668,8 +668,8 @@
           <!-- Reserve -->
           <div class="section-header">
             <div>
-              <div class="section-title">ðŸ¦ Reserva de EmergÃªncia</div>
-              <div class="section-subtitle">Controle de saques e reposiÃ§Ãµes</div>
+              <div class="section-title">🏦 Reserva de Emergência</div>
+              <div class="section-subtitle">Controle de saques e reposições</div>
             </div>
           </div>
 
@@ -690,7 +690,7 @@
 
           <div class="card mb-3">
             <div class="card-header">
-              <span class="card-title">MovimentaÃ§Ãµes da Reserva</span>
+              <span class="card-title">Movimentações da Reserva</span>
               <button class="btn btn-ghost btn-sm" id="btnAddReserva">+ Adicionar</button>
             </div>
             <table class="data-table">
@@ -699,7 +699,7 @@
                   <th>Data</th>
                   <th>Tipo</th>
                   <th class="text-right">Valor</th>
-                  <th>ObservaÃ§Ã£o</th>
+                  <th>Observação</th>
                   <th></th>
                 </tr>
               </thead>
@@ -709,15 +709,15 @@
 
           <!-- Reserve Notes -->
           <div class="card mb-3">
-            <div class="card-header"><span class="card-title">ðŸ“ ObservaÃ§Ãµes da Reserva</span></div>
+            <div class="card-header"><span class="card-title">📝 Observações da Reserva</span></div>
             <textarea class="form-textarea" id="reservaObs"
-              placeholder="AnotaÃ§Ãµes sobre a reserva, motivos de saques, etc..."></textarea>
+              placeholder="Anotações sobre a reserva, motivos de saques, etc..."></textarea>
           </div>
 
           <!-- Goals -->
           <div class="section-header mt-3">
             <div>
-              <div class="section-title">ðŸŽ¯ Metas & Investimentos</div>
+              <div class="section-title">🎯 Metas & Investimentos</div>
               <div class="section-subtitle">Acompanhe seus objetivos financeiros</div>
             </div>
             <button class="btn btn-primary btn-sm" id="btnAddMeta">+ Nova Meta</button>
@@ -726,7 +726,7 @@
           <div id="metasContainer"></div>
 
           <div class="empty-state" id="emptyMetas">
-            <div class="empty-icon">ðŸŽ¯</div>
+            <div class="empty-icon">🎯</div>
             <p>Nenhuma meta criada ainda</p>
             <button class="btn btn-primary btn-sm" id="btnAddMetaEmpty">+ Criar Primeira Meta</button>
           </div>
@@ -734,26 +734,26 @@
           <!-- Consultoria AI -->
           <div class="section-header mt-4">
             <div>
-              <div class="section-title">ðŸ¤– Consultoria de Aportes (AI & Tempo Real)</div>
-              <div class="section-subtitle">RecomendaÃ§Ãµes baseadas nas taxas atuais de mercado (Selic, CDI, DÃ³lar)</div>
+              <div class="section-title">🤖 Consultoria de Aportes (AI & Tempo Real)</div>
+              <div class="section-subtitle">Recomendações baseadas nas taxas atuais de mercado (Selic, CDI, Dólar)</div>
             </div>
           </div>
           
           <div class="card mb-4" style="border-left: 3px solid var(--purple);">
             <div class="flex gap-2 items-center mb-3">
               <select id="consultoriaPersonaSelect" class="form-input" style="max-width: 200px;">
-                <option value="auto">Persona: AutomÃ¡tica</option>
+                <option value="auto">Persona: Automática</option>
                 <option value="thiago">Thiago Nigro (Primo Rico)</option>
-                <option value="bruno">Bruno Perini (VocÃª MAIS Rico)</option>
+                <option value="bruno">Bruno Perini (Você MAIS Rico)</option>
                 <option value="nathalia">Nathalia Arcuri (Me Poupe!)</option>
                 <option value="barsi">Luiz Barsi (Rei dos Dividendos)</option>
                 <option value="mira">Professor Mira</option>
               </select>
               <button class="btn btn-primary" id="btnGerarConsultoria" onclick="app.gerarConsultoria()">
-                âœ¨ Gerar Carteira Recomendada
+                ✨ Gerar Carteira Recomendada
               </button>
               <div id="consultoriaStatus" class="fs-sm hidden" style="color:var(--text-secondary);">
-                <span style="display:inline-block; animation: blink 1.4s infinite both;">â³</span> Analisando mercado e calculando alocaÃ§Ã£o...
+                <span style="display:inline-block; animation: blink 1.4s infinite both;">⏳</span> Analisando mercado e calculando alocação...
               </div>
             </div>
             
@@ -769,15 +769,15 @@
           <!-- Simulator -->
           <div class="section-header mt-4">
             <div>
-              <div class="section-title">ðŸ§® Simulador Financeiro</div>
+              <div class="section-title">🧮 Simulador Financeiro</div>
               <div class="section-subtitle">Projete juros compostos ou calcule financiamentos</div>
             </div>
           </div>
           
           <div class="card mb-4">
             <div class="flex gap-2 mb-3" style="border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
-              <button class="btn btn-primary btn-sm" id="btnSimTipoInv" onclick="app.setSimuladorTipo('investimento')">ðŸ“ˆ Investimento</button>
-              <button class="btn btn-outline btn-sm" id="btnSimTipoFin" onclick="app.setSimuladorTipo('financiamento')">ðŸ“‰ Financiamento</button>
+              <button class="btn btn-primary btn-sm" id="btnSimTipoInv" onclick="app.setSimuladorTipo('investimento')">📈 Investimento</button>
+              <button class="btn btn-outline btn-sm" id="btnSimTipoFin" onclick="app.setSimuladorTipo('financiamento')">📉 Financiamento</button>
             </div>
             
             <div class="grid-2 gap-3 mb-3">
@@ -790,7 +790,7 @@
                 <input type="number" step="0.01" class="form-input" id="simAporte" value="200">
               </div>
               <div class="form-group">
-                <label class="form-label">Taxa de Juros (% ao mÃªs)</label>
+                <label class="form-label">Taxa de Juros (% ao mês)</label>
                 <input type="number" step="0.01" class="form-input" id="simTaxa" value="1.0">
               </div>
               <div class="form-group">
@@ -825,20 +825,20 @@
 
         </div>
 
-          <!-- â•â•â•â•â•â•â•â•â•â•â• TAB: CARTÃ•ES â•â•â•â•â•â•â•â•â•â•â• -->
+          <!-- ═══════════ TAB: CARTÕES ═══════════ -->
         <div class="tab-content" id="tab-cartoes">
           <div class="section-header">
             <div>
-              <div class="section-title">ðŸ’³ Meus CartÃµes de CrÃ©dito</div>
+              <div class="section-title">💳 Meus Cartões de Crédito</div>
               <div class="section-subtitle">Acompanhe seus limites, compras parceladas e faturas</div>
             </div>
             <div class="flex gap-2">
-              <button class="btn btn-outline" id="btnAddCartao">+ Novo CartÃ£o</button>
-              <button class="btn btn-primary" id="btnNovaCompraCartao">ðŸ’³ LanÃ§ar Compra</button>
+              <button class="btn btn-outline" id="btnAddCartao">+ Novo Cartão</button>
+              <button class="btn btn-primary" id="btnNovaCompraCartao">💳 Lançar Compra</button>
             </div>
           </div>
           
-          <!-- Lista de CartÃµes (Grid) -->
+          <!-- Lista de Cartões (Grid) -->
           <div class="achievements-grid mb-4" id="cartoesGrid">
             <!-- Renderized via JS -->
           </div>
@@ -846,28 +846,28 @@
           <!-- Fatura Mensal -->
           <div class="card mb-3" style="border-left: 3px solid var(--purple);">
             <div class="card-header">
-              <span class="card-title">ðŸ“œ Fatura do MÃªs</span>
+              <span class="card-title">📜 Fatura do Mês</span>
               <div class="flex gap-2 items-center">
                 <select class="form-input" id="faturaMonthSelect" onchange="app.renderFaturas()" style="width: 150px;">
                   <!-- Renderized via JS -->
                 </select>
                 <select class="form-input" id="faturaCartaoSelect" onchange="app.renderFaturas()" style="width: 150px;">
-                  <option value="all">Todos os CartÃµes</option>
+                  <option value="all">Todos os Cartões</option>
                   <!-- Renderized via JS -->
                 </select>
               </div>
             </div>
             <div class="flex justify-between items-center mb-3">
               <div class="fs-lg">Total da Fatura: <strong id="faturaTotalMes" style="color:var(--red);">R$ 0,00</strong></div>
-              <button class="btn btn-success btn-sm" id="btnPagarFatura">Pagar Fatura no MÃªs Atual</button>
+              <button class="btn btn-success btn-sm" id="btnPagarFatura">Pagar Fatura no Mês Atual</button>
             </div>
             <div class="table-responsive">
               <table class="data-table">
                 <thead>
                   <tr>
                     <th>Data</th>
-                    <th>CartÃ£o</th>
-                    <th>DescriÃ§Ã£o</th>
+                    <th>Cartão</th>
+                    <th>Descrição</th>
                     <th class="text-center">Parcela</th>
                     <th class="text-right">Valor Parcela</th>
                     <th></th>
@@ -881,12 +881,12 @@
           </div>
         </div>
 
-          <!-- â•â•â•â•â•â•â•â•â•â•â• TAB: EXTRATO ANUAL â•â•â•â•â•â•â•â•â•â•â• -->
+          <!-- ═══════════ TAB: EXTRATO ANUAL ═══════════ -->
           <div class="tab-content" id="tab-extrato">
             <div class="section-header">
               <div>
-                <div class="section-title">ðŸ“… Extrato Anual</div>
-                <div class="section-subtitle">VisÃ£o consolidada de todos os meses do ano</div>
+                <div class="section-title">📅 Extrato Anual</div>
+                <div class="section-subtitle">Visão consolidada de todos os meses do ano</div>
               </div>
               <div>
                 <select class="form-input" id="extratoYearSelect" onchange="app.renderExtratoAnual()" style="width: 120px;">
@@ -899,7 +899,7 @@
               <table class="data-table">
                 <thead>
                   <tr>
-                    <th>MÃªs</th>
+                    <th>Mês</th>
                     <th class="text-right">Receitas</th>
                     <th class="text-right">Despesas</th>
                     <th class="text-right">Investimentos</th>
@@ -916,36 +916,36 @@
             </div>
             
             <div class="card">
-              <div class="card-header"><span class="card-title">EvoluÃ§Ã£o Patrimonial</span></div>
+              <div class="card-header"><span class="card-title">Evolução Patrimonial</span></div>
               <div style="height: 300px; padding-top: 16px;">
                 <canvas id="extratoChart"></canvas>
               </div>
             </div>
           </div>
 
-          <!-- â•â•â•â•â•â•â•â•â•â•â• TAB: CONFIGURAÃ‡Ã•ES â•â•â•â•â•â•â•â•â•â•â• -->
+          <!-- ═══════════ TAB: CONFIGURAÇÕES ═══════════ -->
         <div class="tab-content" id="tab-configuracoes">
           <div class="section-header">
             <div>
-              <div class="section-title">âš™ï¸ ConfiguraÃ§Ãµes</div>
-              <div class="section-subtitle">Gerencie clÃ­nicas, categorias e dados</div>
+              <div class="section-title">⚙️ Configurações</div>
+              <div class="section-subtitle">Gerencie clínicas, categorias e dados</div>
             </div>
           </div>
             
             <div class="card mb-3">
-              <h2 class="card-title">ðŸ”— IntegraÃ§Ã£o</h2>
+              <h2 class="card-title">🔗 Integração</h2>
               <div class="form-group mt-3">
-                <label class="form-label">SincronizaÃ§Ã£o Nuvem (Apps Script Web App URL)</label>
+                <label class="form-label">Sincronização Nuvem (Apps Script Web App URL)</label>
                 <div class="flex gap-2">
                   <input type="text" class="form-input" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/...">
                   <button class="btn btn-primary" onclick="app.updateAppsScriptUrl(document.getElementById('appsScriptUrl').value)">Salvar URL</button>
                 </div>
-                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 5px;">Se deixado em branco, o sistema usarÃ¡ apenas o LocalStorage/Supabase configurado nativamente.</div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 5px;">Se deixado em branco, o sistema usará apenas o LocalStorage/Supabase configurado nativamente.</div>
               </div>
             </div>
             
             <div class="card mb-3">
-              <h2 class="card-title">âœ¨ InteligÃªncia Artificial</h2>
+              <h2 class="card-title">✨ Inteligência Artificial</h2>
               <div class="form-group mt-3">
                 <label class="form-label">Chave da API (NVIDIA)</label>
                 <div class="flex gap-2">
@@ -953,29 +953,29 @@
                   <button class="btn" style="background-color: var(--purple); color: white;" onclick="app.saveNvidiaKey()">Salvar Chave</button>
                 </div>
                 <div class="form-group mt-3">
-                  <label class="form-label">Modelo de InteligÃªncia Artificial</label>
+                  <label class="form-label">Modelo de Inteligência Artificial</label>
                   <div class="flex gap-2">
                     <select class="form-input" id="nvidiaModelSelect" onchange="app.saveNvidiaModel()">
-                      <option value="meta/llama-3.1-8b-instruct">meta/llama-3.1-8b-instruct (PadrÃ£o)</option>
+                      <option value="meta/llama-3.1-8b-instruct">meta/llama-3.1-8b-instruct (Padrão)</option>
                     </select>
                     <button class="btn btn-secondary" onclick="app.carregarModelosNvidia()" id="btnCarregarModelos">Carregar da Nuvem</button>
                   </div>
                 </div>
-                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 5px;">Acesse <a href="https://build.nvidia.com" target="_blank" style="color:var(--purple);">build.nvidia.com</a> para gerar sua chave. A chave fica salva de forma segura na nuvem se vocÃª estiver logado.</div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 5px;">Acesse <a href="https://build.nvidia.com" target="_blank" style="color:var(--purple);">build.nvidia.com</a> para gerar sua chave. A chave fica salva de forma segura na nuvem se você estiver logado.</div>
               </div>
             </div>
 
           <!-- Clinics -->
           <div class="card mb-3">
             <div class="card-header">
-              <span class="card-title">ðŸ¥ ClÃ­nicas</span>
+              <span class="card-title">🏥 Clínicas</span>
               <button class="btn btn-ghost btn-sm" id="btnAddClinica">+ Adicionar</button>
             </div>
             <table class="data-table">
               <thead>
                 <tr>
                   <th>Nome</th>
-                  <th class="text-right">DiÃ¡ria PadrÃ£o</th>
+                  <th class="text-right">Diária Padrão</th>
                   <th>Cor</th>
                   <th></th>
                 </tr>
@@ -987,7 +987,7 @@
           <!-- Fixed Expense Categories -->
           <div class="card mb-3">
             <div class="card-header">
-              <span class="card-title">ðŸ“Œ Categorias de Gastos Fixos</span>
+              <span class="card-title">📌 Categorias de Gastos Fixos</span>
               <button class="btn btn-ghost btn-sm" id="btnAddCategoriaFixa">+ Adicionar</button>
             </div>
             <table class="data-table">
@@ -1005,14 +1005,14 @@
           <!-- Variable Expense Categories (Budgets) -->
           <div class="card mb-3">
             <div class="card-header">
-              <span class="card-title">ðŸ“Š OrÃ§amentos de Gastos VariÃ¡veis</span>
+              <span class="card-title">📊 Orçamentos de Gastos Variáveis</span>
               <button class="btn btn-ghost btn-sm" id="btnAddCategoriaVar">+ Adicionar</button>
             </div>
             <table class="data-table">
               <thead>
                 <tr>
                   <th>Categoria</th>
-                  <th class="text-right">OrÃ§amento (R$)</th>
+                  <th class="text-right">Orçamento (R$)</th>
                   <th></th>
                 </tr>
               </thead>
@@ -1020,29 +1020,29 @@
             </table>
           </div>
 
-          <!-- AparÃªncia -->
+          <!-- Aparência -->
           <div class="card mb-3">
-            <div class="card-header"><span class="card-title">ðŸŽ¨ AparÃªncia</span></div>
+            <div class="card-header"><span class="card-title">🎨 Aparência</span></div>
             <div class="form-group" style="max-width: 300px;">
               <label class="form-label">Tema do Sistema</label>
               <select class="form-input" id="themeSelector" onchange="app.changeTheme(this.value)">
-                <option value="dark">Escuro (PadrÃ£o)</option>
+                <option value="dark">Escuro (Padrão)</option>
                 <option value="amoled">Escuro AMOLED (Preto Profundo)</option>
                 <option value="light">Claro</option>
               </select>
             </div>
           </div>
 
-          <!-- IntegraÃ§Ãµes (Google Docs) moved to first integration card above -->
+          <!-- Integrações (Google Docs) moved to first integration card above -->
 
 
           <!-- Data Management -->
           <div class="card mb-3">
-            <div class="card-header"><span class="card-title">ðŸ’¾ Gerenciamento de Dados</span></div>
+            <div class="card-header"><span class="card-title">💾 Gerenciamento de Dados</span></div>
             <div class="flex gap-2 flex-wrap">
-              <button class="btn btn-success btn-sm" id="btnExportConfig">ðŸ“¥ Exportar Todos os Dados (JSON)</button>
-              <button class="btn btn-ghost btn-sm" id="btnImportConfig">ðŸ“¤ Importar Dados</button>
-              <button class="btn btn-danger btn-sm" id="btnClearData">ðŸ—‘ï¸ Limpar Todos os Dados</button>
+              <button class="btn btn-success btn-sm" id="btnExportConfig">📥 Exportar Todos os Dados (JSON)</button>
+              <button class="btn btn-ghost btn-sm" id="btnImportConfig">📤 Importar Dados</button>
+              <button class="btn btn-danger btn-sm" id="btnClearData">🗑️ Limpar Todos os Dados</button>
             </div>
             <input type="file" id="importConfigInput" accept=".json" style="display:none">
           </div>
@@ -1052,14 +1052,14 @@
     </main>
   </div>
 
-  <!-- â•â•â•â•â•â•â•â•â•â•â• MODALS â•â•â•â•â•â•â•â•â•â•â• -->
+  <!-- ═══════════ MODALS ═══════════ -->
 
   <!-- Modal: Add Work Day -->
   <div class="modal-overlay" id="modalDiaTrabalho">
     <div class="modal">
       <div class="modal-header">
         <h2 class="modal-title">Registrar Dia de Trabalho</h2>
-        <button class="modal-close" onclick="closeModal('modalDiaTrabalho')">âœ•</button>
+        <button class="modal-close" onclick="closeModal('modalDiaTrabalho')">✕</button>
       </div>
       <p class="fs-sm mb-2" style="color: var(--text-secondary);">
         Dia: <strong id="modalDiaLabel"></strong>
@@ -1076,13 +1076,13 @@
   <div class="modal-overlay" id="modalGastoVar">
     <div class="modal">
       <div class="modal-header">
-        <h2 class="modal-title" id="modalGastoVarTitle">Adicionar Gasto VariÃ¡vel</h2>
-        <button class="modal-close" onclick="closeModal('modalGastoVar')">âœ•</button>
+        <h2 class="modal-title" id="modalGastoVarTitle">Adicionar Gasto Variável</h2>
+        <button class="modal-close" onclick="closeModal('modalGastoVar')">✕</button>
       </div>
       <div class="form-group">
-        <label class="form-label">DescriÃ§Ã£o</label>
-        <input type="text" class="form-input" id="gastoVarDescricao" placeholder="Ex: AlmoÃ§o, Uber" onblur="app.sugerirCategoriaAuto(this.value)">
-        <div id="categoriaSugestaoLabel" style="font-size: 0.75rem; color: var(--purple); margin-top: 4px; display: none;">âœ¨ Sugerindo categoria com IA...</div>
+        <label class="form-label">Descrição</label>
+        <input type="text" class="form-input" id="gastoVarDescricao" placeholder="Ex: Almoço, Uber" onblur="app.sugerirCategoriaAuto(this.value)">
+        <div id="categoriaSugestaoLabel" style="font-size: 0.75rem; color: var(--purple); margin-top: 4px; display: none;">✨ Sugerindo categoria com IA...</div>
       </div>
       <div class="form-group">
         <label class="form-label">Categoria</label>
@@ -1112,11 +1112,11 @@
     <div class="modal">
       <div class="modal-header">
         <h2 class="modal-title">Adicionar Gasto Fixo</h2>
-        <button class="modal-close" onclick="closeModal('modalGastoFixo')">âœ•</button>
+        <button class="modal-close" onclick="closeModal('modalGastoFixo')">✕</button>
       </div>
       <div class="form-group">
-        <label class="form-label">DescriÃ§Ã£o</label>
-        <input type="text" class="form-input" id="gastoFixoDescricao" placeholder="Ex: Conta de Ã¡gua">
+        <label class="form-label">Descrição</label>
+        <input type="text" class="form-input" id="gastoFixoDescricao" placeholder="Ex: Conta de água">
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -1146,10 +1146,10 @@
     <div class="modal">
       <div class="modal-header">
         <h2 class="modal-title">Adicionar Receita</h2>
-        <button class="modal-close" onclick="closeModal('modalReceita')">âœ•</button>
+        <button class="modal-close" onclick="closeModal('modalReceita')">✕</button>
       </div>
       <div class="form-group">
-        <label class="form-label">DescriÃ§Ã£o</label>
+        <label class="form-label">Descrição</label>
         <input type="text" class="form-input" id="receitaDescricao" placeholder="Ex: Freelance">
       </div>
       <div class="form-row">
@@ -1173,14 +1173,14 @@
   <div class="modal-overlay" id="modalReserva">
     <div class="modal">
       <div class="modal-header">
-        <h2 class="modal-title">MovimentaÃ§Ã£o da Reserva</h2>
-        <button class="modal-close" onclick="closeModal('modalReserva')">âœ•</button>
+        <h2 class="modal-title">Movimentação da Reserva</h2>
+        <button class="modal-close" onclick="closeModal('modalReserva')">✕</button>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Tipo</label>
           <select class="form-select" id="reservaTipo">
-            <option value="deposito">DepÃ³sito / ReposiÃ§Ã£o</option>
+            <option value="deposito">Depósito / Reposição</option>
             <option value="saque">Saque</option>
           </select>
         </div>
@@ -1194,8 +1194,8 @@
         <input type="date" class="form-input" id="reservaData">
       </div>
       <div class="form-group">
-        <label class="form-label">ObservaÃ§Ã£o</label>
-        <textarea class="form-textarea" id="reservaMovObs" placeholder="Motivo do saque/depÃ³sito..."
+        <label class="form-label">Observação</label>
+        <textarea class="form-textarea" id="reservaMovObs" placeholder="Motivo do saque/depósito..."
           style="min-height:60px;"></textarea>
       </div>
       <div class="modal-footer">
@@ -1210,7 +1210,7 @@
     <div class="modal">
       <div class="modal-header">
         <h2 class="modal-title">Nova Meta / Investimento</h2>
-        <button class="modal-close" onclick="closeModal('modalMeta')">âœ•</button>
+        <button class="modal-close" onclick="closeModal('modalMeta')">✕</button>
       </div>
       <div class="form-group">
         <label class="form-label">Nome da Meta</label>
@@ -1227,7 +1227,7 @@
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">ObservaÃ§Ã£o</label>
+        <label class="form-label">Observação</label>
         <textarea class="form-textarea" id="metaObs" placeholder="Detalhes sobre a meta..."
           style="min-height:60px;"></textarea>
       </div>
@@ -1242,16 +1242,16 @@
   <div class="modal-overlay" id="modalClinica">
     <div class="modal">
       <div class="modal-header">
-        <h2 class="modal-title">Adicionar ClÃ­nica</h2>
-        <button class="modal-close" onclick="closeModal('modalClinica')">âœ•</button>
+        <h2 class="modal-title">Adicionar Clínica</h2>
+        <button class="modal-close" onclick="closeModal('modalClinica')">✕</button>
       </div>
       <div class="form-group">
         <label class="form-label">Nome</label>
-        <input type="text" class="form-input" id="clinicaNome" placeholder="Ex: ClÃ­nica Nova">
+        <input type="text" class="form-input" id="clinicaNome" placeholder="Ex: Clínica Nova">
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">DiÃ¡ria PadrÃ£o (R$)</label>
+          <label class="form-label">Diária Padrão (R$)</label>
           <input type="number" class="form-input" id="clinicaDiaria" step="0.01" placeholder="0,00">
         </div>
         <div class="form-group">
@@ -1271,16 +1271,16 @@
     <div class="modal">
       <div class="modal-header">
         <h2 class="modal-title">Adicionar Categoria de Gasto Fixo</h2>
-        <button class="modal-close" onclick="closeModal('modalCategoriaFixa')">âœ•</button>
+        <button class="modal-close" onclick="closeModal('modalCategoriaFixa')">✕</button>
       </div>
       <div class="form-group">
         <label class="form-label">Nome da Categoria</label>
-        <input type="text" class="form-input" id="catFixaNome" placeholder="Ex: Ãgua">
+        <input type="text" class="form-input" id="catFixaNome" placeholder="Ex: Água">
       </div>
       <div class="form-group">
         <label class="form-check">
           <input type="checkbox" id="catFixaCompartilhado">
-          <span>Compartilhado (50/50 com cÃ´njuge)</span>
+          <span>Compartilhado (50/50 com cônjuge)</span>
         </label>
       </div>
       <div class="modal-footer">
@@ -1295,14 +1295,14 @@
     <div class="modal">
       <div class="modal-header">
         <h2 class="modal-title">Atualizar Meta</h2>
-        <button class="modal-close" onclick="closeModal('modalAtualizarMeta')">âœ•</button>
+        <button class="modal-close" onclick="closeModal('modalAtualizarMeta')">✕</button>
       </div>
       <div class="form-group">
         <label class="form-label">Adicionar Valor (R$)</label>
         <input type="number" class="form-input" id="metaAddValor" step="0.01" placeholder="0,00">
       </div>
       <div class="form-group">
-        <label class="form-label">ObservaÃ§Ã£o</label>
+        <label class="form-label">Observação</label>
         <textarea class="form-textarea" id="metaAddObs" placeholder="Motivo ou detalhe..."
           style="min-height:50px;"></textarea>
       </div>
@@ -1318,7 +1318,7 @@
     <div class="modal">
       <div class="modal-header">
         <h2 class="modal-title">Editar Meta</h2>
-        <button class="modal-close" onclick="closeModal('modalEditarMeta')">âœ•</button>
+        <button class="modal-close" onclick="closeModal('modalEditarMeta')">✕</button>
       </div>
       <div class="form-group">
         <label class="form-label">Nome da Meta</label>
@@ -1335,7 +1335,7 @@
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">ObservaÃ§Ã£o</label>
+        <label class="form-label">Observação</label>
         <textarea class="form-textarea" id="editMetaObs" placeholder="Detalhes sobre a meta..."
           style="min-height:60px;"></textarea>
       </div>
@@ -1351,19 +1351,19 @@
       <div class="modal-content" style="max-width: 400px;">
         <div class="modal-header">
           <div class="modal-title">Editar Perfil</div>
-          <button class="btn btn-ghost" onclick="closeModal('modalProfile')">âœ•</button>
+          <button class="btn btn-ghost" onclick="closeModal('modalProfile')">✕</button>
         </div>
         <div class="form-group" style="text-align: center;">
           <div class="profile-pic-large" style="width: 100px; height: 100px; border-radius: 50%; overflow: hidden; margin: 0 auto 16px auto; background: var(--bg-glass); border: 2px solid var(--border);">
             <img id="profilePicPreview" src="" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">
           </div>
           <label class="btn btn-ghost btn-sm" style="cursor: pointer;">
-            ðŸ“· Alterar Foto
+            📷 Alterar Foto
             <input type="file" id="profilePicInput" accept="image/*" style="display: none;" onchange="app.handleProfilePicSelect(event)">
           </label>
         </div>
         <div class="form-group">
-          <label class="form-label">Nome de ExibiÃ§Ã£o</label>
+          <label class="form-label">Nome de Exibição</label>
           <input type="text" class="form-input" id="profileNameInput" placeholder="Seu nome">
         </div>
         <div class="modal-footer">
@@ -1380,16 +1380,16 @@
 
   <div id="toastContainer" class="toast-container"></div>
   <!-- Application Script -->
-  <!-- Modal Adicionar/Editar CartÃ£o -->
+  <!-- Modal Adicionar/Editar Cartão -->
   <div class="modal-overlay" id="modalCartao">
     <div class="modal" style="max-width: 400px;">
       <div class="modal-header">
-        <h2 class="modal-title" id="modalCartaoTitle">Adicionar CartÃ£o</h2>
-        <button class="modal-close" onclick="closeModal('modalCartao')">âœ•</button>
+        <h2 class="modal-title" id="modalCartaoTitle">Adicionar Cartão</h2>
+        <button class="modal-close" onclick="closeModal('modalCartao')">✕</button>
       </div>
       <div class="form-group">
-        <label class="form-label">Nome do CartÃ£o</label>
-        <input type="text" class="form-input" id="cartaoNome" placeholder="Ex: Nubank, ItaÃº">
+        <label class="form-label">Nome do Cartão</label>
+        <input type="text" class="form-input" id="cartaoNome" placeholder="Ex: Nubank, Itaú">
       </div>
       <div class="form-group">
         <label class="form-label">Limite Total (R$)</label>
@@ -1406,28 +1406,28 @@
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Cor de IdentificaÃ§Ã£o</label>
+        <label class="form-label">Cor de Identificação</label>
         <input type="color" class="form-input" id="cartaoCor" value="#8a05be" style="height:40px; padding:2px;">
       </div>
-      <button class="btn btn-primary w-100" id="btnSalvarCartao">Salvar CartÃ£o</button>
+      <button class="btn btn-primary w-100" id="btnSalvarCartao">Salvar Cartão</button>
     </div>
   </div>
 
-  <!-- Modal Nova Compra CartÃ£o -->
+  <!-- Modal Nova Compra Cartão -->
   <div class="modal-overlay" id="modalCompraCartao">
     <div class="modal" style="max-width: 400px;">
       <div class="modal-header">
-        <h2 class="modal-title">LanÃ§ar Compra no CartÃ£o</h2>
-        <button class="modal-close" onclick="closeModal('modalCompraCartao')">âœ•</button>
+        <h2 class="modal-title">Lançar Compra no Cartão</h2>
+        <button class="modal-close" onclick="closeModal('modalCompraCartao')">✕</button>
       </div>
       <div class="form-group">
-        <label class="form-label">CartÃ£o</label>
+        <label class="form-label">Cartão</label>
         <select class="form-select" id="compraCartaoId">
           <!-- Renderized via JS -->
         </select>
       </div>
       <div class="form-group">
-        <label class="form-label">DescriÃ§Ã£o</label>
+        <label class="form-label">Descrição</label>
         <input type="text" class="form-input" id="compraDescricao" placeholder="Ex: TV, Geladeira, Supermercado">
       </div>
       <div class="form-group">
@@ -1444,7 +1444,7 @@
           <input type="number" class="form-input" id="compraParcelas" min="1" value="1">
         </div>
       </div>
-      <button class="btn btn-primary w-100" id="btnSalvarCompraCartao">LanÃ§ar Compra</button>
+      <button class="btn btn-primary w-100" id="btnSalvarCompraCartao">Lançar Compra</button>
     </div>
   </div>
 
@@ -1452,7 +1452,7 @@
   <div class="modal-overlay" id="modalIA">
     <div class="modal" style="max-width: 600px; height: 85vh; display: flex; flex-direction: column;">
       <div class="modal-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
-        <h2 class="modal-title flex items-center gap-2"><span style="font-size: 1.5rem;">âœ¨</span> Consultor FinZoni</h2>
+        <h2 class="modal-title flex items-center gap-2"><span style="font-size: 1.5rem;">✨</span> Consultor FinZoni</h2>
         <div style="display: flex; gap: 10px; align-items: center;">
           <select id="iaPersonaSelector" class="form-input" style="padding: 4px 8px; font-size: 0.85rem; height: auto; max-width: 150px;" onchange="app.changeIAPersona()">
             <option value="auto">Especialista (Aba Atual)</option>
@@ -1460,37 +1460,37 @@
             <option value="bruno">Bruno Perini</option>
             <option value="nathalia">Nathalia Arcuri (Me Poupe)</option>
             <option value="barsi">Luiz Barsi (Dividendos)</option>
-            <option value="mira">Professor Mira (Renda VariÃ¡vel)</option>
+            <option value="mira">Professor Mira (Renda Variável)</option>
           </select>
           <button class="btn-icon" style="font-size: 0.8rem; border: 1px solid var(--border-color); border-radius: 4px; padding: 4px 8px; color: var(--text-secondary);" onclick="app.limparChatIA()" title="Limpar conversa">Limpar</button>
-          <button class="modal-close" onclick="closeModal('modalIA')">âœ•</button>
+          <button class="modal-close" onclick="closeModal('modalIA')">✕</button>
         </div>
       </div>
       
       <div id="iaChatHistory" style="flex: 1; overflow-y: auto; padding: 15px 5px; display: flex; flex-direction: column; gap: 15px;">
-        <!-- Mensagens serÃ£o inseridas aqui via JS -->
+        <!-- Mensagens serão inseridas aqui via JS -->
       </div>
       
       <div id="iaAttachmentPreview" style="display: none; padding: 10px; background-color: var(--bg-card); border-radius: 8px; margin-bottom: 10px; font-size: 0.8rem; align-items: center; justify-content: space-between; border: 1px solid var(--border);">
         <span id="iaAttachmentName" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;">arquivo.pdf</span>
-        <button onclick="app.removeIaAttachment()" style="background: none; border: none; color: var(--red); cursor: pointer;">âŒ</button>
+        <button onclick="app.removeIaAttachment()" style="background: none; border: none; color: var(--red); cursor: pointer;">❌</button>
       </div>
       <div style="padding-top: 15px; border-top: 1px solid var(--border); display: flex; gap: 8px; align-items: center;">
-        <button class="btn" style="background-color: var(--bg-input); color: var(--text-secondary); border: 1px solid var(--border); border-radius: 50%; width: 40px; height: 40px; padding: 0; display: flex; justify-content: center; align-items: center; flex-shrink: 0;" onclick="document.getElementById('iaFileInput').click()" title="Anexar arquivo (PDF ou Imagem)">ðŸ“Ž</button>
+        <button class="btn" style="background-color: var(--bg-input); color: var(--text-secondary); border: 1px solid var(--border); border-radius: 50%; width: 40px; height: 40px; padding: 0; display: flex; justify-content: center; align-items: center; flex-shrink: 0;" onclick="document.getElementById('iaFileInput').click()" title="Anexar arquivo (PDF ou Imagem)">📎</button>
         <input type="file" id="iaFileInput" style="display: none;" accept="image/*,application/pdf" onchange="app.handleIaFile(event)">
         
-        <button class="btn" id="btnAudioIA" style="background-color: var(--bg-input); color: var(--text-secondary); border: 1px solid var(--border); border-radius: 50%; width: 40px; height: 40px; padding: 0; display: flex; justify-content: center; align-items: center; flex-shrink: 0;" onmousedown="app.startAudioIA()" onmouseup="app.stopAudioIA()" onmouseleave="app.stopAudioIA()" ontouchstart="app.startAudioIA()" ontouchend="app.stopAudioIA()" title="Segure para falar">ðŸŽ¤</button>
+        <button class="btn" id="btnAudioIA" style="background-color: var(--bg-input); color: var(--text-secondary); border: 1px solid var(--border); border-radius: 50%; width: 40px; height: 40px; padding: 0; display: flex; justify-content: center; align-items: center; flex-shrink: 0;" onmousedown="app.startAudioIA()" onmouseup="app.stopAudioIA()" onmouseleave="app.stopAudioIA()" ontouchstart="app.startAudioIA()" ontouchend="app.stopAudioIA()" title="Segure para falar">🎤</button>
         
         <input type="text" id="iaChatInput" class="form-input" style="flex: 1;" placeholder="Pergunte sobre seus gastos..." onkeydown="if(event.key === 'Enter') app.enviarMensagemIA()">
         
-        <button class="btn" style="background-color: var(--purple); color: white; border-radius: 50%; width: 40px; height: 40px; padding: 0; display: flex; justify-content: center; align-items: center; flex-shrink: 0;" onclick="app.enviarMensagemIA()" id="btnSendIA">âž¤</button>
+        <button class="btn" style="background-color: var(--purple); color: white; border-radius: 50%; width: 40px; height: 40px; padding: 0; display: flex; justify-content: center; align-items: center; flex-shrink: 0;" onclick="app.enviarMensagemIA()" id="btnSendIA">➤</button>
       </div>
     </div>
   </div>
 
   <!-- FAB IA -->
   <button class="fab-ia" onclick="app.consultarIA()" title="Falar com o FinZoni">
-    âœ¨
+    ✨
   </button>
 
   <!-- Toast Container -->
@@ -1502,6 +1502,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
   
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=342"></script>
+  <script src="app.js?v=343"></script>
 </body>
 </html>
