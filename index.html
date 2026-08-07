@@ -11,7 +11,7 @@
   <meta name="theme-color" content="#0a0a1a">
   <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data: https://cdnjs.cloudflare.com; connect-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://jbzypqaimerrptxhovzq.supabase.co https://kqjdslnysmhhwccukbuz.supabase.co https://api.bcb.gov.br https://economia.awesomeapi.com.br; img-src 'self' data: blob:;">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=335">
+  <link rel="stylesheet" href="style.css?v=336">
   <!-- DOMPurify for XSS mitigation -->
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
   <!-- Chart.js -->
@@ -848,38 +848,91 @@
 
           <!-- ═══════════ TAB: CARTÕES ═══════════ -->
         <div class="tab-content" id="tab-cartoes">
-          <div class="section-header">
+          <div class="wallet-page-header">
             <div>
-              <div class="section-title">💳 Meus Cartões de Crédito</div>
-              <div class="section-subtitle">Acompanhe seus limites, compras parceladas e faturas</div>
+              <div class="wallet-page-title">Carteira</div>
+              <div class="section-subtitle">Seus cartões, limites e faturas em um só lugar</div>
             </div>
-            <div class="flex gap-2">
-              <button class="btn btn-outline" id="btnAddCartao">+ Novo Cartão</button>
-              <button class="btn btn-primary" id="btnNovaCompraCartao">💳 Lançar Compra</button>
+            <div class="wallet-header-actions">
+              <button class="btn btn-outline" id="btnAddCartao">+ Cartão</button>
+              <button class="btn btn-primary" id="btnNovaCompraCartao">+ Nova Despesa</button>
             </div>
           </div>
-          
-          <!-- Lista de Cartões (Grid) -->
-          <div class="achievements-grid mb-4" id="cartoesGrid">
+
+          <div class="wallet-card-rail" id="cartoesGrid" aria-label="Cartões cadastrados">
             <!-- Renderized via JS -->
           </div>
 
-          <!-- Fatura Mensal -->
-          <div class="card mb-3" style="border-left: 3px solid var(--purple);">
-            <div class="card-header">
-              <span class="card-title">📜 Fatura do Mês</span>
-              <div class="flex gap-2 items-center">
+          <div class="wallet-dots" id="cartoesDots" aria-hidden="true"></div>
+
+          <section class="wallet-summary" id="walletSummary" aria-live="polite">
+            <div class="wallet-summary-top">
+              <div>
+                <div class="wallet-summary-label">Em aberto</div>
+                <div class="wallet-summary-amount" id="walletOpenAmount">R$ 0,00</div>
+              </div>
+              <div class="wallet-due-block">
+                <div id="walletDueLabel">Vencimento não informado</div>
+                <div class="wallet-due-pill" id="walletDueDays">Complete os dados</div>
+              </div>
+            </div>
+            <div class="wallet-summary-divider"></div>
+            <div class="wallet-limit-row">
+              <div>
+                <div class="wallet-summary-label">Limite disponível</div>
+                <div class="wallet-limit-amount" id="walletAvailableLimit">—</div>
+              </div>
+              <div class="wallet-limit-percent">
+                <strong id="walletLimitPercent">—</strong>
+                <span id="walletTotalLimit">Limite não informado</span>
+              </div>
+            </div>
+            <div class="wallet-limit-track" aria-hidden="true"><div id="walletLimitFill"></div></div>
+            <div class="wallet-summary-divider"></div>
+            <div class="wallet-best-day">
+              <span>Melhor dia de compra</span>
+              <strong id="walletBestDay">—</strong>
+            </div>
+          </section>
+
+          <section class="wallet-launches">
+            <div class="wallet-launches-header">
+              <div>
+                <div class="section-title">Lançamentos</div>
+                <div class="section-subtitle">Acompanhe as faturas e as parcelas do cartão selecionado</div>
+              </div>
+              <div class="wallet-filters">
                 <select class="form-input" id="faturaMonthSelect" onchange="app.renderFaturas()" style="width: 150px;">
                   <!-- Renderized via JS -->
                 </select>
-                <select class="form-input" id="faturaCartaoSelect" onchange="app.renderFaturas()" style="width: 150px;">
+                <select class="form-input" id="faturaCartaoSelect" onchange="app.handleFaturaCartaoChange()" style="width: 170px;">
                   <option value="all">Todos os Cartões</option>
                   <!-- Renderized via JS -->
                 </select>
               </div>
             </div>
-            <div class="flex justify-between items-center mb-3">
-              <div class="fs-lg">Total da Fatura: <strong id="faturaTotalMes" style="color:var(--red);">R$ 0,00</strong></div>
+
+            <div class="wallet-invoice-overview">
+              <div class="wallet-invoice-row wallet-invoice-current">
+                <div class="wallet-invoice-icon">▤</div>
+                <div class="wallet-invoice-copy">
+                  <strong id="walletCurrentInvoiceTitle">Fatura atual</strong>
+                  <span id="walletCurrentInvoiceDue">Vencimento não informado</span>
+                </div>
+                <strong class="wallet-invoice-value" id="faturaTotalMes">R$ 0,00</strong>
+              </div>
+              <div class="wallet-invoice-row wallet-invoice-next">
+                <div class="wallet-invoice-icon">▤</div>
+                <div class="wallet-invoice-copy">
+                  <strong id="walletNextInvoiceTitle">Próxima fatura</strong>
+                  <span id="walletNextInvoiceDue">Vencimento não informado</span>
+                </div>
+                <strong class="wallet-invoice-value" id="walletNextInvoiceValue">R$ 0,00</strong>
+              </div>
+            </div>
+
+            <div class="wallet-table-toolbar">
+              <strong>Compras desta fatura</strong>
               <button class="btn btn-success btn-sm" id="btnPagarFatura">Pagar Fatura no Mês Atual</button>
             </div>
             <div class="table-responsive">
@@ -899,7 +952,7 @@
                 </tbody>
               </table>
             </div>
-          </div>
+          </section>
         </div>
 
           <!-- ═══════════ TAB: EXTRATO ANUAL ═══════════ -->
@@ -1526,6 +1579,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
   
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=345"></script>
+  <script src="app.js?v=346"></script>
 </body>
 </html>
