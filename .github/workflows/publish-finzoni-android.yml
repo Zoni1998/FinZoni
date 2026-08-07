@@ -1,0 +1,40 @@
+name: Publicar APK Android de teste
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/publish-finzoni-android.yml
+
+permissions:
+  contents: write
+
+jobs:
+  publish-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar APK assinado da Expo
+        run: |
+          curl --fail --location --retry 5 --retry-delay 3 \
+            "https://expo.dev/artifacts/eas/epy8MXG_4KEkV2zFh1ZCN4J5efIU9jTrmDfdfR5Z27E.apk" \
+            --output FinZoni-Android-v0.1.0.apk
+
+      - name: Conferir integridade
+        run: |
+          echo "ef7846ded2581d5fd9a1bde4da0647e6088ee49de1c48a24d2ea0537e03c8ef9  FinZoni-Android-v0.1.0.apk" | sha256sum --check
+
+      - name: Publicar no GitHub Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: android-v0.1.0-preview
+        run: |
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" FinZoni-Android-v0.1.0.apk --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" FinZoni-Android-v0.1.0.apk \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "FinZoni Android v0.1.0 (teste)" \
+              --notes "APK Android de teste, compilado e assinado pelo Expo EAS." \
+              --prerelease
+          fi
