@@ -3,13 +3,14 @@ node_modules/
 .expo-home/
 .eas-home/
 .gradle-user/
-dist/
 android/
 ios/
+dist/
 .env
+assets/logo.png
 *.jks
 *.keystore
 *.p8
 *.p12
 *.mobileprovision
-assets/logo.png
+

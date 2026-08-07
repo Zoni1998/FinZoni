@@ -21,11 +21,14 @@
       },
       "predictiveBackGestureEnabled": true
     },
-    "plugins": ["expo-sqlite"],
+    "plugins": [
+      "expo-sqlite"
+    ],
     "extra": {
       "eas": {
-        "projectId": ""
+        "projectId": "c2f5a1f1-61cd-4eeb-bbd3-e25d866f2801"
       }
-    }
+    },
+    "owner": "zoni1998"
   }
 }
