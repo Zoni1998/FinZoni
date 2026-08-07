@@ -1,0 +1,14 @@
+node_modules/
+.expo/
+.expo-home/
+.gradle-user/
+dist/
+android/
+ios/
+.env
+*.jks
+*.keystore
+*.p8
+*.p12
+*.mobileprovision
+assets/logo.png

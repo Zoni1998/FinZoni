@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "FinZoni",
+    "slug": "finzoni",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/logo-glass.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/logo-glass.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#050915"
+    },
+    "android": {
+      "package": "com.finzoni.app",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/logo-glass.png",
+        "backgroundColor": "#050915"
+      },
+      "predictiveBackGestureEnabled": true
+    },
+    "plugins": ["expo-sqlite"],
+    "extra": {
+      "eas": {
+        "projectId": ""
+      }
+    }
+  }
+}
