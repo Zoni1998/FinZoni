@@ -9,9 +9,9 @@
     content="Ferramenta completa de gestão financeira pessoal com controle de receitas, despesas, diárias e investimentos.">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0a0a1a">
-  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data: https://cdnjs.cloudflare.com; connect-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://jbzypqaimerrptxhovzq.supabase.co https://kqjdslnysmhhwccukbuz.supabase.co https://api.groq.com https://api.bcb.gov.br https://economia.awesomeapi.com.br; img-src 'self' data: blob:;">
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data: https://cdnjs.cloudflare.com; connect-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://jbzypqaimerrptxhovzq.supabase.co https://kqjdslnysmhhwccukbuz.supabase.co https://api.bcb.gov.br https://economia.awesomeapi.com.br; img-src 'self' data: blob:;">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=333">
+  <link rel="stylesheet" href="style.css?v=334">
   <!-- DOMPurify for XSS mitigation -->
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
   <!-- Chart.js -->
@@ -637,8 +637,17 @@
 
         <!-- ═══════════ TAB: INVESTIMENTOS ═══════════ -->
         <div class="tab-content" id="tab-investimentos">
+          <div class="section-header" style="margin-bottom: 18px;">
+            <div>
+              <div class="section-title">Seu Patrimônio</div>
+              <div class="section-subtitle">Primeiro proteja sua reserva, depois avance nas metas e simulações</div>
+            </div>
+          </div>
           
           <!-- Gamification / Conquistas -->
+          <details class="investment-fold">
+            <summary>Conquistas e desafios</summary>
+            <div class="investment-fold-content">
           <div class="section-header" style="margin-bottom: 16px;">
             <div>
               <div class="section-title">🏆 Conquistas e Nível</div>
@@ -664,6 +673,8 @@
               </div>
             </div>
           </div>
+            </div>
+          </details>
 
           <!-- Reserve -->
           <div class="section-header">
@@ -732,6 +743,9 @@
           </div>
 
           <!-- Consultoria AI -->
+          <details class="investment-fold">
+            <summary>Consultoria de aportes com o Zoni</summary>
+            <div class="investment-fold-content">
           <div class="section-header mt-4">
             <div>
               <div class="section-title">🤖 Consultoria de Aportes (AI & Tempo Real)</div>
@@ -743,11 +757,11 @@
             <div class="flex gap-2 items-center mb-3">
               <select id="consultoriaPersonaSelect" class="form-input" style="max-width: 200px;">
                 <option value="auto">Persona: Automática</option>
-                <option value="thiago">Thiago Nigro (Primo Rico)</option>
-                <option value="bruno">Bruno Perini (Você MAIS Rico)</option>
-                <option value="nathalia">Nathalia Arcuri (Me Poupe!)</option>
-                <option value="barsi">Luiz Barsi (Rei dos Dividendos)</option>
-                <option value="mira">Professor Mira</option>
+                <option value="thiago">Estilo direto e longo prazo</option>
+                <option value="bruno">Estilo lógico e disciplinado</option>
+                <option value="nathalia">Estilo leve e econômico</option>
+                <option value="barsi">Estilo dividendos</option>
+                <option value="mira">Estilo professor</option>
               </select>
               <button class="btn btn-primary" id="btnGerarConsultoria" onclick="app.gerarConsultoria()">
                 ✨ Gerar Carteira Recomendada
@@ -765,8 +779,13 @@
               <!-- Tabela Markdown e textos da IA -->
             </div>
           </div>
+            </div>
+          </details>
 
           <!-- Simulator -->
+          <details class="investment-fold">
+            <summary>Simulador financeiro</summary>
+            <div class="investment-fold-content">
           <div class="section-header mt-4">
             <div>
               <div class="section-title">🧮 Simulador Financeiro</div>
@@ -822,6 +841,8 @@
               </div>
             </div>
           </div>
+            </div>
+          </details>
 
         </div>
 
@@ -1448,19 +1469,22 @@
     </div>
   </div>
 
-  <!-- Modal IA (Chat Financeiro) -->
+  <!-- Zoni Financeiro -->
   <div class="modal-overlay" id="modalIA">
-    <div class="modal" style="max-width: 600px; height: 85vh; display: flex; flex-direction: column;">
+    <div class="modal zoni-modal">
       <div class="modal-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
-        <h2 class="modal-title flex items-center gap-2"><span style="font-size: 1.5rem;">✨</span> Consultor FinZoni</h2>
+        <div>
+          <h2 class="modal-title flex items-center gap-2"><span style="font-size: 1.5rem;">✨</span> Zoni Financeiro</h2>
+          <div class="zoni-context-label">NVIDIA NIM · entende a tela e seus dados atuais</div>
+        </div>
         <div style="display: flex; gap: 10px; align-items: center;">
           <select id="iaPersonaSelector" class="form-input" style="padding: 4px 8px; font-size: 0.85rem; height: auto; max-width: 150px;" onchange="app.changeIAPersona()">
-            <option value="auto">Especialista (Aba Atual)</option>
-            <option value="thiago">Thiago Nigro (Primo Rico)</option>
-            <option value="bruno">Bruno Perini</option>
-            <option value="nathalia">Nathalia Arcuri (Me Poupe)</option>
-            <option value="barsi">Luiz Barsi (Dividendos)</option>
-            <option value="mira">Professor Mira (Renda Variável)</option>
+            <option value="auto">Zoni contextual (Aba Atual)</option>
+            <option value="thiago">Estilo direto e longo prazo</option>
+            <option value="bruno">Estilo lógico e disciplinado</option>
+            <option value="nathalia">Estilo leve e econômico</option>
+            <option value="barsi">Estilo dividendos</option>
+            <option value="mira">Estilo professor</option>
           </select>
           <button class="btn-icon" style="font-size: 0.8rem; border: 1px solid var(--border-color); border-radius: 4px; padding: 4px 8px; color: var(--text-secondary);" onclick="app.limparChatIA()" title="Limpar conversa">Limpar</button>
           <button class="modal-close" onclick="closeModal('modalIA')">✕</button>
@@ -1481,16 +1505,16 @@
         
         <button class="btn" id="btnAudioIA" style="background-color: var(--bg-input); color: var(--text-secondary); border: 1px solid var(--border); border-radius: 50%; width: 40px; height: 40px; padding: 0; display: flex; justify-content: center; align-items: center; flex-shrink: 0;" onmousedown="app.startAudioIA()" onmouseup="app.stopAudioIA()" onmouseleave="app.stopAudioIA()" ontouchstart="app.startAudioIA()" ontouchend="app.stopAudioIA()" title="Segure para falar">🎤</button>
         
-        <input type="text" id="iaChatInput" class="form-input" style="flex: 1;" placeholder="Pergunte sobre seus gastos..." onkeydown="if(event.key === 'Enter') app.enviarMensagemIA()">
+        <input type="text" id="iaChatInput" class="form-input" style="flex: 1;" placeholder="Ex.: Paguei o cartão Itaú" maxlength="1200" onkeydown="if(event.key === 'Enter') app.enviarMensagemIA()">
         
         <button class="btn" style="background-color: var(--purple); color: white; border-radius: 50%; width: 40px; height: 40px; padding: 0; display: flex; justify-content: center; align-items: center; flex-shrink: 0;" onclick="app.enviarMensagemIA()" id="btnSendIA">➤</button>
       </div>
     </div>
   </div>
 
-  <!-- FAB IA -->
-  <button class="fab-ia" onclick="app.consultarIA()" title="Falar com o FinZoni">
-    ✨
+  <!-- Zoni Financeiro -->
+  <button class="fab-ia" onclick="app.consultarIA()" title="Abrir o Zoni Financeiro" aria-label="Abrir o Zoni Financeiro">
+    <span aria-hidden="true">✨</span><strong>Zoni</strong>
   </button>
 
   <!-- Toast Container -->
@@ -1502,6 +1526,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
   
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=343"></script>
+  <script src="app.js?v=344"></script>
 </body>
 </html>
