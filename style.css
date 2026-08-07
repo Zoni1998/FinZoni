@@ -1886,7 +1886,8 @@ body {
   position: fixed;
   bottom: 30px;
   right: 30px;
-  width: 64px;
+  width: auto;
+  min-width: 108px;
   height: 64px;
   border-radius: 50%;
   background: rgba(15, 15, 18, 0.7);
@@ -1902,7 +1903,11 @@ body {
   z-index: 999;
   border: none;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  gap: 8px;
+  padding: 0 20px;
 }
+
+.fab-ia strong { font-size: 0.95rem; letter-spacing: 0.01em; }
 
 .fab-ia:hover {
   transform: translateY(-5px) scale(1.05);
@@ -1916,10 +1921,80 @@ body {
     bottom: 80px;
     right: 20px;
     width: 50px;
+    min-width: 50px;
     height: 50px;
     font-size: 1.5rem;
+    padding: 0;
   }
+  .fab-ia strong { display: none; }
 }
+
+.zoni-modal {
+  max-width: 680px;
+  height: min(86vh, 760px);
+  display: flex;
+  flex-direction: column;
+}
+
+.zoni-context-label {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.zoni-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 8px;
+}
+
+.zoni-suggestions button {
+  padding: 8px 11px;
+  color: var(--text-secondary);
+  background: rgba(168, 85, 247, 0.08);
+  border: 1px solid rgba(168, 85, 247, 0.28);
+  border-radius: 999px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+}
+
+.zoni-suggestions button:hover {
+  color: #fff;
+  border-color: var(--purple);
+  background: rgba(168, 85, 247, 0.18);
+}
+
+.zoni-error-state,
+.insight-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: var(--text-secondary);
+}
+
+.investment-fold {
+  margin-bottom: 18px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(255,255,255,0.015);
+  overflow: hidden;
+}
+
+.investment-fold > summary {
+  padding: 15px 18px;
+  cursor: pointer;
+  color: var(--text-primary);
+  font-weight: 700;
+  list-style: none;
+}
+
+.investment-fold > summary::after { content: '＋'; float: right; color: var(--purple); }
+.investment-fold[open] > summary::after { content: '−'; }
+.investment-fold > .investment-fold-content { padding: 0 16px 16px; }
 
 @media (max-width: 768px) {
   .modal {
