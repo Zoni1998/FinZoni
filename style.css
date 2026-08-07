@@ -785,7 +785,8 @@ body {
   cursor: pointer;
 }
 
-.form-check input[type="checkbox"] {
+.form-check input[type="checkbox"],
+.clinic-check-row input[type="checkbox"] {
   appearance: none;
   width: 18px;
   height: 18px;
@@ -797,20 +798,23 @@ body {
   position: relative;
 }
 
-.form-check input[type="checkbox"]:checked {
+.form-check input[type="checkbox"]:checked,
+.clinic-check-row input[type="checkbox"]:checked {
   background: var(--blue);
   border-color: var(--blue);
 }
 
-.form-check input[type="checkbox"]:checked::after {
-  content: 'Ô£ô';
+.form-check input[type="checkbox"]:checked::after,
+.clinic-check-row input[type="checkbox"]:checked::after {
+  content: '';
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: white;
-  font-size: 11px;
-  font-weight: 700;
+  width: 4px;
+  height: 8px;
+  top: 2px;
+  left: 5px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
 }
 
 /* ── Modal ── */
@@ -1165,7 +1169,45 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
   margin-bottom: 12px;
+}
+
+.goal-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.goal-actions .btn-icon,
+.goal-history-row .btn-icon {
+  flex: 0 0 36px;
+  font-size: 1rem;
+}
+
+.goal-history-row {
+  color: var(--text-muted);
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.goal-history-row > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 600px) {
+  .goal-actions {
+    width: 100%;
+    margin-left: 0;
+  }
 }
 
 .goal-name {
@@ -1886,9 +1928,9 @@ body {
   position: fixed;
   bottom: 30px;
   right: 30px;
-  width: auto;
-  min-width: 108px;
-  height: 64px;
+  width: 58px;
+  min-width: 58px;
+  height: 58px;
   border-radius: 50%;
   background: rgba(15, 15, 18, 0.7);
   backdrop-filter: blur(24px) saturate(180%);
@@ -1903,11 +1945,8 @@ body {
   z-index: 999;
   border: none;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  gap: 8px;
-  padding: 0 20px;
+  padding: 0;
 }
-
-.fab-ia strong { font-size: 0.95rem; letter-spacing: 0.01em; }
 
 .fab-ia:hover {
   transform: translateY(-5px) scale(1.05);
@@ -1926,7 +1965,6 @@ body {
     font-size: 1.5rem;
     padding: 0;
   }
-  .fab-ia strong { display: none; }
 }
 
 .zoni-modal {
@@ -1995,6 +2033,17 @@ body {
 .investment-fold > summary::after { content: '＋'; float: right; color: var(--purple); }
 .investment-fold[open] > summary::after { content: '−'; }
 .investment-fold > .investment-fold-content { padding: 0 16px 16px; }
+
+.achievements-stack {
+  display: grid;
+  gap: 16px;
+}
+
+.achievements-stack .section-header,
+.achievements-stack .achievements-panel,
+.achievements-stack .challenge-panel {
+  margin: 0 !important;
+}
 
 @media (max-width: 768px) {
   .modal {
