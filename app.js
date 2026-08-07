@@ -779,8 +779,7 @@ constructor() {
         this.activeTab = btn.dataset.tab;
         this.renderCurrentTab(btn.dataset.tab);
         // Close mobile menu
-        document.getElementById('sidebar').classList.remove('open');
-        document.getElementById('mobileOverlay').classList.remove('show');
+        this.closeMobileMenu();
       });
     });
 
@@ -789,9 +788,13 @@ constructor() {
       document.getElementById('sidebar').classList.toggle('open');
       document.getElementById('mobileOverlay').classList.toggle('show');
     });
-    document.getElementById('mobileOverlay').addEventListener('click', () => {
-      document.getElementById('sidebar').classList.remove('open');
-      document.getElementById('mobileOverlay').classList.remove('show');
+    document.getElementById('mobileOverlay').addEventListener('click', () => this.closeMobileMenu());
+    document.getElementById('sidebarCloseBtn')?.addEventListener('click', () => this.closeMobileMenu());
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') this.closeMobileMenu();
+    });
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 768) this.closeMobileMenu();
     });
 
     // Diárias mode toggle
@@ -1814,6 +1817,11 @@ REGRAS OBRIGATÓRIAS:
   changeIAPersona() {
     // Quando a persona muda, limpamos o chat para a nova IA se apresentar adequadamente
     this.limparChatIA();
+  }
+
+  closeMobileMenu() {
+    document.getElementById('sidebar')?.classList.remove('open');
+    document.getElementById('mobileOverlay')?.classList.remove('show');
   }
 
   usarSugestaoZoni(texto) {
@@ -4354,6 +4362,10 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     if (dots) {
       dots.innerHTML = cartoes.map(c => `<span class="${String(c.id) === String(this.selectedCartaoId) ? 'active' : ''}"></span>`).join('');
     }
+    const previousButton = document.getElementById('walletCardPrev');
+    const nextButton = document.getElementById('walletCardNext');
+    if (previousButton) previousButton.disabled = cartoes.length < 2;
+    if (nextButton) nextButton.disabled = cartoes.length < 2;
     const selectedCard = cartoes.find(c => String(c.id) === String(this.selectedCartaoId));
     this.updateWalletSummary(selectedCard || cartoes[0]);
   }
@@ -4434,6 +4446,25 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     const select = document.getElementById('faturaCartaoSelect');
     if (select) select.value = String(cartao.id);
     this.renderFaturas();
+    this.scrollSelectedCartaoIntoView();
+  }
+
+  navigateCartao(direction) {
+    const cartoes = this.dm.data.cartoes || [];
+    if (cartoes.length < 2) return;
+    const currentIndex = Math.max(0, cartoes.findIndex(card => String(card.id) === String(this.selectedCartaoId)));
+    const nextIndex = (currentIndex + direction + cartoes.length) % cartoes.length;
+    this.selectCartao(nextIndex);
+  }
+
+  scrollSelectedCartaoIntoView() {
+    requestAnimationFrame(() => {
+      const rail = document.getElementById('cartoesGrid');
+      const selected = rail?.querySelector('.wallet-credit-card.is-selected');
+      if (!rail || !selected) return;
+      const target = selected.offsetLeft - Math.max(0, (rail.clientWidth - selected.offsetWidth) / 2);
+      rail.scrollLeft = Math.max(0, target);
+    });
   }
 
   handleFaturaCartaoChange() {
