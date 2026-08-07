@@ -55,7 +55,7 @@ function validateFinancialData(data) {
   return true;
 }
 
-// â”€â”€ CONSTANTS â”€â”€
+// ── CONSTANTS ──
 function escapeHTML(str) {
   if (str === null || str === undefined) return '';
   return String(str).replace(/[&<>'"]/g, tag => ({
@@ -67,12 +67,12 @@ function escapeHTML(str) {
   }[tag]));
 }
 
-const MONTHS = ['Janeiro','Fevereiro','MarÃ§o','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-const WEEKDAYS = ['Dom','Seg','Ter','Qua','Qui','Sex','SÃ¡b'];
+const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const WEEKDAYS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 const STORAGE_KEY = 'findash_data_v1';
 const YEAR = new Date().getFullYear();
 
-// â”€â”€ DEFAULT DATA â”€â”€
+// ── DEFAULT DATA ──
 function getDefaultData() {
   return {
     year: YEAR,
@@ -85,17 +85,17 @@ function getDefaultData() {
     categoriasFixas: [
       { id: 'tv', nome: 'TV', compartilhado: false },
       { id: 'passagem', nome: 'Passagem', compartilhado: false },
-      { id: 'psicologo', nome: 'PsicÃ³logo', compartilhado: false },
-      { id: 'cartao', nome: 'CartÃ£o de CrÃ©dito', compartilhado: false },
+      { id: 'psicologo', nome: 'Psicólogo', compartilhado: false },
+      { id: 'cartao', nome: 'Cartão de Crédito', compartilhado: false },
       { id: 'inss', nome: 'INSS', compartilhado: false },
       { id: 'luz', nome: 'Luz', compartilhado: true },
       { id: 'internet', nome: 'Internet Casa', compartilhado: true },
       { id: 'claro', nome: 'Claro', compartilhado: false },
-      { id: 'condominio', nome: 'CondomÃ­nio', compartilhado: true },
+      { id: 'condominio', nome: 'Condomínio', compartilhado: true },
       { id: 'celular', nome: 'Celular (Parcelas)', compartilhado: false }
     ],
     categoriasVariaveis: [
-      { id: 'alimentacao', nome: 'AlimentaÃ§Ã£o', orcamento: 500 },
+      { id: 'alimentacao', nome: 'Alimentação', orcamento: 500 },
       { id: 'lazer', nome: 'Lazer', orcamento: 300 },
       { id: 'transporte', nome: 'Transporte', orcamento: 200 }
     ],
@@ -126,7 +126,7 @@ function getDefaultMonth() {
   };
 }
 
-// â”€â”€ SUPABASE CONFIG â”€â”€
+// ── SUPABASE CONFIG ──
 const SUPABASE_URL = 'https://jbzypqaimerrptxhovzq.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_hQ2QoIaF4eL9JlX_49NzHQ_hobaAnLi';
 let sbClient = null;
@@ -135,7 +135,7 @@ if (window.supabase) {
   sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 }
 
-// â”€â”€ DATA MANAGER â”€â”€
+// ── DATA MANAGER ──
 class DataManager {
   constructor() {
     this.data = getDefaultData();
@@ -313,7 +313,7 @@ class DataManager {
     try {
       const imported = JSON.parse(jsonStr);
       if (!validateFinancialData(imported)) {
-        showToast('Dados invÃ¡lidos: estrutura do arquivo nÃ£o reconhecida!', 'error');
+        showToast('Dados inválidos: estrutura do arquivo não reconhecida!', 'error');
         return false;
       }
       if (imported.year && imported.meses) {
@@ -324,7 +324,7 @@ class DataManager {
         showToast('Dados importados com sucesso!', 'success');
         return true;
       }
-      showToast('Arquivo invÃ¡lido!', 'error');
+      showToast('Arquivo inválido!', 'error');
       return false;
     } catch (e) {
       showToast('Erro ao importar: ' + e.message, 'error');
@@ -355,7 +355,7 @@ class DataManager {
   }
 }
 
-// â”€â”€ UTILITY FUNCTIONS â”€â”€
+// ── UTILITY FUNCTIONS ──
 let isPrivacyMode = localStorage.getItem('findash_privacy') === 'true';
 
 function formatCurrency(value) {
@@ -390,9 +390,9 @@ function showToast(msg, type = 'info') {
   const container = document.getElementById('toastContainer');
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
-  const icons = { success: 'âœ…', error: 'Ã¢ÂÅ’', info: 'Ã¢â€žÂ¹Ã¯Â¸Â' };
+  const icons = { success: '✅', error: 'âŒ', info: 'â„¹ï¸' };
   const icon = document.createElement('span');
-  icon.textContent = icons[type] || 'Ã¢â€žÂ¹Ã¯Â¸Â';
+  icon.textContent = icons[type] || 'â„¹ï¸';
   toast.appendChild(icon);
   toast.appendChild(document.createTextNode(' ' + msg));
   container.appendChild(toast);
@@ -408,7 +408,7 @@ function closeModal(id) {
 }
 
 
-// â”€â”€ MAIN APP â”€â”€
+// ── MAIN APP ──
 class App {
   
   iaAttachedFile = null;
@@ -517,8 +517,8 @@ constructor() {
       }
     } catch (e) {
       console.error(e);
-      showToast('Erro crÃ­tico no login: ' + (e.message || e), 'error');
-      alert('Erro crÃ­tico: ' + e.stack);
+      showToast('Erro crítico no login: ' + (e.message || e), 'error');
+      alert('Erro crítico: ' + e.stack);
     }
   }
 
@@ -544,7 +544,7 @@ constructor() {
           document.getElementById('appContainer').classList.remove('loading-data');
           this.init();
         } else {
-          showToast('Conta criada! Por favor verifique seu email (ou desative a confirmaÃ§Ã£o de E-mail no Supabase para login automÃ¡tico).', 'warning');
+          showToast('Conta criada! Por favor verifique seu email (ou desative a confirmação de E-mail no Supabase para login automático).', 'warning');
           this.showAuthView('login');
         }
       }
@@ -567,12 +567,12 @@ constructor() {
       if (error) {
         showToast('Erro ao enviar link: ' + error.message, 'error');
       } else {
-        showToast('Link de recuperaÃ§Ã£o enviado para seu e-mail!', 'success');
+        showToast('Link de recuperação enviado para seu e-mail!', 'success');
         this.showAuthView('login');
       }
     } catch (e) {
       console.error(e);
-      showToast('Erro na recuperaÃ§Ã£o', 'error');
+      showToast('Erro na recuperação', 'error');
     }
   }
 
@@ -624,7 +624,7 @@ constructor() {
       }
     } catch (e) {
       console.error(e);
-      showToast('Erro crÃ­tico ao atualizar senha', 'error');
+      showToast('Erro crítico ao atualizar senha', 'error');
     }
   }
 
@@ -642,7 +642,7 @@ constructor() {
   init() {
     if (!this.dm.data.categoriasVariaveis || this.dm.data.categoriasVariaveis.length === 0) {
       this.dm.data.categoriasVariaveis = [
-        { id: 'alimentacao', nome: 'AlimentaÃ§Ã£o', orcamento: 500 },
+        { id: 'alimentacao', nome: 'Alimentação', orcamento: 500 },
         { id: 'transporte', nome: 'Transporte', orcamento: 200 }
       ];
       this.dm.save();
@@ -684,7 +684,7 @@ constructor() {
     }
   }
 
-  // â”€â”€ THEME â”€â”€
+  // ── THEME ──
   populateYearSelector() {
     const select = document.getElementById('extratoYearSelect');
     if (!select) return;
@@ -739,7 +739,7 @@ constructor() {
     if (mainSelector) mainSelector.value = theme;
   }
 
-  // â”€â”€ NAVIGATION â”€â”€
+  // ── NAVIGATION ──
   bindNavigation() {
     document.querySelectorAll('.nav-item[data-tab]').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -779,7 +779,7 @@ constructor() {
       document.getElementById('mobileOverlay').classList.remove('show');
     });
 
-    // DiÃ¡rias mode toggle
+    // Diárias mode toggle
     document.getElementById('modeAuto').addEventListener('click', () => this.setDiariasMode('automatico'));
     document.getElementById('modeManual').addEventListener('click', () => this.setDiariasMode('manual'));
   }
@@ -795,7 +795,7 @@ constructor() {
     if (mode === 'manual') this.renderManualTable();
   }
 
-  // â”€â”€ MONTH SELECTOR â”€â”€
+  // ── MONTH SELECTOR ──
   bindMonthSelector() {
     document.getElementById('prevMonth').addEventListener('click', () => this.changeMonth(-1));
     document.getElementById('nextMonth').addEventListener('click', () => this.changeMonth(1));
@@ -816,7 +816,7 @@ constructor() {
       const prevMes = this.dm.getMonth(prevMonthStr);
       const currMes = this.dm.getMonth(this.currentMonth);
       if (currMes.gastosFixos.length === 0 && prevMes.gastosFixos.length > 0) {
-        if (confirm(`Deseja importar as ${prevMes.gastosFixos.length} despesas fixas do mÃªs anterior para este mÃªs?`)) {
+        if (confirm(`Deseja importar as ${prevMes.gastosFixos.length} despesas fixas do mês anterior para este mês?`)) {
           currMes.gastosFixos = prevMes.gastosFixos.map(g => ({
             ...g,
             id: generateId(),
@@ -835,7 +835,7 @@ constructor() {
     document.getElementById('currentMonthLabel').textContent = `${MONTHS[this.currentMonth - 1]} ${YEAR}`;
   }
 
-  // â”€â”€ NOTES â”€â”€
+  // ── NOTES ──
   bindNotes() {
     document.getElementById('dashNotas').addEventListener('input', (e) => {
       this.dm.getMonth(this.currentMonth).notas = e.target.value;
@@ -847,7 +847,7 @@ constructor() {
     });
   }
 
-  // â”€â”€ EXPORT / IMPORT â”€â”€
+  // ── EXPORT / IMPORT ──
   bindExportImport() {
     document.getElementById('btnExport').addEventListener('click', () => this.dm.exportData());
     document.getElementById('btnExportConfig').addEventListener('click', () => this.dm.exportData());
@@ -872,14 +872,14 @@ constructor() {
     document.getElementById('importConfigInput').addEventListener('change', handleImport);
 
     document.getElementById('btnClearData').addEventListener('click', () => {
-      if (confirm('Tem certeza que deseja apagar TODOS os dados? Esta aÃ§Ã£o nÃ£o pode ser desfeita!')) {
+      if (confirm('Tem certeza que deseja apagar TODOS os dados? Esta ação não pode ser desfeita!')) {
         this.dm.clearAll();
         this.renderAll();
       }
     });
   }
 
-  // â”€â”€ MODALS â”€â”€
+  // ── MODALS ──
   bindModals() {
     // Variable Expense
     document.getElementById('btnAddGastoVar').addEventListener('click', () => {
@@ -894,7 +894,7 @@ constructor() {
     });
     document.getElementById('btnSalvarGastoVar').addEventListener('click', () => this.saveGastoVar());
 
-    // CartÃµes
+    // Cartões
     const btnAddCartao = document.getElementById('btnAddCartao');
     if (btnAddCartao) {
       btnAddCartao.addEventListener('click', () => {
@@ -902,7 +902,7 @@ constructor() {
         document.getElementById('cartaoLimite').value = '';
         document.getElementById('cartaoFechamento').value = '';
         document.getElementById('cartaoVencimento').value = '';
-        document.getElementById('modalCartaoTitle').textContent = 'Adicionar CartÃ£o';
+        document.getElementById('modalCartaoTitle').textContent = 'Adicionar Cartão';
         openModal('modalCartao');
       });
     }
@@ -914,7 +914,7 @@ constructor() {
       btnNovaCompraCartao.addEventListener('click', () => {
         const select = document.getElementById('compraCartaoId');
         if (!this.dm.data.cartoes || this.dm.data.cartoes.length === 0) {
-          showToast('Adicione um cartÃ£o primeiro!', 'error');
+          showToast('Adicione um cartão primeiro!', 'error');
           return;
         }
         select.innerHTML = this.dm.data.cartoes.map(c => `<option value="${c.id}">${escapeHTML(c.nome)}</option>`).join('');
@@ -998,7 +998,7 @@ constructor() {
     document.getElementById('btnSalvarCatFixa').addEventListener('click', () => this.saveCatFixa());
   }
 
-  // â”€â”€ SAVE FUNCTIONS â”€â”€
+  // ── SAVE FUNCTIONS ──
   saveGastoVar() {
     const desc = document.getElementById('gastoVarDescricao').value.trim();
     const valor = parseFloat(document.getElementById('gastoVarValor').value);
@@ -1010,7 +1010,7 @@ constructor() {
     this.dm.save();
     closeModal('modalGastoVar');
     this.renderAll();
-    showToast('Gasto variÃ¡vel adicionado!', 'success');
+    showToast('Gasto variável adicionado!', 'success');
   }
 
   saveGastoFixo() {
@@ -1056,7 +1056,7 @@ constructor() {
     
     closeModal('modalReserva');
     this.renderAll();
-    showToast('MovimentaÃ§Ã£o registrada!', 'success');
+    showToast('Movimentação registrada!', 'success');
   }
 
   saveMeta() {
@@ -1132,7 +1132,7 @@ constructor() {
     this.dm.save();
     closeModal('modalClinica');
     this.renderAll();
-    showToast('ClÃ­nica adicionada!', 'success');
+    showToast('Clínica adicionada!', 'success');
   }
 
   saveCatFixa() {
@@ -1147,7 +1147,7 @@ constructor() {
     showToast('Categoria adicionada!', 'success');
   }
 
-  // â”€â”€ CALCULATIONS â”€â”€
+  // ── CALCULATIONS ──
   calcDiariasAuto(month) {
     const mes = this.dm.getMonth(month);
     const totals = {};
@@ -1212,14 +1212,14 @@ constructor() {
     return changed;
   }
 
-  // SalÃ¡rio do mÃªs = diÃ¡rias do mÃªs ANTERIOR
+  // Salário do mês = diárias do mês ANTERIOR
   calcSalarioDoMes(month) {
     const prevMonth = month - 1;
-    if (prevMonth < 1) return 0; // Janeiro nÃ£o tem mÃªs anterior no sistema
+    if (prevMonth < 1) return 0; // Janeiro não tem mês anterior no sistema
     return this.calcTotalDiarias(prevMonth);
   }
 
-  // ProduÃ§Ã£o do mÃªs = diÃ¡rias trabalhadas NESTE mÃªs (serÃ¡ salÃ¡rio do prÃ³ximo)
+  // Produção do mês = diárias trabalhadas NESTE mês (será salário do próximo)
   calcProducaoDoMes(month) {
     return this.calcTotalDiarias(month);
   }
@@ -1316,7 +1316,7 @@ constructor() {
     showToast('Chave da API salva com sucesso!', 'success');
   }
 
-  // --- IA AvanÃ§ada ---
+  // --- IA Avançada ---
   async getSystemPrompt(personaOverride) {
     const m = this.currentMonth;
     const mesObj = this.dm.getMonth(m);
@@ -1328,18 +1328,18 @@ constructor() {
     const producao = Number(this.calcProducaoDoMes(m) || 0);
     const saldoFinal = Number(receitas - despTotal);
     
-    // 2. TransaÃ§Ãµes Estruturadas em JSON
+    // 2. Transações Estruturadas em JSON
     const trRecs = JSON.stringify((mesObj.receitas || []).map(r => ({ desc: r.descricao, valor: r.valor, data: r.data })));
     const trFixas = JSON.stringify((mesObj.gastosFixos || []).map(g => ({ desc: g.descricao, valor: g.valor, data: g.data })));
     const trVars = JSON.stringify((mesObj.gastosVariaveis || []).map(g => ({ desc: g.descricao, valor: g.valor, catId: g.categoriaId, data: g.data })));
 
-    // 3. OrÃ§amento de Categorias VariÃ¡veis
+    // 3. Orçamento de Categorias Variáveis
     const catVarsText = JSON.stringify((this.dm.data.categoriasVariaveis || []).map(cat => {
       const gastoCat = (mesObj.gastosVariaveis || []).filter(g => g.categoriaId === cat.id).reduce((sum, g) => sum + Number(g.valor || 0), 0);
       return { categoria: cat.nome, gasto: gastoCat, limite: cat.orcamento };
     }));
 
-    // 4. DiÃ¡rias (ProduÃ§Ã£o) Estruturada
+    // 4. Diárias (Produção) Estruturada
     let diariasArr = [];
     if (mesObj.diarias && mesObj.diarias.modo === 'automatico') {
       const worked = mesObj.diarias.diasTrabalhados || {};
@@ -1362,7 +1362,7 @@ constructor() {
     // 5. Investimentos e Reserva
     const reservaSaldo = Number(this.calcReserva().saldo || 0);
     
-    // Calcula o total investido/depositado no mÃªs atual
+    // Calcula o total investido/depositado no mês atual
     let investidoNoMes = 0;
     const prefixMes = `${YEAR}-${String(m).padStart(2, '0')}`;
     (this.dm.data.reserva.movimentacoes || []).forEach(mov => {
@@ -1374,10 +1374,10 @@ constructor() {
         if (h.data && h.data.startsWith(prefixMes)) depMes += h.valor;
       });
       investidoNoMes += depMes;
-      return `Objetivo: ${mt.nome} | Saldo Acumulado R$${Number(mt.valorAtual || 0).toFixed(2)} / Alvo R$${Number(mt.valorMeta || 0).toFixed(2)} | Aportado neste mÃªs: R$${depMes.toFixed(2)}`;
+      return `Objetivo: ${mt.nome} | Saldo Acumulado R$${Number(mt.valorAtual || 0).toFixed(2)} / Alvo R$${Number(mt.valorMeta || 0).toFixed(2)} | Aportado neste mês: R$${depMes.toFixed(2)}`;
     }).join('; ');
 
-    // 6. HistÃ³rico Resumido dos Meses Anteriores
+    // 6. Histórico Resumido dos Meses Anteriores
     let historicoMesesText = '';
     const todosMeses = Object.keys(this.dm.data.meses || {}).sort();
     todosMeses.forEach(mesChave => {
@@ -1385,12 +1385,12 @@ constructor() {
         const hRecs = Number(this.calcTotalReceitas(mesChave) || 0);
         const hDesps = Number(this.calcResumoDespesas(mesChave).total || 0);
         const hProd = Number(this.calcProducaoDoMes(mesChave) || 0);
-        historicoMesesText += `MÃªs ${mesChave}: Receitas/SalÃ¡rio R$ ${hRecs.toFixed(2)} | Despesas R$ ${hDesps.toFixed(2)} | ProduÃ§Ã£o/DiÃ¡rias R$ ${hProd.toFixed(2)}\n`;
+        historicoMesesText += `Mês ${mesChave}: Receitas/Salário R$ ${hRecs.toFixed(2)} | Despesas R$ ${hDesps.toFixed(2)} | Produção/Diárias R$ ${hProd.toFixed(2)}\n`;
       }
     });
-    if (!historicoMesesText) historicoMesesText = 'Nenhum histÃ³rico anterior.';
+    if (!historicoMesesText) historicoMesesText = 'Nenhum histórico anterior.';
 
-    // 7. Datas de ReferÃªncia
+    // 7. Datas de Referência
     const hojeObj = new Date();
     const hojeStr = hojeObj.toISOString().slice(0, 10);
     const ontemObj = new Date(hojeObj);
@@ -1403,57 +1403,57 @@ constructor() {
     let contextoLocal = '';
 
     if (selectedPersona === 'thiago') {
-      contextoLocal = "PAPEL: Thiago Nigro. AÃ‡ÃƒO: Analise as finanÃ§as focando no longo prazo e na metodologia ARCA. Seja educado, direto e chame o usuÃ¡rio de 'Primo' de vez em quando. Ajude-o a encontrar dinheiro para aportar.";
+      contextoLocal = "PAPEL: Thiago Nigro. AÇÃO: Analise as finanças focando no longo prazo e na metodologia ARCA. Seja educado, direto e chame o usuário de 'Primo' de vez em quando. Ajude-o a encontrar dinheiro para aportar.";
     } else if (selectedPersona === 'bruno') {
-      contextoLocal = "PAPEL: Bruno Perini. AÃ‡ÃƒO: Analise os nÃºmeros de forma objetiva, lÃ³gica e pragmÃ¡tica. Fale de forma sÃ©ria. DÃª dicas sobre consistÃªncia, estoicismo e a importÃ¢ncia de criar fontes de renda e aportar com disciplina.";
+      contextoLocal = "PAPEL: Bruno Perini. AÇÃO: Analise os números de forma objetiva, lógica e pragmática. Fale de forma séria. Dê dicas sobre consistência, estoicismo e a importância de criar fontes de renda e aportar com disciplina.";
     } else if (selectedPersona === 'nathalia') {
-      contextoLocal = "PAPEL: Nathalia Arcuri. AÃ‡ÃƒO: Fale de forma levemente irreverente sobre cortes de gastos, mas sem perder a lÃ³gica. Ensine a regra 70/30 de forma didÃ¡tica. Ocasionalmente chame o usuÃ¡rio de 'criatura', mas priorize ser uma consultora Ãºtil e analÃ­tica.";
+      contextoLocal = "PAPEL: Nathalia Arcuri. AÇÃO: Fale de forma levemente irreverente sobre cortes de gastos, mas sem perder a lógica. Ensine a regra 70/30 de forma didática. Ocasionalmente chame o usuário de 'criatura', mas priorize ser uma consultora útil e analítica.";
     } else if (selectedPersona === 'barsi') {
-      contextoLocal = "PAPEL: Luiz Barsi. AÃ‡ÃƒO: Analise a carteira focando em dividendos e longo prazo. Defenda aÃ§Ãµes sÃ³lidas e descarte a especulaÃ§Ã£o. Fale de forma madura e didÃ¡tica.";
+      contextoLocal = "PAPEL: Luiz Barsi. AÇÃO: Analise a carteira focando em dividendos e longo prazo. Defenda ações sólidas e descarte a especulação. Fale de forma madura e didática.";
     } else if (selectedPersona === 'mira') {
-      contextoLocal = "PAPEL: Professor Mira. AÃ‡ÃƒO: Assuma a postura de um professor paciente de Renda VariÃ¡vel. Explique a lÃ³gica dos investimentos de forma clara e simples.";
+      contextoLocal = "PAPEL: Professor Mira. AÇÃO: Assuma a postura de um professor paciente de Renda Variável. Explique a lógica dos investimentos de forma clara e simples.";
     } else {
       const contextosAbas = {
-        dashboard: "PAPEL: Planejador Financeiro SÃªnior.\\nAÃ‡ÃƒO: Analise a macro-visÃ£o financeira. Compare as receitas com as despesas totais. Alerte sobre desequilÃ­brios entre o que se ganha e o que se gasta. DÃª conselhos estratÃ©gicos de alto nÃ­vel para crescimento de patrimÃ´nio. Seja analÃ­tico e mire no longo prazo.",
-        diarias: "PAPEL: Gestor de Carreira / Especialista em Faturamento MÃ©dico.\\nAÃ‡ÃƒO: Analise os dias trabalhados e o valor da 'ProduÃ§Ã£o'. Avalie se o usuÃ¡rio estÃ¡ otimizando bem o tempo e o valor de cada clÃ­nica. DÃª opiniÃµes francas sobre clÃ­nicas que pagam pouco e incentive renegociaÃ§Ã£o de diÃ¡rias ou aumento de turnos onde paga mais.",
-        despesas: "PAPEL: Analista de ReduÃ§Ã£o de Custos (ImplacÃ¡vel).\\nAÃ‡ÃƒO: Inspecione rigorosamente os 'Gastos Fixos' e 'Gastos VariÃ¡veis'. Procure padrÃµes de desperdÃ­cio (como muito gasto em comida, apps ou supÃ©rfluos). Critique orÃ§amentos estourados nas Categorias e sugira aÃ§Ãµes imediatas para enxugar despesas de forma inteligente.",
-        receitas: "PAPEL: Consultor de Aumento de Renda e NegÃ³cios.\\nAÃ‡ÃƒO: Analise o SalÃ¡rio atual e rendas extras. Sugira formas de diversificaÃ§Ã£o de renda e estratÃ©gias ativas para ele faturar mais no seu serviÃ§o.",
-        lancamentos: "PAPEL: Assistente Pessoal de Contabilidade.\\nAÃ‡ÃƒO: Seu objetivo Ã© agilizar registros. Ajude o usuÃ¡rio a categorizar gastos rapidamente e aponte se o lanÃ§amento atual vai estourar a categoria dele.",
-        investimentos: "PAPEL: Assessor de Investimentos (Private Wealth).\\nAÃ‡ÃƒO: Avalie o progresso da Reserva de EmergÃªncia e Metas. Calcule mentalmente se a reserva estÃ¡ segura. DÃª dicas avanÃ§adas (como CDBs de liquidez diÃ¡ria para reserva, Tesouro Direto, e diversificaÃ§Ã£o para metas longas). Incentive aportes consistentes.",
-        cartoes: "PAPEL: Especialista em GestÃ£o de CrÃ©dito e Milhas.\\nAÃ‡ÃƒO: Foque no peso das faturas do cartÃ£o de crÃ©dito. Aconselhe fortemente contra parcelamentos longos ou atrasos (juros rotativos). Avalie se a fatura estÃ¡ consumindo uma porcentagem perigosa da receita total e ensine a usar o limite ao favor dele.",
-        extrato: "PAPEL: Auditor ContÃ¡bil.\\nAÃ‡ÃƒO: FaÃ§a anÃ¡lises precisas. Quando o usuÃ¡rio pedir um histÃ³rico de dias (como ontem ou anteontem), varra as listas de gastos/receitas e entregue relatÃ³rios exatos do fluxo de caixa e somatÃ³rias perfeitas.",
-        configuracoes: "PAPEL: Especialista de Suporte do Sistema.\\nAÃ‡ÃƒO: Ajude o usuÃ¡rio a configurar a plataforma, chaves de API e extrair o melhor do App."
+        dashboard: "PAPEL: Planejador Financeiro Sênior.\\nAÇÃO: Analise a macro-visão financeira. Compare as receitas com as despesas totais. Alerte sobre desequilíbrios entre o que se ganha e o que se gasta. Dê conselhos estratégicos de alto nível para crescimento de patrimônio. Seja analítico e mire no longo prazo.",
+        diarias: "PAPEL: Gestor de Carreira / Especialista em Faturamento Médico.\\nAÇÃO: Analise os dias trabalhados e o valor da 'Produção'. Avalie se o usuário está otimizando bem o tempo e o valor de cada clínica. Dê opiniões francas sobre clínicas que pagam pouco e incentive renegociação de diárias ou aumento de turnos onde paga mais.",
+        despesas: "PAPEL: Analista de Redução de Custos (Implacável).\\nAÇÃO: Inspecione rigorosamente os 'Gastos Fixos' e 'Gastos Variáveis'. Procure padrões de desperdício (como muito gasto em comida, apps ou supérfluos). Critique orçamentos estourados nas Categorias e sugira ações imediatas para enxugar despesas de forma inteligente.",
+        receitas: "PAPEL: Consultor de Aumento de Renda e Negócios.\\nAÇÃO: Analise o Salário atual e rendas extras. Sugira formas de diversificação de renda e estratégias ativas para ele faturar mais no seu serviço.",
+        lancamentos: "PAPEL: Assistente Pessoal de Contabilidade.\\nAÇÃO: Seu objetivo é agilizar registros. Ajude o usuário a categorizar gastos rapidamente e aponte se o lançamento atual vai estourar a categoria dele.",
+        investimentos: "PAPEL: Assessor de Investimentos (Private Wealth).\\nAÇÃO: Avalie o progresso da Reserva de Emergência e Metas. Calcule mentalmente se a reserva está segura. Dê dicas avançadas (como CDBs de liquidez diária para reserva, Tesouro Direto, e diversificação para metas longas). Incentive aportes consistentes.",
+        cartoes: "PAPEL: Especialista em Gestão de Crédito e Milhas.\\nAÇÃO: Foque no peso das faturas do cartão de crédito. Aconselhe fortemente contra parcelamentos longos ou atrasos (juros rotativos). Avalie se a fatura está consumindo uma porcentagem perigosa da receita total e ensine a usar o limite ao favor dele.",
+        extrato: "PAPEL: Auditor Contábil.\\nAÇÃO: Faça análises precisas. Quando o usuário pedir um histórico de dias (como ontem ou anteontem), varra as listas de gastos/receitas e entregue relatórios exatos do fluxo de caixa e somatórias perfeitas.",
+        configuracoes: "PAPEL: Especialista de Suporte do Sistema.\\nAÇÃO: Ajude o usuário a configurar a plataforma, chaves de API e extrair o melhor do App."
       };
-      contextoLocal = contextosAbas[this.activeTab] || 'VocÃª Ã© o consultor financeiro do usuÃ¡rio.';
+      contextoLocal = contextosAbas[this.activeTab] || 'Você é o consultor financeiro do usuário.';
     }
 
-    return `ATENÃ‡ÃƒO: VocÃª DEVE assumir TOTALMENTE a identidade e o estilo da Persona definida abaixo. NUNCA diga que vocÃª Ã© uma IA. Aja, fale e respire como a pessoa ou especialista descrito, incorporando a linguagem de forma natural em todo o texto (nÃ£o apenas colando bordÃµes no comeÃ§o).
+    return `ATENÇÃO: Você DEVE assumir TOTALMENTE a identidade e o estilo da Persona definida abaixo. NUNCA diga que você é uma IA. Aja, fale e respire como a pessoa ou especialista descrito, incorporando a linguagem de forma natural em todo o texto (não apenas colando bordões no começo).
 
 CONTEXTO E IDENTIDADE ATUAL:
 **${contextoLocal}**
 
-REGRAS DE NEGÃ“CIO:
-1. "ProduÃ§Ã£o" e "DiÃ¡rias" significam a mesma coisa: o dinheiro gerado trabalhando em clÃ­nicas no mÃªs atual.
-2. O que ele "Produz" no mÃªs atual serÃ¡ recebido como "SalÃ¡rio" (Receitas) no MÃŠS SEGUINTE.
+REGRAS DE NEGÓCIO:
+1. "Produção" e "Diárias" significam a mesma coisa: o dinheiro gerado trabalhando em clínicas no mês atual.
+2. O que ele "Produz" no mês atual será recebido como "Salário" (Receitas) no MÊS SEGUINTE.
 
-DATAS DO CALENDÃƒÂRIO (USE PARA RESPONDER PERGUNTAS SOBRE HOJE/ONTEM):
+DATAS DO CALENDÃRIO (USE PARA RESPONDER PERGUNTAS SOBRE HOJE/ONTEM):
 - HOJE: ${hojeStr}
 - ONTEM: ${ontemStr}
 
-DADOS FINANCEIROS GERAIS DO MÃŠS ATUAL (${m}):
+DADOS FINANCEIROS GERAIS DO MÊS ATUAL (${m}):
 - Saldo em Caixa (Receitas - Despesas): R$ ${saldoFinal.toFixed(2)}
-- ProduÃ§Ã£o Gerada Neste MÃªs (DiÃ¡rias trabalhadas): R$ ${producao.toFixed(2)}
-- Receitas Totais Recebidas (SalÃ¡rio): R$ ${receitas.toFixed(2)}
-- Despesas Totais (Fixas + VariÃ¡veis): R$ ${despTotal.toFixed(2)}
-- Total Investido/Aportado Neste MÃªs: R$ ${investidoNoMes.toFixed(2)}
-- Reserva de EmergÃªncia: R$ ${reservaSaldo.toFixed(2)}
+- Produção Gerada Neste Mês (Diárias trabalhadas): R$ ${producao.toFixed(2)}
+- Receitas Totais Recebidas (Salário): R$ ${receitas.toFixed(2)}
+- Despesas Totais (Fixas + Variáveis): R$ ${despTotal.toFixed(2)}
+- Total Investido/Aportado Neste Mês: R$ ${investidoNoMes.toFixed(2)}
+- Reserva de Emergência: R$ ${reservaSaldo.toFixed(2)}
 - Metas de Investimento: ${metasText || 'Nenhuma'}
-- OrÃ§amentos de Categorias VariÃ¡veis: ${catVarsText || 'Nenhuma'}
+- Orçamentos de Categorias Variáveis: ${catVarsText || 'Nenhuma'}
 
-HISTÃ“RICO DE MESES PASSADOS:
+HISTÓRICO DE MESES PASSADOS:
 ${historicoMesesText}
 
-TRANSAÃ‡Ã•ES DO MÃŠS DETALHADAS EM JSON (Procure nestes blocos de dados brutos):
+TRANSAÇÕES DO MÊS DETALHADAS EM JSON (Procure nestes blocos de dados brutos):
 \`\`\`json
 {
   "diarias_trabalhadas_producao": ${diariasText},
@@ -1463,20 +1463,20 @@ TRANSAÃ‡Ã•ES DO MÃŠS DETALHADAS EM JSON (Procure nestes blocos de dados 
 }
 \`\`\`
 
-INSTRUÃ‡Ãƒâ€¢ES CRÃTICAS PARA A SUA ATUAÃ‡ÃƒO E INTELIGÃŠNCIA:
-1. **Ã‰ ESTRITAMENTE PROIBIDO agir como um assistente de IA.** NÃ£o use frases clichÃªs. Aja 100% como a Persona.
-2. **NUNCA MENCIONE O JSON OU SEU PROCESSO MENTAL**: Ã‰ ABSOLUTAMENTE PROIBIDO falar coisas como "(olhando os dados JSON)", "(fazendo as contas)", "de acordo com o banco de dados", etc. Fale com naturalidade, como se vocÃª simplesmente TIVESSE a memÃ³ria de tudo que o usuÃ¡rio fez. Entregue os nÃºmeros de forma fluida e humana na sua conversa.
+INSTRUÇÃ•ES CRÍTICAS PARA A SUA ATUAÇÃO E INTELIGÊNCIA:
+1. **É ESTRITAMENTE PROIBIDO agir como um assistente de IA.** Não use frases clichês. Aja 100% como a Persona.
+2. **NUNCA MENCIONE O JSON OU SEU PROCESSO MENTAL**: É ABSOLUTAMENTE PROIBIDO falar coisas como "(olhando os dados JSON)", "(fazendo as contas)", "de acordo com o banco de dados", etc. Fale com naturalidade, como se você simplesmente TIVESSE a memória de tudo que o usuário fez. Entregue os números de forma fluida e humana na sua conversa.
 3. Formate sempre os valores em R$ e negrito.
-4. **RACIOCÃNIO MATEMÃƒÂTICO INVISÃVEL**: FaÃ§a as somas passo a passo MENTALMENTE e invisivelmente. Entregue apenas o resultado final confiante e exato.
-5. Cruze a "Data" das transaÃ§Ãµes do JSON com o dia de HOJE (${hojeStr}) para identificar transaÃ§Ãµes recentes, mas nÃ£o explique isso ao usuÃ¡rio.
-6. Se o usuÃ¡rio perguntar de um gasto (ex: iFood) e ele nÃ£o estiver nos dados, reaja de acordo com a sua Persona (ex: dÃª uma bronca por ele nÃ£o ter anotado), mas NUNCA use frases robÃ³ticas.
-7. REGRA DE OURO E ABSOLUTA: NUNCA, SOB NENHUMA HIPÃ“TESE, ESCREVA O SEU RACIOCÃNIO. O USUÃƒÂRIO ODEIA LER PENSAMENTOS DE IA. ENTREGUE APENAS A RESPOSTA FINAL. NUNCA EXPLIQUE COMO VOCÃŠ CHEGOU NA RESPOSTA.
-7. REGRA DE OURO: NUNCA, SOB NENHUMA HIPÃ“TESE, ESCREVA O QUE VOCÃŠ ESTÃƒÂ PENSANDO. NUNCA diga "O usuÃ¡rio quer que eu...". APENAS responda diretamente.`;
+4. **RACIOCÍNIO MATEMÃTICO INVISÍVEL**: Faça as somas passo a passo MENTALMENTE e invisivelmente. Entregue apenas o resultado final confiante e exato.
+5. Cruze a "Data" das transações do JSON com o dia de HOJE (${hojeStr}) para identificar transações recentes, mas não explique isso ao usuário.
+6. Se o usuário perguntar de um gasto (ex: iFood) e ele não estiver nos dados, reaja de acordo com a sua Persona (ex: dê uma bronca por ele não ter anotado), mas NUNCA use frases robóticas.
+7. REGRA DE OURO E ABSOLUTA: NUNCA, SOB NENHUMA HIPÓTESE, ESCREVA O SEU RACIOCÍNIO. O USUÃRIO ODEIA LER PENSAMENTOS DE IA. ENTREGUE APENAS A RESPOSTA FINAL. NUNCA EXPLIQUE COMO VOCÊ CHEGOU NA RESPOSTA.
+7. REGRA DE OURO: NUNCA, SOB NENHUMA HIPÓTESE, ESCREVA O QUE VOCÊ ESTÃ PENSANDO. NUNCA diga "O usuário quer que eu...". APENAS responda diretamente.`;
   }
 
   async callNvidia(messages, max_tokens = 500, temp = 0.7, jsonMode = false, tools = null) {
     const apiKey = this.dm.data.nvidiaApiKey;
-    if (!apiKey) throw new Error('Chave da API NVIDIA nÃ£o configurada na aba de ConfiguraÃ§Ãµes.');
+    if (!apiKey) throw new Error('Chave da API NVIDIA não configurada na aba de Configurações.');
     
     const body = {
       action: 'chat',
@@ -1555,7 +1555,7 @@ INSTRUÃ‡Ãƒâ€¢ES CRÃTICAS PARA A SUA ATUAÃ‡ÃƒO E INTELIGÃŠNCIA
     let btc = 350000;
     
     try {
-      // Taxa Selic Anual - BCB SGS SÃ©rie 432 (Meta Selic)
+      // Taxa Selic Anual - BCB SGS Série 432 (Meta Selic)
       const resSelic = await fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados/ultimos/1?formato=json');
       const dataSelic = await resSelic.json();
       if (dataSelic && dataSelic[0] && dataSelic[0].valor) {
@@ -1564,12 +1564,12 @@ INSTRUÃ‡Ãƒâ€¢ES CRÃTICAS PARA A SUA ATUAÃ‡ÃƒO E INTELIGÃŠNCIA
     } catch(e) { console.warn('Erro ao buscar Selic no BCB:', e); }
     
     try {
-      // CÃ¢mbio - AwesomeAPI
+      // Câmbio - AwesomeAPI
       const resCambio = await fetch('https://economia.awesomeapi.com.br/last/USD-BRL,BTC-BRL');
       const dataCambio = await resCambio.json();
       if (dataCambio.USDBRL) dolar = parseFloat(dataCambio.USDBRL.bid);
       if (dataCambio.BTCBRL) btc = parseFloat(dataCambio.BTCBRL.bid);
-    } catch(e) { console.warn('Erro ao buscar DÃ³lar/BTC:', e); }
+    } catch(e) { console.warn('Erro ao buscar Dólar/BTC:', e); }
     
     return { selic, cdi: selic - 0.1, dolar, btc };
   }
@@ -1599,7 +1599,7 @@ INSTRUÃ‡Ãƒâ€¢ES CRÃTICAS PARA A SUA ATUAÃ‡ÃƒO E INTELIGÃŠNCIA
         let cols = line.split('|').slice(1, -1).map(c => c.trim());
         tableHtml += '<tr>';
         cols.forEach(col => {
-           // Checar se Ã© a primeira linha para th
+           // Checar se é a primeira linha para th
            if (i === 0 || lines[i-1].includes('---')) {
              tableHtml += `<th>${col.replace(/\*\*/g, '')}</th>`;
            } else {
@@ -1636,7 +1636,7 @@ INSTRUÃ‡Ãƒâ€¢ES CRÃTICAS PARA A SUA ATUAÃ‡ÃƒO E INTELIGÃŠNCIA
     const btn = document.getElementById('btnGerarConsultoria');
     
     if (!this.dm.data.nvidiaApiKey) {
-      showToast('Configure a chave da API NVIDIA nas ConfiguraÃ§Ãµes!', 'error');
+      showToast('Configure a chave da API NVIDIA nas Configurações!', 'error');
       return;
     }
     
@@ -1648,7 +1648,7 @@ INSTRUÃ‡Ãƒâ€¢ES CRÃTICAS PARA A SUA ATUAÃ‡ÃƒO E INTELIGÃŠNCIA
     try {
       // 1. Fetch Dados Reais
       const marketData = await this.fetchMarketData();
-      marketEl.innerHTML = `<strong>Taxas Atuais (Tempo Real):</strong> Selic: ${marketData.selic}% a.a. | CDI: ${marketData.cdi.toFixed(2)}% a.a. | DÃ³lar: R$ ${marketData.dolar.toFixed(2)} | BTC: R$ ${marketData.btc.toLocaleString('pt-BR')}`;
+      marketEl.innerHTML = `<strong>Taxas Atuais (Tempo Real):</strong> Selic: ${marketData.selic}% a.a. | CDI: ${marketData.cdi.toFixed(2)}% a.a. | Dólar: R$ ${marketData.dolar.toFixed(2)} | BTC: R$ ${marketData.btc.toLocaleString('pt-BR')}`;
       marketEl.classList.remove('hidden');
       
       // 2. Prepara Contexto Base
@@ -1664,41 +1664,41 @@ INSTRUÃ‡Ãƒâ€¢ES CRÃTICAS PARA A SUA ATUAÃ‡ÃƒO E INTELIGÃŠNCIA
       (this.dm.data.metas || []).forEach(mt => { totalMetasAcumulado += (mt.valorAtual || 0); });
       const patrimonioTotal = reservaSaldo + totalMetasAcumulado;
       
-      const targetAporte = availableMoney > 0 ? availableMoney : (receitas * 0.3); // Sugere aportar 30% da receita se nÃ£o sobrar nada
+      const targetAporte = availableMoney > 0 ? availableMoney : (receitas * 0.3); // Sugere aportar 30% da receita se não sobrar nada
       const strAporte = targetAporte > 0 ? targetAporte.toFixed(2) : '1000.00';
       
-      let filosofiaInstrucao = "Especifique ativos reais de mercado focados em diversificaÃ§Ã£o.";
+      let filosofiaInstrucao = "Especifique ativos reais de mercado focados em diversificação.";
       if (selectedPersonaId === 'thiago') {
-        filosofiaInstrucao = "Siga ESTRITAMENTE a metodologia ARCA: AÃ§Ãµes (nacionais), Real Estate (FIIs), Caixa (Renda Fixa/Tesouro) e Ativos Internacionais (BDRs/ETFs). A tabela DEVE dividir os aportes nestas 4 categorias e sugerir um ativo real para cada (ex: BOVA11, VISC11, Tesouro Selic, IVVB11).";
+        filosofiaInstrucao = "Siga ESTRITAMENTE a metodologia ARCA: Ações (nacionais), Real Estate (FIIs), Caixa (Renda Fixa/Tesouro) e Ativos Internacionais (BDRs/ETFs). A tabela DEVE dividir os aportes nestas 4 categorias e sugerir um ativo real para cada (ex: BOVA11, VISC11, Tesouro Selic, IVVB11).";
       } else if (selectedPersonaId === 'bruno') {
-        filosofiaInstrucao = "Siga a estratÃ©gia do Barbell (anti-fragilidade) e longo prazo: maior peso em Tesouro IPCA+ longo (seguranÃ§a/renda fixa) e uma parte em Bitcoin/Cripto ou AÃ§Ãµes de valor. Sugira ativos como Tesouro IPCA+, BTC e AÃ§Ãµes.";
+        filosofiaInstrucao = "Siga a estratégia do Barbell (anti-fragilidade) e longo prazo: maior peso em Tesouro IPCA+ longo (segurança/renda fixa) e uma parte em Bitcoin/Cripto ou Ações de valor. Sugira ativos como Tesouro IPCA+, BTC e Ações.";
       } else if (selectedPersonaId === 'nathalia') {
-        filosofiaInstrucao = "Foque pesado na Reserva de EmergÃªncia (Tesouro Selic ou CDB 100%+ CDI com liquidez diÃ¡ria). SÃ³ sugira Renda VariÃ¡vel se o patrimÃ´nio jÃ¡ for alto. Recomende CDBs de bancos mÃ©dios ou Tesouro IPCA.";
+        filosofiaInstrucao = "Foque pesado na Reserva de Emergência (Tesouro Selic ou CDB 100%+ CDI com liquidez diária). Só sugira Renda Variável se o patrimônio já for alto. Recomende CDBs de bancos médios ou Tesouro IPCA.";
       } else if (selectedPersonaId === 'barsi') {
-        filosofiaInstrucao = "Foco 100% em AÃ‡Ã•ES BOAS PAGADORAS DE DIVIDENDOS (Setores BEST: Bancos, Energia, Saneamento, Telecom, Seguros). NUNCA recomende Renda Fixa (chame de 'perda fixa'). Sugira aÃ§Ãµes reais (ex: TAEE11, BBAS3, KLBN11, EGIE3, SANB11).";
+        filosofiaInstrucao = "Foco 100% em AÇÕES BOAS PAGADORAS DE DIVIDENDOS (Setores BEST: Bancos, Energia, Saneamento, Telecom, Seguros). NUNCA recomende Renda Fixa (chame de 'perda fixa'). Sugira ações reais (ex: TAEE11, BBAS3, KLBN11, EGIE3, SANB11).";
       } else if (selectedPersonaId === 'mira') {
-        filosofiaInstrucao = "Foco em montar uma carteira de FIIs (Fundos ImobiliÃ¡rios) e AÃ§Ãµes para gerar renda passiva (dividendos mensais) com seguranÃ§a. Sugira ativos reais (ex: MXRF11, HGLG11, BTLG11 e aÃ§Ãµes perenes).";
+        filosofiaInstrucao = "Foco em montar uma carteira de FIIs (Fundos Imobiliários) e Ações para gerar renda passiva (dividendos mensais) com segurança. Sugira ativos reais (ex: MXRF11, HGLG11, BTLG11 e ações perenes).";
       }
 
       const consultoriaPrompt = `
-VocÃª Ã© a Persona definida no sistema. 
+Você é a Persona definida no sistema. 
 TAREFA EXCLUSIVA: Fazer uma Consultoria de Aportes baseada nos dados do mercado em TEMPO REAL.
 
-DADOS DE PATRIMÃ”NIO DO USUÃƒÂRIO:
-- PatrimÃ´nio Total Investido: R$ ${patrimonioTotal.toFixed(2)}
-- SalÃ¡rio/Receitas deste mÃªs: R$ ${receitas.toFixed(2)}
+DADOS DE PATRIMÔNIO DO USUÃRIO:
+- Patrimônio Total Investido: R$ ${patrimonioTotal.toFixed(2)}
+- Salário/Receitas deste mês: R$ ${receitas.toFixed(2)}
 - Capital livre sugerido para aportar AGORA: R$ ${strAporte}
 
 DADOS DE MERCADO HOJE:
 - Selic: ${marketData.selic}% ao ano
 - CDI: ${marketData.cdi.toFixed(2)}% ao ano
-- DÃ³lar: R$ ${marketData.dolar.toFixed(2)}
+- Dólar: R$ ${marketData.dolar.toFixed(2)}
 - Bitcoin: R$ ${marketData.btc}
 
-REGRAS OBRIGATÃ“RIAS:
-1. Comece com 1 ou 2 parÃ¡grafos analisando o PatrimÃ´nio Total dele e sugerindo em quais ativos ele deve investir os R$ ${strAporte} livres hoje, usando as taxas atuais de mercado. O seu texto inicial DEVE incorporar muito fortemente o seu tom de voz, seus jargÃµes e sua metodologia.
-2. A SUA ÃšNICA RESPOSTA ESTRUTURAL DEVE CONTER UMA TABELA MARKDOWN EXATA COM ESTAS COLUNAS: | Ativo | Valor (R$) | Porcentagem (%) | RecorrÃªncia |
-3. REGRAS DE ALOCAÃ‡ÃƒO DA SUA PERSONA: ${filosofiaInstrucao}
+REGRAS OBRIGATÓRIAS:
+1. Comece com 1 ou 2 parágrafos analisando o Patrimônio Total dele e sugerindo em quais ativos ele deve investir os R$ ${strAporte} livres hoje, usando as taxas atuais de mercado. O seu texto inicial DEVE incorporar muito fortemente o seu tom de voz, seus jargões e sua metodologia.
+2. A SUA ÚNICA RESPOSTA ESTRUTURAL DEVE CONTER UMA TABELA MARKDOWN EXATA COM ESTAS COLUNAS: | Ativo | Valor (R$) | Porcentagem (%) | Recorrência |
+3. REGRAS DE ALOCAÇÃO DA SUA PERSONA: ${filosofiaInstrucao}
 4. O Valor na tabela deve dividir EXATAMENTE os R$ ${strAporte}. A soma das porcentagens deve dar 100%.`;
 
       const msgList = [
@@ -1724,7 +1724,7 @@ REGRAS OBRIGATÃ“RIAS:
 
   async consultarIA() {
     if (!this.dm.data.nvidiaApiKey) {
-      showToast('Configure a Chave Groq na aba ConfiguraÃ§Ãµes.', 'error');
+      showToast('Configure a Chave Groq na aba Configurações.', 'error');
       return;
     }
     openModal('modalIA');
@@ -1736,32 +1736,32 @@ REGRAS OBRIGATÃ“RIAS:
         this.conversationHistory = [{ role: 'system', content: sysPrompt }];
         
         const abasWelcome = {
-          dashboard: "OlÃ¡! Sou o FinZoni, seu consultor financeiro. JÃ¡ cruzei todos os seus saldos, despesas e metas. Como posso te ajudar na visÃ£o geral?",
-          diarias: "OlÃ¡! Sou o FinZoni, seu Gerente de Carreira. Analisei os seus dias trabalhados e a sua ProduÃ§Ã£o. Quer dicas de como maximizar seus ganhos nas clÃ­nicas?",
-          despesas: "OlÃ¡! Sou o FinZoni. JÃ¡ listei todos os seus gastos fixos e variÃ¡veis. Quer que eu faÃ§a uma varredura para encontrarmos onde cortar gastos?",
-          receitas: "OlÃ¡! Sou o FinZoni. Quer ajuda para analisar as suas fontes de renda e planejar o aumento do seu faturamento?",
-          lancamentos: "OlÃ¡! Sou o FinZoni. Posso ajudar a analisar seus gastos. O que vocÃª gostaria de saber hoje?",
-          investimentos: "OlÃ¡! Sou o FinZoni, seu Consultor de Investimentos. Analisei suas Metas e Reserva. Quer dicas para bater suas metas mais rÃ¡pido?",
-          cartoes: "OlÃ¡! Sou o FinZoni, especialista em CrÃ©dito. Estou de olho nas suas faturas para garantir que nÃ£o pague juros. Tem dÃºvidas sobre suas compras?",
-          extrato: "OlÃ¡! Sou o FinZoni. Posso varrer o seu extrato e fluxo de caixa detalhado. O que quer procurar?",
-          configuracoes: "OlÃ¡! Sou o FinZoni. Precisa de ajuda com as configuraÃ§Ãµes do sistema?"
+          dashboard: "Olá! Sou o FinZoni, seu consultor financeiro. Já cruzei todos os seus saldos, despesas e metas. Como posso te ajudar na visão geral?",
+          diarias: "Olá! Sou o FinZoni, seu Gerente de Carreira. Analisei os seus dias trabalhados e a sua Produção. Quer dicas de como maximizar seus ganhos nas clínicas?",
+          despesas: "Olá! Sou o FinZoni. Já listei todos os seus gastos fixos e variáveis. Quer que eu faça uma varredura para encontrarmos onde cortar gastos?",
+          receitas: "Olá! Sou o FinZoni. Quer ajuda para analisar as suas fontes de renda e planejar o aumento do seu faturamento?",
+          lancamentos: "Olá! Sou o FinZoni. Posso ajudar a analisar seus gastos. O que você gostaria de saber hoje?",
+          investimentos: "Olá! Sou o FinZoni, seu Consultor de Investimentos. Analisei suas Metas e Reserva. Quer dicas para bater suas metas mais rápido?",
+          cartoes: "Olá! Sou o FinZoni, especialista em Crédito. Estou de olho nas suas faturas para garantir que não pague juros. Tem dúvidas sobre suas compras?",
+          extrato: "Olá! Sou o FinZoni. Posso varrer o seu extrato e fluxo de caixa detalhado. O que quer procurar?",
+          configuracoes: "Olá! Sou o FinZoni. Precisa de ajuda com as configurações do sistema?"
         };
 
         const selectorEl = document.getElementById('iaPersonaSelector');
         const selectedPersona = selectorEl ? selectorEl.value : 'auto';
 
-        let welcomeMsg = abasWelcome[this.activeTab] || "OlÃ¡! Eu sou o FinZoni. Como posso ajudar vocÃª hoje?";
+        let welcomeMsg = abasWelcome[this.activeTab] || "Olá! Eu sou o FinZoni. Como posso ajudar você hoje?";
 
         if (selectedPersona === 'thiago') {
-          welcomeMsg = "E aÃ­, Primo! Aqui Ã© o Thiago Nigro. JÃ¡ dei uma olhada na sua carteira e no seu caixa. Vamos aplicar o mÃ©todo ARCA e buscar a sua liberdade financeira hoje? O que quer analisar?";
+          welcomeMsg = "E aí, Primo! Aqui é o Thiago Nigro. Já dei uma olhada na sua carteira e no seu caixa. Vamos aplicar o método ARCA e buscar a sua liberdade financeira hoje? O que quer analisar?";
         } else if (selectedPersona === 'bruno') {
-          welcomeMsg = "OlÃ¡. Aqui Ã© o Bruno Perini. Analisei seus nÃºmeros. O segredo da riqueza Ã© o aporte constante e a disciplina de longo prazo. Qual Ã¡rea da sua vida financeira vamos organizar hoje?";
+          welcomeMsg = "Olá. Aqui é o Bruno Perini. Analisei seus números. O segredo da riqueza é o aporte constante e a disciplina de longo prazo. Qual área da sua vida financeira vamos organizar hoje?";
         } else if (selectedPersona === 'nathalia') {
-          welcomeMsg = "Me Poupe, nÃ© Criatura! Que bagunÃ§a (ou nÃ£o) Ã© essa? Aqui Ã© a Nathalia Arcuri e eu tÃ´ pronta pra pegar no seu pÃ© e te fazer economizar pra investir. Vamos aplicar a regra 70/30?";
+          welcomeMsg = "Me Poupe, né Criatura! Que bagunça (ou não) é essa? Aqui é a Nathalia Arcuri e eu tô pronta pra pegar no seu pé e te fazer economizar pra investir. Vamos aplicar a regra 70/30?";
         } else if (selectedPersona === 'barsi') {
-          welcomeMsg = "OlÃ¡, meu jovem. Aqui Ã© o Barsi. Lembre-se: AÃ§Ãµes garantem o futuro. Nada de perda fixa ou especulaÃ§Ã£o. Quer que o vovÃ´ analise seus aportes para buscarmos bons dividendos?";
+          welcomeMsg = "Olá, meu jovem. Aqui é o Barsi. Lembre-se: Ações garantem o futuro. Nada de perda fixa ou especulação. Quer que o vovô analise seus aportes para buscarmos bons dividendos?";
         } else if (selectedPersona === 'mira') {
-          welcomeMsg = "Fala, galera! Aqui Ã© o Professor Mira. JÃ¡ vesti a camisa e estou pronto pra te ensinar como dar o prÃ³ximo passo na Renda VariÃ¡vel sem medo. Qual a dÃºvida de hoje?";
+          welcomeMsg = "Fala, galera! Aqui é o Professor Mira. Já vesti a camisa e estou pronto pra te ensinar como dar o próximo passo na Renda Variável sem medo. Qual a dúvida de hoje?";
         }
 
         this.conversationHistory.push({ role: 'assistant', content: welcomeMsg });
@@ -1877,7 +1877,7 @@ REGRAS OBRIGATÃ“RIAS:
     
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      showToast('Seu navegador nÃ£o suporta reconhecimento de voz.', 'error');
+      showToast('Seu navegador não suporta reconhecimento de voz.', 'error');
       return;
     }
     
@@ -1955,7 +1955,7 @@ REGRAS OBRIGATÃ“RIAS:
       histDiv.innerHTML += `
         <div id="iaLoadingIndicator" style="display:flex; justify-content:flex-start; width:100%; margin-top:5px;">
           <div style="background:var(--bg-card); border:1px solid var(--border-color); color:var(--text-primary); padding:12px 16px; border-radius:12px; font-size:0.9rem; opacity:0.7;">
-            <span style="display:inline-block; animation: blink 1.4s infinite both;">âœ¨</span> Processando...
+            <span style="display:inline-block; animation: blink 1.4s infinite both;">✨</span> Processando...
           </div>
         </div>
       `;
@@ -1968,7 +1968,7 @@ REGRAS OBRIGATÃ“RIAS:
         "type": "function",
         "function": {
           "name": "resumo_financeiro",
-          "description": "ObtÃ©m o saldo atual e o resumo financeiro (receitas, despesas, saldo restante).",
+          "description": "Obtém o saldo atual e o resumo financeiro (receitas, despesas, saldo restante).",
           "parameters": { "type": "object", "properties": {} }
         }
       },
@@ -1976,7 +1976,7 @@ REGRAS OBRIGATÃ“RIAS:
         "type": "function",
         "function": {
           "name": "listar_categorias",
-          "description": "Lista todas as categorias variÃ¡veis disponÃ­veis e seus IDs.",
+          "description": "Lista todas as categorias variáveis disponíveis e seus IDs.",
           "parameters": { "type": "object", "properties": {} }
         }
       },
@@ -1984,7 +1984,7 @@ REGRAS OBRIGATÃ“RIAS:
         "type": "function",
         "function": {
           "name": "listar_despesas_variaveis",
-          "description": "Lista as despesas variÃ¡veis (gastos extras) cadastradas. Retorna id, descricao, valor, data.",
+          "description": "Lista as despesas variáveis (gastos extras) cadastradas. Retorna id, descricao, valor, data.",
           "parameters": { "type": "object", "properties": {} }
         }
       },
@@ -1992,12 +1992,12 @@ REGRAS OBRIGATÃ“RIAS:
         "type": "function",
         "function": {
           "name": "adicionar_despesa",
-          "description": "Adiciona uma nova despesa variÃ¡vel (gasto variÃ¡vel).",
+          "description": "Adiciona uma nova despesa variável (gasto variável).",
           "parameters": {
             "type": "object",
             "properties": {
-              "descricao": { "type": "string", "description": "Nome da despesa (ex: AlmoÃ§o Burger King)" },
-              "valor": { "type": "number", "description": "Valor numÃ©rico (ex: 35.50)" },
+              "descricao": { "type": "string", "description": "Nome da despesa (ex: Almoço Burger King)" },
+              "valor": { "type": "number", "description": "Valor numérico (ex: 35.50)" },
               "data": { "type": "string", "description": "Data no formato YYYY-MM-DD" },
               "categoriaId": { "type": "string", "description": "ID da categoria." }
             },
@@ -2009,7 +2009,7 @@ REGRAS OBRIGATÃ“RIAS:
         "type": "function",
         "function": {
           "name": "excluir_despesa",
-          "description": "Remove uma despesa variÃ¡vel pelo seu ID.",
+          "description": "Remove uma despesa variável pelo seu ID.",
           "parameters": {
             "type": "object",
             "properties": {
@@ -2027,8 +2027,8 @@ REGRAS OBRIGATÃ“RIAS:
           "parameters": {
             "type": "object",
             "properties": {
-              "descricao": { "type": "string", "description": "Nome da receita (ex: SalÃ¡rio)" },
-              "valor": { "type": "number", "description": "Valor numÃ©rico (ex: 2000.00)" },
+              "descricao": { "type": "string", "description": "Nome da receita (ex: Salário)" },
+              "valor": { "type": "number", "description": "Valor numérico (ex: 2000.00)" },
               "data": { "type": "string", "description": "Data no formato YYYY-MM-DD" }
             },
             "required": ["descricao", "valor", "data"]
@@ -2061,14 +2061,14 @@ REGRAS OBRIGATÃ“RIAS:
         "type": "function",
         "function": {
           "name": "adicionar_despesa_fixa",
-          "description": "Adiciona um gasto fixo (que se repete todo mÃªs).",
+          "description": "Adiciona um gasto fixo (que se repete todo mês).",
           "parameters": {
             "type": "object",
             "properties": {
               "descricao": { "type": "string", "description": "Nome (ex: Conta de Luz)" },
-              "valor": { "type": "number", "description": "Valor numÃ©rico (ex: 150.00)" },
+              "valor": { "type": "number", "description": "Valor numérico (ex: 150.00)" },
               "vencimento": { "type": "number", "description": "Dia do vencimento (1 a 31)" },
-              "compartilhado": { "type": "boolean", "description": "Se Ã© dividido (divide o valor por 2)" }
+              "compartilhado": { "type": "boolean", "description": "Se é dividido (divide o valor por 2)" }
             },
             "required": ["descricao", "valor", "vencimento"]
           }
@@ -2100,12 +2100,12 @@ REGRAS OBRIGATÃ“RIAS:
         "type": "function",
         "function": {
           "name": "adicionar_cartao",
-          "description": "Adiciona um novo cartÃ£o de crÃ©dito.",
+          "description": "Adiciona um novo cartão de crédito.",
           "parameters": {
             "type": "object",
             "properties": {
-              "nome": { "type": "string", "description": "Nome do cartÃ£o (ex: Nubank, Mercado Pago)" },
-              "limite": { "type": "number", "description": "Limite total do cartÃ£o (ex: 5000.00)" },
+              "nome": { "type": "string", "description": "Nome do cartão (ex: Nubank, Mercado Pago)" },
+              "limite": { "type": "number", "description": "Limite total do cartão (ex: 5000.00)" },
               "fechamento": { "type": "number", "description": "Dia do fechamento (1 a 31)" },
               "vencimento": { "type": "number", "description": "Dia do vencimento da fatura (1 a 31)" }
             },
@@ -2117,7 +2117,7 @@ REGRAS OBRIGATÃ“RIAS:
         "type": "function",
         "function": {
           "name": "listar_cartoes",
-          "description": "Lista todos os cartÃµes de crÃ©dito cadastrados e seus IDs.",
+          "description": "Lista todos os cartões de crédito cadastrados e seus IDs.",
           "parameters": { "type": "object", "properties": {} }
         }
       },
@@ -2125,15 +2125,15 @@ REGRAS OBRIGATÃ“RIAS:
         "type": "function",
         "function": {
           "name": "adicionar_compra_cartao",
-          "description": "LanÃ§a uma nova compra parcelada ou Ã  vista em um cartÃ£o de crÃ©dito.",
+          "description": "Lança uma nova compra parcelada ou à vista em um cartão de crédito.",
           "parameters": {
             "type": "object",
             "properties": {
-              "cartaoId": { "type": "string", "description": "ID do cartÃ£o onde a compra foi feita." },
-              "descricao": { "type": "string", "description": "DescriÃ§Ã£o da compra (ex: TV, Supermercado)" },
+              "cartaoId": { "type": "string", "description": "ID do cartão onde a compra foi feita." },
+              "descricao": { "type": "string", "description": "Descrição da compra (ex: TV, Supermercado)" },
               "data": { "type": "string", "description": "Data da compra (YYYY-MM-DD)" },
               "valorTotal": { "type": "number", "description": "Valor total da compra (ex: 2000.00)" },
-              "parcelas": { "type": "number", "description": "Quantidade de parcelas (1 para Ã  vista)" }
+              "parcelas": { "type": "number", "description": "Quantidade de parcelas (1 para à vista)" }
             },
             "required": ["cartaoId", "descricao", "data", "valorTotal", "parcelas"]
           }
@@ -2217,7 +2217,7 @@ REGRAS OBRIGATÃ“RIAS:
                  modifiedData = true;
                  result = "Despesa removida com sucesso.";
               } else {
-                 result = "Erro: Despesa nÃ£o encontrada.";
+                 result = "Erro: Despesa não encontrada.";
               }
             }
             else if (funcName === 'adicionar_receita') {
@@ -2243,9 +2243,9 @@ REGRAS OBRIGATÃ“RIAS:
               if (loc) {
                  this.dm.data.meses[loc.mes].receitas.splice(loc.idx, 1);
                  modifiedData = true;
-                 result = "Receita excluÃ­da.";
+                 result = "Receita excluída.";
               } else {
-                 result = "Erro: Receita nÃ£o encontrada.";
+                 result = "Erro: Receita não encontrada.";
               }
             }
             else if (funcName === 'adicionar_despesa_fixa') {
@@ -2271,9 +2271,9 @@ REGRAS OBRIGATÃ“RIAS:
               if (loc) {
                  this.dm.data.meses[loc.mes].gastosFixos.splice(loc.idx, 1);
                  modifiedData = true;
-                 result = "Despesa fixa excluÃ­da.";
+                 result = "Despesa fixa excluída.";
               } else {
-                 result = "Erro: Despesa fixa nÃ£o encontrada.";
+                 result = "Erro: Despesa fixa não encontrada.";
               }
             }
 
@@ -2289,7 +2289,7 @@ REGRAS OBRIGATÃ“RIAS:
               if (!this.dm.data.cartoes) this.dm.data.cartoes = [];
               this.dm.data.cartoes.push(c);
               modifiedData = true;
-              result = `CartÃ£o adicionado. ID: ${c.id}`;
+              result = `Cartão adicionado. ID: ${c.id}`;
             }
             else if (funcName === 'listar_cartoes') {
               result = JSON.stringify(this.dm.data.cartoes || []);
@@ -2307,10 +2307,10 @@ REGRAS OBRIGATÃ“RIAS:
               if (!this.dm.data.comprasCartao) this.dm.data.comprasCartao = [];
               this.dm.data.comprasCartao.push(compra);
               modifiedData = true;
-              result = `Compra no cartÃ£o adicionada com sucesso. ID: ${compra.id}`;
+              result = `Compra no cartão adicionada com sucesso. ID: ${compra.id}`;
             }
             else {
-              result = "Ferramenta nÃ£o reconhecida.";
+              result = "Ferramenta não reconhecida.";
             }
 
             this.conversationHistory.push({
@@ -2337,7 +2337,7 @@ REGRAS OBRIGATÃ“RIAS:
         }
       }
     } catch(e) {
-      this.conversationHistory.push({ role: 'assistant', content: `âŒ Erro: ${e.message}` });
+      this.conversationHistory.push({ role: 'assistant', content: `❌ Erro: ${e.message}` });
     }
     
     const lInd = document.getElementById('iaLoadingIndicator');
@@ -2352,21 +2352,21 @@ REGRAS OBRIGATÃ“RIAS:
     if (!catLabel || !catSelect || !this.dm.data.nvidiaApiKey) return;
     
     catLabel.style.display = 'block';
-    catLabel.innerText = 'âœ¨ IA analisando transaÃ§Ã£o...';
+    catLabel.innerText = '✨ IA analisando transação...';
 
     const catDisp = (this.dm.data.categoriasVariaveis || []).map(c => ({ id: c.id, nome: c.nome }));
     if (catDisp.length === 0) { catLabel.style.display = 'none'; return; }
 
-    const prompt = `VocÃª classifica despesas. Despesa: "${descricao}".
+    const prompt = `Você classifica despesas. Despesa: "${descricao}".
 Categorias: ${JSON.stringify(catDisp)}
-Retorne JSON com {"categoriaId": "id_da_categoria_escolhida"}. Se nÃ£o conseguir, devolva a id da primeira. OBRIGATÃ“RIO DEVOLVER UM JSON VALIDO.`;
+Retorne JSON com {"categoriaId": "id_da_categoria_escolhida"}. Se não conseguir, devolva a id da primeira. OBRIGATÓRIO DEVOLVER UM JSON VALIDO.`;
 
     try {
       const result = await this.callNvidia([{role: 'user', content: prompt}], 150, 0.1, true);
       const obj = JSON.parse(result);
       if (obj.categoriaId) {
         catSelect.value = obj.categoriaId;
-        catLabel.innerText = 'âœ¨ Categoria auto-preenchida';
+        catLabel.innerText = '✨ Categoria auto-preenchida';
         setTimeout(() => { catLabel.style.display = 'none'; }, 2000);
       } else { catLabel.style.display = 'none'; }
     } catch(e) { catLabel.style.display = 'none'; }
@@ -2380,7 +2380,7 @@ Retorne JSON com {"categoriaId": "id_da_categoria_escolhida"}. Se nÃ£o consegu
     if(!this.dm.data.nvidiaApiKey) { showToast('Configure a API Key da Groq primeiro.', 'error'); return; }
 
     input.disabled = true;
-    btn.innerHTML = 'âœ¨ Processando...';
+    btn.innerHTML = '✨ Processando...';
 
     const catDisp = (this.dm.data.categoriasVariaveis || []).map(c => ({ id: c.id, nome: c.nome }));
     const hoje = new Date().toISOString().slice(0,10);
@@ -2411,12 +2411,12 @@ Extraia os dados em formato JSON estrito, adivinhando a categoria correta:
 
       this.dm.save();
       this.renderAll();
-      showToast('âœ¨ LanÃ§amento MÃ¡gico adicionado!', 'success');
+      showToast('✨ Lançamento Mágico adicionado!', 'success');
       input.value = '';
     } catch(e) { showToast('Erro na IA: ' + e.message, 'error'); }
 
     input.disabled = false;
-    btn.innerHTML = 'LanÃ§ar MÃ¡gica';
+    btn.innerHTML = 'Lançar Mágica';
     input.focus();
   }
 
@@ -2426,15 +2426,15 @@ Extraia os dados em formato JSON estrito, adivinhando a categoria correta:
     const mesObj = this.dm.getMonth(m);
     
     const semCat = mesObj.gastosVariaveis.filter(g => !g.categoriaId);
-    if(semCat.length === 0) { showToast('NÃ£o hÃ¡ despesas variÃ¡veis sem categoria neste mÃªs!', 'info'); return; }
+    if(semCat.length === 0) { showToast('Não há despesas variáveis sem categoria neste mês!', 'info'); return; }
 
     if(!confirm(`Deseja categorizar magicamente ${semCat.length} despesas de ${m} usando IA?`)) return;
-    showToast('âœ¨ Analisando histÃ³rico...', 'info');
+    showToast('✨ Analisando histórico...', 'info');
 
     const catDisp = (this.dm.data.categoriasVariaveis || []).map(c => ({ id: c.id, nome: c.nome }));
     const mapeamento = semCat.map(g => ({ id: g.id, descricao: g.descricao, valor: g.valor }));
 
-    const prompt = `Categorize estas despesas. Categorias DisponÃ­veis: ${JSON.stringify(catDisp)}
+    const prompt = `Categorize estas despesas. Categorias Disponíveis: ${JSON.stringify(catDisp)}
 Despesas: ${JSON.stringify(mapeamento)}
 Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_categoria"} ]}`;
 
@@ -2448,13 +2448,13 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
           const despesa = mesObj.gastosVariaveis.find(g => g.id === res.id);
           if (despesa) { despesa.categoriaId = res.categoriaId; mudados++; }
         });
-        if (mudados > 0) { this.dm.save(); this.renderAll(); showToast(`âœ¨ ${mudados} despesas categorizadas!`, 'success'); }
+        if (mudados > 0) { this.dm.save(); this.renderAll(); showToast(`✨ ${mudados} despesas categorizadas!`, 'success'); }
       }
     } catch(e) { showToast('Erro ao categorizar: ' + e.message, 'error'); }
   }
 
 
-  // â”€â”€ RENDER ALL â”€â”€
+  // ── RENDER ALL ──
   renderAll() {
     this.updateMonthLabel();
     this.renderDashboard();
@@ -2480,7 +2480,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     }
   }
 
-  // â”€â”€ DASHBOARD â”€â”€
+  // ── DASHBOARD ──
   renderDashboard() {
     this.checkAndFetchInsight();
     
@@ -2488,7 +2488,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     const totalReceitas = this.calcTotalReceitas(m);
     const resumo = this.calcResumoDespesas(m);
     
-    // Calcula investimentos do mÃªs atual
+    // Calcula investimentos do mês atual
     let investidoNoMes = 0;
     const currentMonthStr = String(m).padStart(2, '0');
     const prefix = `${YEAR}-${currentMonthStr}`;
@@ -2533,7 +2533,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
 
     // Forecast
     const pct = forecast > 0 ? Math.min(100, (producaoMes / forecast) * 100) : 0;
-    document.getElementById('forecastPercent').textContent = `${pct.toFixed(1)}% alcanÃ§ado`;
+    document.getElementById('forecastPercent').textContent = `${pct.toFixed(1)}% alcançado`;
     document.getElementById('forecastProgressBar').style.width = `${pct}%`;
 
     // Forecast grid
@@ -2548,7 +2548,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
         <div class="forecast-item">
           <div class="forecast-label">${escapeHTML(c.nome)}</div>
           <div class="forecast-value" style="color:${c.cor}">${formatCurrency(previsto)}</div>
-          <div class="fs-sm" style="color:var(--text-muted)">${dias} dias Ã— ${formatCurrency(c.diariaPadrao)}</div>
+          <div class="fs-sm" style="color:var(--text-muted)">${dias} dias × ${formatCurrency(c.diariaPadrao)}</div>
         </div>`;
     });
     fgHTML += `
@@ -2581,7 +2581,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     if (!contentEl) return;
 
     if (!apiKey) {
-      contentEl.innerText = "VÃ¡ em ConfiguraÃ§Ãµes e insira sua chave da Groq para receber as anÃ¡lises da InteligÃªncia Artificial.";
+      contentEl.innerText = "Vá em Configurações e insira sua chave da Groq para receber as análises da Inteligência Artificial.";
       if(timerEl) timerEl.innerText = "IA Desconectada";
       return;
     }
@@ -2605,7 +2605,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       return;
     }
 
-    contentEl.innerHTML = "Lendo e processando seu fluxo de caixa para este turno... Ã°Å¸Â§Â ";
+    contentEl.innerHTML = "Lendo e processando seu fluxo de caixa para este turno... ðŸ§ ";
     if(timerEl) timerEl.innerText = "Analisando...";
     
     try {
@@ -2618,7 +2618,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
           model: this.dm.data.nvidiaModel || 'meta/llama-3.1-8b-instruct',
           messages: [
             { role: 'system', content: sysPrompt },
-            { role: 'user', content: "Aja como um analista de dados frio e genial. Leia o contexto de nÃºmeros do dashboard. ForneÃ§a APENAS a dica final. NUNCA escreva seus pensamentos, NUNCA escreva 'The user wants me to...', NUNCA explique sua lÃ³gica. MÃ¡ximo 2 frases. Use emojis." }
+            { role: 'user', content: "Aja como um analista de dados frio e genial. Leia o contexto de números do dashboard. Forneça APENAS a dica final. NUNCA escreva seus pensamentos, NUNCA escreva 'The user wants me to...', NUNCA explique sua lógica. Máximo 2 frases. Use emojis." }
           ],
           temperature: 0.2,
           max_tokens: 150
@@ -2650,10 +2650,10 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       const novoInsight = txt;
 
       
-            // Formata markdown bÃ¡sico antes de salvar e exibir
+            // Formata markdown básico antes de salvar e exibir
       const formattedInsight = novoInsight
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // negrito
-        .replace(/\*(.*?)\*/g, '<em>$1</em>') // itÃ¡lico
+        .replace(/\*(.*?)\*/g, '<em>$1</em>') // itálico
         .replace(/\n/g, '<br/>'); // quebra de linha
 
       this.dm.data.insightTurnoId = idTurno;
@@ -2664,12 +2664,12 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       if(timerEl) timerEl.innerText = `Turno Atual ${turnosNomes[turnoAtual]}`;
       
     } catch (e) {
-      contentEl.innerHTML = "A IA estava pensando fundo demais e nÃ£o conseguiu responder. Verifique sua conexÃ£o ou tente mais tarde.";
-      if(timerEl) timerEl.innerText = "Falha TemporÃ¡ria";
+      contentEl.innerHTML = "A IA estava pensando fundo demais e não conseguiu responder. Verifique sua conexão ou tente mais tarde.";
+      if(timerEl) timerEl.innerText = "Falha Temporária";
     }
   }
 
-  // â”€â”€ CHARTS â”€â”€
+  // ── CHARTS ──
   renderCharts() {
     this.renderDespesasChart();
     this.renderReceitasDespesasChart();
@@ -2875,7 +2875,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     });
   }
 
-  // â”€â”€ DIÃƒÂRIAS â”€â”€
+  // ── DIÃRIAS ──
   renderDiarias() {
     const mes = this.dm.getMonth(this.currentMonth);
 
@@ -2948,7 +2948,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     const totalPct = totalPrevisto > 0 ? Math.min(100, (totalRealizado / totalPrevisto) * 100) : 0;
     itemsHTML += `
       <div class="forecast-item" style="border:1px solid var(--border-light);background:var(--bg-card);">
-        <div class="forecast-label" style="font-weight:700;color:var(--text-primary);">ðŸ’° SalÃ¡rio Previsto</div>
+        <div class="forecast-label" style="font-weight:700;color:var(--text-primary);">💰 Salário Previsto</div>
         <div style="font-size:1.4rem;font-weight:800;color:var(--green);margin:8px 0;">${formatCurrency(totalPrevisto)}</div>
         <div style="font-size:0.82rem;color:var(--text-secondary);">
           Realizado: <strong class="value-positive">${formatCurrency(totalRealizado)}</strong>
@@ -2960,7 +2960,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
           <div class="progress-bar">
             <div class="progress-fill" style="width:${totalPct}%;${totalPct >= 100 ? 'background:linear-gradient(90deg,var(--green),var(--cyan));' : ''}"></div>
           </div>
-          <div style="text-align:center;font-size:0.8rem;font-weight:700;color:${totalPct >= 100 ? 'var(--green)' : 'var(--blue)'};margin-top:4px;">${totalPct.toFixed(1)}% do salÃ¡rio alcanÃ§ado</div>
+          <div style="text-align:center;font-size:0.8rem;font-weight:700;color:${totalPct >= 100 ? 'var(--green)' : 'var(--blue)'};margin-top:4px;">${totalPct.toFixed(1)}% do salário alcançado</div>
         </div>
       </div>`;
 
@@ -3026,8 +3026,8 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
             <span style="color:${c.cor};font-weight:600;">${escapeHTML(c.nome)}</span>
           </label>
           <div style="display:flex;gap:4px;">
-            <input type="number" class="form-input val-diaria" value="${valor}" step="0.01" style="width:100px;" placeholder="DiÃ¡ria" title="Valor da DiÃ¡ria">
-            <input type="number" class="form-input val-comissao" value="${comissao}" step="0.01" style="width:100px;" placeholder="ComissÃ£o" title="Valor da ComissÃ£o">
+            <input type="number" class="form-input val-diaria" value="${valor}" step="0.01" style="width:100px;" placeholder="Diária" title="Valor da Diária">
+            <input type="number" class="form-input val-comissao" value="${comissao}" step="0.01" style="width:100px;" placeholder="Comissão" title="Valor da Comissão">
           </div>
         </div>`;
     }).join('');
@@ -3152,7 +3152,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     return { pago, pendente, total: pago + pendente };
   }
 
-  // â”€â”€ DESPESAS â”€â”€
+  // ── DESPESAS ──
   renderDespesas() {
     const mes = this.dm.getMonth(this.currentMonth);
     const today = new Date().getDate();
@@ -3174,12 +3174,13 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     let totalFixo = 0;
 
     sortedFixos.forEach(g => {
+      const recordIndex = mes.gastosFixos.indexOf(g);
       const minhaParte = g.compartilhado ? g.valor / 2 : g.valor;
       totalFixo += minhaParte;
       
       let badge = '';
       if (g.pago) {
-        badge = `<span class="shared-badge" style="background:var(--green-soft);color:var(--green);">ðŸŸ¢ Pago</span>`;
+        badge = `<span class="shared-badge" style="background:var(--green-soft);color:var(--green);">🟢 Pago</span>`;
       } else if (g.vencimento) {
         const v = parseInt(g.vencimento);
         if (!isNaN(v)) {
@@ -3194,15 +3195,15 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
           const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
           if (diffDays < 0) {
-            badge = `<span class="shared-badge" style="background:var(--red-soft);color:var(--red);">ðŸ”´ Vencido (${v})</span>`;
+            badge = `<span class="shared-badge" style="background:var(--red-soft);color:var(--red);">🔴 Vencido (${v})</span>`;
           } else if (diffDays === 0) {
-            badge = `<span class="shared-badge" style="background:var(--red-soft);color:var(--red);">ðŸ”´ Vence Hoje</span>`;
+            badge = `<span class="shared-badge" style="background:var(--red-soft);color:var(--red);">🔴 Vence Hoje</span>`;
           } else if (diffDays <= 2) {
-            badge = `<span class="shared-badge" style="background:var(--red-soft);color:var(--red);">ðŸ”´ Vence dia ${v}</span>`;
+            badge = `<span class="shared-badge" style="background:var(--red-soft);color:var(--red);">🔴 Vence dia ${v}</span>`;
           } else if (diffDays <= 5) {
-            badge = `<span class="shared-badge" style="background:var(--amber-soft);color:var(--amber);">ðŸŸ¡ Vence dia ${v}</span>`;
+            badge = `<span class="shared-badge" style="background:var(--amber-soft);color:var(--amber);">🟡 Vence dia ${v}</span>`;
           } else {
-            badge = `<span class="shared-badge" style="background:var(--green-soft);color:var(--green);">ðŸŸ¢ Vence dia ${v}</span>`;
+            badge = `<span class="shared-badge" style="background:var(--green-soft);color:var(--green);">🟢 Vence dia ${v}</span>`;
           }
         }
       }
@@ -3215,26 +3216,26 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
           </td>
           <td class="text-right">
             <input type="number" class="editable-value" style="width:50px;text-align:center;" value="${g.vencimento||''}" min="1" max="31" placeholder="-"
-              onchange="app.updateGastoFixo('${g.id}','vencimento',this.value)"
+              onchange="app.updateGastoFixo('', 'vencimento', this.value, ${recordIndex})"
               onkeydown="if(event.key==='Enter') this.blur();">
             <br/>${badge}
           </td>
           <td class="text-right">
             <input type="text" inputmode="decimal" class="editable-value value-negative" value="${g.valor||0}"
-              onchange="app.updateGastoFixo('${g.id}','valor',this.value)"
+              onchange="app.updateGastoFixo('', 'valor', this.value, ${recordIndex})"
               onkeydown="if(event.key==='Enter') this.blur();">
           </td>
           <td class="text-center">
             <input type="checkbox" ${g.compartilhado ? 'checked' : ''}
-              onchange="app.updateGastoFixo('${g.id}','compartilhado',this.checked)">
+              onchange="app.updateGastoFixo('', 'compartilhado', this.checked, ${recordIndex})">
           </td>
           <td class="text-right value-negative">${formatCurrency(minhaParte)}</td>
           <td class="text-center">
             <input type="checkbox" ${g.pago ? 'checked' : ''}
-              onchange="app.updateGastoFixo('${g.id}','pago',this.checked)">
+              onchange="app.updateGastoFixo('', 'pago', this.checked, ${recordIndex})">
           </td>
           <td>
-            <button class="btn-icon" onclick="app.deleteGastoFixo('${g.id}')" title="Remover">ðŸ—‘ï¸Â</button>
+            <button class="btn-icon" onclick="app.deleteGastoFixo('', ${recordIndex})" title="Remover">🗑️</button>
           </td>
         </tr>`;
     });
@@ -3274,21 +3275,21 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
               onchange="app.updateGastoVar('${g.id}', 'data', this.value)"
               onkeydown="if(event.key==='Enter') this.blur();">
           </td>
-          <td><button class="btn-icon" onclick="app.deleteGastoVar('${g.id}')" title="Remover">ðŸ—‘ï¸Â</button></td>
+          <td><button class="btn-icon" onclick="app.deleteGastoVar('${g.id}')" title="Remover">🗑️</button></td>
         </tr>`;
     });
 
     if (mes.gastosVariaveis.length > 0) {
       varHTML += `
         <tr class="total-row">
-          <td><strong>Total Gastos VariÃ¡veis</strong></td>
+          <td><strong>Total Gastos Variáveis</strong></td>
           <td class="text-right value-negative"><strong>${formatCurrency(totalVar)}</strong></td>
           <td colspan="2"></td>
         </tr>`;
     }
-    varBody.innerHTML = varHTML || '<tr><td colspan="4" class="text-center" style="color:var(--text-muted);padding:24px;">Nenhum gasto variÃ¡vel neste mÃªs</td></tr>';
+    varBody.innerHTML = varHTML || '<tr><td colspan="4" class="text-center" style="color:var(--text-muted);padding:24px;">Nenhum gasto variável neste mês</td></tr>';
 
-    // OrÃ§amentos VariÃ¡veis (Budgeting)
+    // Orçamentos Variáveis (Budgeting)
     const orcGrid = document.getElementById('orcamentoVariavelGrid');
     if (orcGrid) {
       let orcHTML = '';
@@ -3314,7 +3315,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
           </div>
         `;
       });
-      orcGrid.innerHTML = orcHTML || '<div class="text-center" style="color:var(--text-muted);font-size:0.85rem;">Nenhuma categoria variÃ¡vel cadastrada.</div>';
+      orcGrid.innerHTML = orcHTML || '<div class="text-center" style="color:var(--text-muted);font-size:0.85rem;">Nenhuma categoria variável cadastrada.</div>';
     }
 
     // Total
@@ -3340,12 +3341,11 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     }
   }
 
-  async updateGastoFixo(id, field, value) {
+  async updateGastoFixo(id, field, value, recordIndex) {
     const mes = this.dm.getMonth(this.currentMonth);
-    // Older imported records may have numeric IDs, while inline DOM handlers
-    // always pass attribute values as strings. Compare their stable text form
-    // without rewriting existing user data.
-    const g = mes.gastosFixos.find(x => String(x.id) === String(id));
+    const g = Number.isInteger(recordIndex)
+      ? mes.gastosFixos[recordIndex]
+      : mes.gastosFixos.find(x => String(x.id) === String(id));
     if (g) {
       if (field === 'valor') {
         const strVal = String(value).replace(',', '.');
@@ -3374,9 +3374,13 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     }
   }
 
-  deleteGastoFixo(id) {
+  deleteGastoFixo(id, recordIndex) {
     const mes = this.dm.getMonth(this.currentMonth);
-    mes.gastosFixos = mes.gastosFixos.filter(g => String(g.id) !== String(id));
+    if (Number.isInteger(recordIndex)) {
+      mes.gastosFixos.splice(recordIndex, 1);
+    } else {
+      mes.gastosFixos = mes.gastosFixos.filter(g => String(g.id) !== String(id));
+    }
     this.dm.save();
     this.renderDespesas();
     this.renderDashboard();
@@ -3406,26 +3410,26 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     this.renderDashboard();
   }
 
-  // â”€â”€ RECEITAS â”€â”€
+  // ── RECEITAS ──
   renderReceitas() {
     const m = this.currentMonth;
     const mes = this.dm.getMonth(m);
     const prevMonth = m - 1;
     const prevMonthName = prevMonth >= 1 ? MONTHS[prevMonth - 1] : '-';
     const nextMonth = m + 1;
-    const nextMonthName = nextMonth <= 12 ? MONTHS[nextMonth - 1] : 'Janeiro (prÃ³x. ano)';
+    const nextMonthName = nextMonth <= 12 ? MONTHS[nextMonth - 1] : 'Janeiro (próx. ano)';
 
-    // â”€â”€ SECTION 1: Salary (diÃ¡rias from PREVIOUS month) â”€â”€
+    // ── SECTION 1: Salary (diárias from PREVIOUS month) ──
     const dBody = document.getElementById('receitaDiariasBody');
     let dHTML = '';
     let totalSalario = 0;
 
-    document.getElementById('salarioMesTitle').textContent = `ðŸ’° SalÃ¡rio do MÃªs (DiÃ¡rias de ${prevMonthName})`;
+    document.getElementById('salarioMesTitle').textContent = `💰 Salário do Mês (Diárias de ${prevMonthName})`;
 
     if (prevMonth >= 1) {
       const prevMes = this.dm.getMonth(prevMonth);
       document.getElementById('salarioMesDesc').textContent =
-        `Valor referente ÃƒÂ s diÃ¡rias trabalhadas em ${prevMonthName}`;
+        `Valor referente Ã s diárias trabalhadas em ${prevMonthName}`;
 
       if (prevMes.diarias.modo === 'manual') {
         const manual = prevMes.diarias.manual || {};
@@ -3456,12 +3460,12 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       }
     } else {
       document.getElementById('salarioMesDesc').textContent =
-        'Janeiro nÃ£o possui mÃªs anterior no sistema â€” preencha manualmente em "Outras Receitas" se necessÃ¡rio';
+        'Janeiro não possui mês anterior no sistema — preencha manualmente em "Outras Receitas" se necessário';
     }
 
     dHTML += `
       <tr class="total-row">
-        <td><strong>Total SalÃ¡rio</strong></td>
+        <td><strong>Total Salário</strong></td>
         <td></td>
         <td></td>
         <td></td>
@@ -3470,7 +3474,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     dBody.innerHTML = dHTML;
     document.getElementById('receitaDiariasTotal').textContent = formatCurrency(totalSalario);
 
-    // â”€â”€ SECTION 2: Other income (this month) â”€â”€
+    // ── SECTION 2: Other income (this month) ──
     const oBody = document.getElementById('outrasReceitasBody');
     let oHTML = '';
     let totalOutras = 0;
@@ -3494,7 +3498,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
               onchange="app.updateReceita('${r.id}', 'data', this.value)"
               onkeydown="if(event.key==='Enter') this.blur();">
           </td>
-          <td><button class="btn-icon" onclick="app.deleteReceita('${r.id}')" title="Remover">ðŸ—‘ï¸Â</button></td>
+          <td><button class="btn-icon" onclick="app.deleteReceita('${r.id}')" title="Remover">🗑️</button></td>
         </tr>`;
     });
 
@@ -3506,9 +3510,9 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
           <td colspan="2"></td>
         </tr>`;
     }
-    oBody.innerHTML = oHTML || '<tr><td colspan="4" class="text-center" style="color:var(--text-muted);padding:24px;">Nenhuma receita extra neste mÃªs</td></tr>';
+    oBody.innerHTML = oHTML || '<tr><td colspan="4" class="text-center" style="color:var(--text-muted);padding:24px;">Nenhuma receita extra neste mês</td></tr>';
 
-    // â”€â”€ TOTALS â”€â”€
+    // ── TOTALS ──
     const totalReceitas = totalSalario + totalOutras;
     const resumo = this.calcResumoDespesas(this.currentMonth);
     const saldo = totalReceitas - resumo.total;
@@ -3521,15 +3525,15 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     saldoEl.textContent = formatCurrency(saldo);
     saldoEl.className = 'card-value ' + (saldo >= 0 ? 'value-positive' : 'value-negative');
 
-    // â”€â”€ SECTION 3: Production this month (for next month's salary) â”€â”€
+    // ── SECTION 3: Production this month (for next month's salary) ──
     const pBody = document.getElementById('producaoMesBody');
     let pHTML = '';
     let totalProducao = 0;
 
     document.getElementById('producaoMesTitle').textContent =
-      `ðŸ“‹ ProduÃ§Ã£o de ${MONTHS[m - 1]} (serÃ¡ salÃ¡rio de ${nextMonthName})`;
+      `📋 Produção de ${MONTHS[m - 1]} (será salário de ${nextMonthName})`;
     document.getElementById('producaoMesDesc').textContent =
-      `DiÃ¡rias trabalhadas neste mÃªs â€” esse valor serÃ¡ sua receita em ${nextMonthName}`;
+      `Diárias trabalhadas neste mês — esse valor será sua receita em ${nextMonthName}`;
 
     if (mes.diarias.modo === 'manual') {
       const manual = mes.diarias.manual || {};
@@ -3561,7 +3565,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
 
     pHTML += `
       <tr class="total-row">
-        <td><strong>Total ProduÃ§Ã£o</strong></td>
+        <td><strong>Total Produção</strong></td>
         <td></td>
         <td></td>
         <td></td>
@@ -3595,7 +3599,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     }
   }
 
-  // â”€â”€ INVESTIMENTOS â”€â”€
+  // ── INVESTIMENTOS ──
   renderInvestimentos() {
     const appsScriptInput = document.getElementById('appsScriptUrlInput');
     if (appsScriptInput) appsScriptInput.value = this.dm.data.appsScriptUrl || '';
@@ -3622,8 +3626,8 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
           </td>
           <td>
             <select class="editable-value ${m.tipo === 'deposito' ? 'value-positive' : 'value-negative'}" style="width:110px;" onchange="app.updateReservaMov('${m.id}', 'tipo', this.value)">
-              <option value="deposito" ${m.tipo === 'deposito' ? 'selected' : ''}>â¬† DepÃ³sito</option>
-              <option value="saque" ${m.tipo === 'saque' ? 'selected' : ''}>â¬‡ Saque</option>
+              <option value="deposito" ${m.tipo === 'deposito' ? 'selected' : ''}>⬆ Depósito</option>
+              <option value="saque" ${m.tipo === 'saque' ? 'selected' : ''}>⬇ Saque</option>
             </select>
           </td>
           <td class="text-right">
@@ -3636,10 +3640,10 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
               onchange="app.updateReservaMov('${m.id}', 'obs', this.value)"
               onkeydown="if(event.key==='Enter') this.blur();">
           </td>
-          <td><button class="btn-icon" onclick="app.deleteReservaMov('${m.id}')" title="Remover">ðŸ—‘ï¸Â</button></td>
+          <td><button class="btn-icon" onclick="app.deleteReservaMov('${m.id}')" title="Remover">🗑️</button></td>
         </tr>`;
     });
-    movBody.innerHTML = movHTML || '<tr><td colspan="5" class="text-center" style="color:var(--text-muted);padding:24px;">Nenhuma movimentaÃ§Ã£o registrada</td></tr>';
+    movBody.innerHTML = movHTML || '<tr><td colspan="5" class="text-center" style="color:var(--text-muted);padding:24px;">Nenhuma movimentação registrada</td></tr>';
 
     // Reserve notes
     document.getElementById('reservaObs').value = this.dm.data.reserva.obs || '';
@@ -3692,12 +3696,12 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       const histHTML = (meta.historico || []).slice(-5).map((h, idx) => {
         const actualIdx = Math.max(0, meta.historico.length - 5) + idx;
         return `<div class="fs-sm" style="color:var(--text-muted);padding:4px 0;border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-          <span>${h.data} â€” ${formatCurrency(h.valor)} ${h.obs ? 'â€” ' + h.obs : ''}</span>
-          <button class="btn-icon" style="opacity:0.5; padding:2px;" onclick="app.deleteAporteMeta('${meta.id}', ${actualIdx})" title="Remover aporte">ðŸ—‘ï¸Â</button>
+          <span>${h.data} — ${formatCurrency(h.valor)} ${h.obs ? '— ' + h.obs : ''}</span>
+          <button class="btn-icon" style="opacity:0.5; padding:2px;" onclick="app.deleteAporteMeta('${meta.id}', ${actualIdx})" title="Remover aporte">🗑️</button>
         </div>`;
       }).join('');
 
-      // Calculate investido no mÃªs
+      // Calculate investido no mês
       const currentMonthStr = String(this.currentMonth).padStart(2, '0');
       const prefix = `${YEAR}-${currentMonthStr}`;
       let investidoMes = 0;
@@ -3710,11 +3714,11 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       return `
         <div class="goal-card">
           <div class="goal-header">
-            <div class="goal-name">ðŸŽ¯ ${escapeHTML(meta.nome)}</div>
+            <div class="goal-name">🎯 ${escapeHTML(meta.nome)}</div>
             <div class="flex gap-1">
               <button class="btn btn-success btn-sm" onclick="app.openUpdateMeta('${meta.id}')">+ Adicionar</button>
-              <button class="btn-icon" onclick="app.openModalEditarMeta('${meta.id}')" title="Editar">Ã¢Å“ÂÃ¯Â¸Â</button>
-              <button class="btn-icon" onclick="app.deleteMeta('${meta.id}')" title="Excluir">ðŸ—‘ï¸Â</button>
+              <button class="btn-icon" onclick="app.openModalEditarMeta('${meta.id}')" title="Editar">âœï¸</button>
+              <button class="btn-icon" onclick="app.deleteMeta('${meta.id}')" title="Excluir">🗑️</button>
             </div>
           </div>
           <div class="goal-values">
@@ -3726,25 +3730,25 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
               <div class="progress-fill" style="width:${pct}%"></div>
             </div>
             <div class="progress-label mt-1">
-              <span>${pct.toFixed(1)}% concluÃ­do</span>
+              <span>${pct.toFixed(1)}% concluído</span>
               <span>Faltam ${formatCurrency(Math.max(0, meta.valorMeta - meta.valorAtual))}</span>
             </div>
           </div>
           <div style="margin-top:8px; font-size:0.85rem; color:var(--text-secondary);">
-            Investido neste mÃªs: <strong class="value-positive">${formatCurrency(investidoMes)}</strong>
+            Investido neste mês: <strong class="value-positive">${formatCurrency(investidoMes)}</strong>
           </div>
           ${meta.obs ? `<div class="obs-block mt-2">${meta.obs}</div>` : ''}
-          ${histHTML ? `<div class="mt-2"><div class="fs-sm fw-bold mb-1" style="color:var(--text-secondary);">Ãšltimos aportes:</div>${histHTML}</div>` : ''}
+          ${histHTML ? `<div class="mt-2"><div class="fs-sm fw-bold mb-1" style="color:var(--text-secondary);">Últimos aportes:</div>${histHTML}</div>` : ''}
         </div>`;
     }).join('');
   }
 
   deleteAporteMeta(metaId, index) {
-    if(!confirm('Deseja excluir este registro do histÃ³rico de aportes?')) return;
+    if(!confirm('Deseja excluir este registro do histórico de aportes?')) return;
     const meta = this.dm.data.metas.find(m => m.id === metaId);
     if(meta && meta.historico && meta.historico[index]) {
       const aporte = meta.historico[index];
-      if (confirm(`Deseja tambÃ©m subtrair o valor de ${formatCurrency(aporte.valor)} do total atual da meta?\n\n[OK] = Excluir HistÃ³rico E Subtrair Valor\n[Cancelar] = APENAS Excluir HistÃ³rico (Matenha o Total atual)`)) {
+      if (confirm(`Deseja também subtrair o valor de ${formatCurrency(aporte.valor)} do total atual da meta?\n\n[OK] = Excluir Histórico E Subtrair Valor\n[Cancelar] = APENAS Excluir Histórico (Matenha o Total atual)`)) {
         meta.valorAtual -= aporte.valor;
         if (meta.valorAtual < 0) meta.valorAtual = 0;
       }
@@ -3801,11 +3805,11 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       this.dm.data.metas = this.dm.data.metas.filter(m => m.id !== id);
       this.dm.save();
       this.renderMetas();
-      showToast('Meta excluÃ­da!', 'info');
+      showToast('Meta excluída!', 'info');
     }
   }
 
-  // â”€â”€ SIMULADOR FINANCEIRO â”€â”€
+  // ── SIMULADOR FINANCEIRO ──
   setSimuladorTipo(tipo) {
     this.simuladorTipo = tipo;
     const btnInv = document.getElementById('btnSimTipoInv');
@@ -3823,7 +3827,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     } else {
       btnFin.className = 'btn btn-primary btn-sm';
       btnInv.className = 'btn btn-outline btn-sm';
-      document.getElementById('lblSimValor').innerText = 'Valor do ImÃ³vel/Bem (R$)';
+      document.getElementById('lblSimValor').innerText = 'Valor do Imóvel/Bem (R$)';
       document.getElementById('lblSimAporte').innerText = 'Entrada (R$)';
       document.getElementById('lblSimResTotal').innerText = 'Custo Total (Bem + Juros)';
       document.getElementById('lblSimResJuros').innerText = 'Juros Pagos ao Banco';
@@ -3831,7 +3835,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       document.getElementById('simResJuros').style.color = 'var(--red)';
     }
     
-    // Auto-recalculate se jÃ¡ estiver aberto
+    // Auto-recalculate se já estiver aberto
     if (!document.getElementById('simuladorResultados').classList.contains('hidden')) {
       this.calcularSimulador();
     }
@@ -3869,7 +3873,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
           currentVal = (currentVal * (1 + i)) + A;
           totalAportado += A;
         }
-        labels.push(`MÃªs ${m}`);
+        labels.push(`Mês ${m}`);
         dataPrincipal.push(totalAportado);
         dataJuros.push(currentVal - totalAportado);
       }
@@ -3895,7 +3899,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       let saldoDevedor = valorFinanciado;
       let jurosTotaisPagos = 0;
       
-      labels.push(`MÃªs 0`);
+      labels.push(`Mês 0`);
       dataPrincipal.push(P);
       dataJuros.push(0);
       
@@ -3905,7 +3909,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
          saldoDevedor -= amortizacaoMes;
          jurosTotaisPagos += jurosMes;
          
-         labels.push(`MÃªs ${m}`);
+         labels.push(`Mês ${m}`);
          dataPrincipal.push(P);
          dataJuros.push(jurosTotaisPagos);
       }
@@ -3987,7 +3991,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     });
   }
 
-  // â”€â”€ CARTÃƒâ€¢ES DE CRÃ‰DITO â”€â”€
+  // ── CARTÃ•ES DE CRÉDITO ──
   saveCartao() {
     const nome = document.getElementById('cartaoNome').value.trim();
     const limite = parseFloat(document.getElementById('cartaoLimite').value);
@@ -3996,7 +4000,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     const cor = document.getElementById('cartaoCor').value;
     
     if (!nome || isNaN(limite) || isNaN(fechamento) || isNaN(vencimento)) {
-      showToast('Preencha todos os campos do cartÃ£o!', 'error');
+      showToast('Preencha todos os campos do cartão!', 'error');
       return;
     }
     
@@ -4004,7 +4008,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     this.dm.save();
     closeModal('modalCartao');
     this.renderAll();
-    showToast('CartÃ£o salvo!', 'success');
+    showToast('Cartão salvo!', 'success');
   }
 
   saveCompraCartao() {
@@ -4036,7 +4040,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     this.dm.save();
     closeModal('modalCompraCartao');
     this.renderAll();
-    showToast('Compra lanÃ§ada com sucesso!', 'success');
+    showToast('Compra lançada com sucesso!', 'success');
   }
 
   renderCartoes() {
@@ -4045,7 +4049,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     
     const cartoes = this.dm.data.cartoes || [];
     if (cartoes.length === 0) {
-      grid.innerHTML = '<div class="text-center text-muted" style="width:100%; grid-column: 1 / -1;">Nenhum cartÃ£o cadastrado.</div>';
+      grid.innerHTML = '<div class="text-center text-muted" style="width:100%; grid-column: 1 / -1;">Nenhum cartão cadastrado.</div>';
       return;
     }
     
@@ -4089,7 +4093,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     }
     
     if (selCartao.options.length <= 1) { 
-      selCartao.innerHTML = '<option value="all">Todos os CartÃµes</option>' + (this.dm.data.cartoes||[]).map(c=>`<option value="${c.id}">${escapeHTML(c.nome)}</option>`).join('');
+      selCartao.innerHTML = '<option value="all">Todos os Cartões</option>' + (this.dm.data.cartoes||[]).map(c=>`<option value="${c.id}">${escapeHTML(c.nome)}</option>`).join('');
     }
     
     const selectedMonth = selMonth.value;
@@ -4120,7 +4124,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
               <td>${escapeHTML(compra.descricao)}</td>
               <td class="text-center">${parcelaAtual}/${compra.parcelas}</td>
               <td class="text-right value-negative">${formatCurrency(compra.valorParcela)}</td>
-              <td><button class="btn-icon" onclick="app.deleteCompraCartao('${compra.id}')" title="Excluir Compra Inteira">ðŸ—‘ï¸Â</button></td>
+              <td><button class="btn-icon" onclick="app.deleteCompraCartao('${compra.id}')" title="Excluir Compra Inteira">🗑️</button></td>
             </tr>
           `;
        }
@@ -4131,7 +4135,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
   }
 
   deleteCompraCartao(id) {
-    if (!confirm('Deseja excluir esta compra e TODAS as suas parcelas do cartÃ£o?')) return;
+    if (!confirm('Deseja excluir esta compra e TODAS as suas parcelas do cartão?')) return;
     this.dm.data.comprasCartao = this.dm.data.comprasCartao.filter(c => c.id !== id);
     this.dm.save();
     this.renderAll();
@@ -4139,25 +4143,25 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
 
   pagarFaturaMes() {
     const totalText = document.getElementById('faturaTotalMes').textContent;
-    if (confirm(`Deseja lanÃ§ar o pagamento da fatura no valor de ${totalText} como um Gasto Fixo Pago no mÃªs atual?`)) {
+    if (confirm(`Deseja lançar o pagamento da fatura no valor de ${totalText} como um Gasto Fixo Pago no mês atual?`)) {
        const mes = this.dm.getMonth(this.currentMonth);
        const valor = parseFloat(totalText.replace(/[^\d,-]/g, '').replace(',', '.'));
        if (valor > 0) {
          mes.gastosFixos.push({
            id: generateId(),
-           descricao: 'Fatura de CartÃ£o',
+           descricao: 'Fatura de Cartão',
            valor: valor,
            compartilhado: false,
            pago: true
          });
          this.dm.save();
-         showToast('Pagamento da fatura lanÃ§ado em Despesas!', 'success');
+         showToast('Pagamento da fatura lançado em Despesas!', 'success');
          this.renderAll();
        }
     }
   }
 
-  // â”€â”€ CONFIGURAÃ‡Ã•ES â”€â”€
+  // ── CONFIGURAÇÕES ──
   renderConfiguracoes() {
     // Clinics
     const cBody = document.getElementById('clinicasConfigBody');
@@ -4173,7 +4177,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
             onchange="app.updateClinicaCor('${c.id}',this.value)">
         </td>
         <td>
-          <button class="btn-icon" onclick="app.deleteClinica('${c.id}')" title="Remover">ðŸ—‘ï¸Â</button>
+          <button class="btn-icon" onclick="app.deleteClinica('${c.id}')" title="Remover">🗑️</button>
         </td>
       </tr>
     `).join('');
@@ -4188,7 +4192,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
             onchange="app.updateCatFixaCompart('${cat.id}',this.checked)">
         </td>
         <td>
-          <button class="btn-icon" onclick="app.deleteCatFixa('${cat.id}')" title="Remover">ðŸ—‘ï¸Â</button>
+          <button class="btn-icon" onclick="app.deleteCatFixa('${cat.id}')" title="Remover">🗑️</button>
         </td>
       </tr>
     `).join('');
@@ -4207,10 +4211,10 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
               onchange="app.updateCatVarOrcamento('${cat.id}',this.value)">
           </td>
           <td>
-            <button class="btn-icon" onclick="app.deleteCatVar('${cat.id}')" title="Remover">ðŸ—‘ï¸Â</button>
+            <button class="btn-icon" onclick="app.deleteCatVar('${cat.id}')" title="Remover">🗑️</button>
           </td>
         </tr>
-      `).join('') || '<tr><td colspan="3" class="text-center text-muted">Nenhuma categoria variÃ¡vel</td></tr>';
+      `).join('') || '<tr><td colspan="3" class="text-center text-muted">Nenhuma categoria variável</td></tr>';
     }
 
     // API Keys
@@ -4248,7 +4252,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
   }
 
   deleteClinica(id) {
-    if (confirm('Remover esta clÃ­nica?')) {
+    if (confirm('Remover esta clínica?')) {
       this.dm.data.clinicas = this.dm.data.clinicas.filter(c => c.id !== id);
       this.dm.save();
       this.renderAll();
@@ -4261,17 +4265,17 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
   }
 
   deleteCatFixa(id) {
-    if (!confirm('Excluir esta categoria padrÃ£o de gasto fixo? Os meses atuais nÃ£o serÃ£o afetados automaticamente.')) return;
+    if (!confirm('Excluir esta categoria padrão de gasto fixo? Os meses atuais não serão afetados automaticamente.')) return;
     this.dm.data.categoriasFixas = this.dm.data.categoriasFixas.filter(c => c.id !== id);
     this.dm.save();
     this.renderConfiguracoes();
   }
 
-  // â”€â”€ CATEGORIAS VARIAVEIS (ORÃ‡AMENTOS) â”€â”€
+  // ── CATEGORIAS VARIAVEIS (ORÇAMENTOS) ──
   addCategoriaVar() {
-    const nome = prompt('Nome da Categoria VariÃ¡vel (ex: AlimentaÃ§Ã£o):');
+    const nome = prompt('Nome da Categoria Variável (ex: Alimentação):');
     if (!nome) return;
-    const orc = parseFloat(prompt('OrÃ§amento Mensal (R$):', '500'));
+    const orc = parseFloat(prompt('Orçamento Mensal (R$):', '500'));
     if (isNaN(orc)) return;
     this.dm.data.categoriasVariaveis.push({ id: generateId(), nome, orcamento: orc });
     this.dm.save();
@@ -4292,14 +4296,14 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
   }
 
   deleteCatVar(id) {
-    if (!confirm('Excluir esta categoria de gasto variÃ¡vel?')) return;
+    if (!confirm('Excluir esta categoria de gasto variável?')) return;
     this.dm.data.categoriasVariaveis = this.dm.data.categoriasVariaveis.filter(c => c.id !== id);
     this.dm.save();
     this.renderConfiguracoes();
     this.renderAll();
   }
 
-  // â”€â”€ EXPORTAÃ‡ÃƒO â”€â”€
+  // ── EXPORTAÇÃO ──
   generateReportHTML(month) {
     const totalReceitas = this.calcTotalReceitas(month);
     const resumo = this.calcResumoDespesas(month);
@@ -4311,8 +4315,8 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
 
     let html = `
       <div style="max-width: 800px; margin: 0 auto; color: #333; font-family: 'Outfit', Arial, sans-serif;">
-        <h1 style="color: #111128; border-bottom: 2px solid #448aff; padding-bottom: 10px;">RelatÃ³rio Financeiro</h1>
-        <p style="color: #666; font-size: 14px;">PerÃ­odo: ${formatMonth(month)}</p>
+        <h1 style="color: #111128; border-bottom: 2px solid #448aff; padding-bottom: 10px;">Relatório Financeiro</h1>
+        <p style="color: #666; font-size: 14px;">Período: ${formatMonth(month)}</p>
 
         <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
           <tr>
@@ -4327,11 +4331,11 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
           </tr>
           <tr>
             <td style="padding: 15px; background: #f8f9fa; border: 1px solid #ddd;">
-              <div style="font-size: 12px; color: #555; text-transform: uppercase; font-weight: bold;">ProduÃ§Ã£o em ClÃ­nicas</div>
+              <div style="font-size: 12px; color: #555; text-transform: uppercase; font-weight: bold;">Produção em Clínicas</div>
               <div style="font-size: 24px; color: #ffab40; font-weight: bold; margin-top: 5px;">${formatCurrency(producaoMes)}</div>
             </td>
             <td style="padding: 15px; background: #f4f6ff; border: 1px solid #ddd;">
-              <div style="font-size: 12px; color: #555; text-transform: uppercase; font-weight: bold;">SalÃ¡rio DisponÃ­vel</div>
+              <div style="font-size: 12px; color: #555; text-transform: uppercase; font-weight: bold;">Salário Disponível</div>
               <div style="font-size: 24px; color: #448aff; font-weight: bold; margin-top: 5px;">${formatCurrency(salarioDisponivel)}</div>
             </td>
           </tr>
@@ -4341,7 +4345,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
         <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px;">
           <thead>
             <tr style="background: #f8f9fa; text-align: left;">
-              <th style="padding: 8px; border: 1px solid #ddd;">DescriÃ§Ã£o</th>
+              <th style="padding: 8px; border: 1px solid #ddd;">Descrição</th>
               <th style="padding: 8px; border: 1px solid #ddd;">Vencimento</th>
               <th style="padding: 8px; border: 1px solid #ddd; text-align: right;">Valor</th>
               <th style="padding: 8px; border: 1px solid #ddd; text-align: center;">Status</th>
@@ -4372,11 +4376,11 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
           </tbody>
         </table>
 
-        <h3 style="margin-top: 30px; border-bottom: 1px solid #ddd; padding-bottom: 5px; color: #111128;">Gastos VariÃ¡veis</h3>
+        <h3 style="margin-top: 30px; border-bottom: 1px solid #ddd; padding-bottom: 5px; color: #111128;">Gastos Variáveis</h3>
         <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px;">
           <thead>
             <tr style="background: #f8f9fa; text-align: left;">
-              <th style="padding: 8px; border: 1px solid #ddd;">DescriÃ§Ã£o</th>
+              <th style="padding: 8px; border: 1px solid #ddd;">Descrição</th>
               <th style="padding: 8px; border: 1px solid #ddd;">Data</th>
               <th style="padding: 8px; border: 1px solid #ddd; text-align: right;">Valor</th>
             </tr>
@@ -4395,7 +4399,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
         `;
       });
     } else {
-      html += `<tr><td colspan="3" style="padding: 8px; border: 1px solid #ddd; text-align: center;">Nenhum gasto variÃ¡vel.</td></tr>`;
+      html += `<tr><td colspan="3" style="padding: 8px; border: 1px solid #ddd; text-align: center;">Nenhum gasto variável.</td></tr>`;
     }
 
     html += `
@@ -4417,7 +4421,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       document.getElementById('reportContent').innerHTML = reportHTML;
       window.print();
     } catch (e) {
-      console.error('Erro ao gerar relatÃ³rio HTML:', e);
+      console.error('Erro ao gerar relatório HTML:', e);
       alert('Ocorreu um erro interno: ' + e.message);
     }
   }
@@ -4425,7 +4429,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
   async exportGoogleDocs() {
     const url = this.dm.data.appsScriptUrl;
     if (!url) {
-      showToast('Configure a URL do Google Apps Script primeiro na aba de ConfiguraÃ§Ãµes!', 'error');
+      showToast('Configure a URL do Google Apps Script primeiro na aba de Configurações!', 'error');
       return;
     }
 
@@ -4464,7 +4468,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       gastosFixos.push(`${escapeHTML(g.descricao)}: ${valorStr} (${statusStr})`);
     });
 
-    // Prepare gastos variÃ¡veis
+    // Prepare gastos variáveis
     const gastosVariaveis = [];
     (mes.gastosVariaveis || []).forEach(g => {
       gastosVariaveis.push(`${escapeHTML(g.descricao)}: ${formatCurrency(g.valor)} - Data: ${g.data || '-'}`);
@@ -4510,10 +4514,10 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       }
     } catch (e) {
       console.error(e);
-      showToast('Erro de conexÃ£o. Verifique se copiou a URL inteira e se permitiu acesso para "Qualquer pessoa".', 'error');
+      showToast('Erro de conexão. Verifique se copiou a URL inteira e se permitiu acesso para "Qualquer pessoa".', 'error');
     }
   }
-  // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â NEW FEATURES (PROFILE, GAMIFICATION, EXTRATO) Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+  // â•â•â•â•â•â•â•â•â•â•â• NEW FEATURES (PROFILE, GAMIFICATION, EXTRATO) â•â•â•â•â•â•â•â•â•â•â•
   openProfileModal() {
     const p = this.dm.data.perfil;
     document.getElementById('profileNameInput').value = p.nome || '';
@@ -4594,7 +4598,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     const novoNivel = Math.floor(p.xp / 1000) + 1;
     if (novoNivel > p.nivel) {
       p.nivel = novoNivel;
-      showToast(`ðŸŽ‰ ParabÃ©ns! VocÃª subiu para o NÃ­vel ${novoNivel}!`, 'success');
+      showToast(`🎉 Parabéns! Você subiu para o Nível ${novoNivel}!`, 'success');
       if (typeof confetti === 'function') confetti({ particleCount: 200, spread: 90, origin: { y: 0.5 } });
     }
     this.updateProfileUI();
@@ -4606,12 +4610,12 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     if (!container) return;
     const xp = this.dm.data.perfil ? this.dm.data.perfil.xp : 0;
     const achievements = [
-      { id: 'first_step', title: 'Primeiro Passo', desc: 'Guardou seu primeiro real', xpReq: 1, icon: 'ðŸŒ±' },
-      { id: 'apprentice', title: 'Poupador', desc: 'Acumulou 1.000 XP', xpReq: 1000, icon: 'ðŸ’°' },
-      { id: 'investor', title: 'Investidor', desc: 'Acumulou 5.000 XP', xpReq: 5000, icon: 'ðŸ“ˆ' },
-      { id: 'whale', title: 'Baleia', desc: 'Acumulou 20.000 XP', xpReq: 20000, icon: 'Ã°Å¸Ââ€¹' },
-      { id: 'diamond', title: 'MÃ£os de Diamante', desc: 'Acumulou 50.000 XP', xpReq: 50000, icon: 'ðŸ’Ž' },
-      { id: 'magnate', title: 'Magnata', desc: 'Acumulou 100.000 XP', xpReq: 100000, icon: 'ðŸ‘‘' }
+      { id: 'first_step', title: 'Primeiro Passo', desc: 'Guardou seu primeiro real', xpReq: 1, icon: '🌱' },
+      { id: 'apprentice', title: 'Poupador', desc: 'Acumulou 1.000 XP', xpReq: 1000, icon: '💰' },
+      { id: 'investor', title: 'Investidor', desc: 'Acumulou 5.000 XP', xpReq: 5000, icon: '📈' },
+      { id: 'whale', title: 'Baleia', desc: 'Acumulou 20.000 XP', xpReq: 20000, icon: 'ðŸ‹' },
+      { id: 'diamond', title: 'Mãos de Diamante', desc: 'Acumulou 50.000 XP', xpReq: 50000, icon: '💎' },
+      { id: 'magnate', title: 'Magnata', desc: 'Acumulou 100.000 XP', xpReq: 100000, icon: '👑' }
     ];
     container.innerHTML = achievements.map(a => {
       const unlocked = xp >= a.xpReq;
@@ -4632,19 +4636,19 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     if (!descEl || !statusEl) return;
 
     if (this.currentMonth === 1) {
-      descEl.textContent = 'Guarde pelo menos R$ 100 na reserva este mÃªs para ganhar 500 XP!';
+      descEl.textContent = 'Guarde pelo menos R$ 100 na reserva este mês para ganhar 500 XP!';
       const mesAtual = this.dm.getMonth(this.currentMonth);
       let guardado = 0;
       this.dm.data.reserva.movimentacoes.forEach(m => {
         if (m.data && m.data.startsWith(`${YEAR}-01`) && m.tipo === 'deposito') guardado += m.valor;
       });
       if (guardado >= 100) {
-        statusEl.innerHTML = '<span style="color:var(--green)">ConcluÃ­do! âœ…</span>';
+        statusEl.innerHTML = '<span style="color:var(--green)">Concluído! ✅</span>';
       } else {
         statusEl.innerHTML = `<span style="color:var(--amber)">Falta ${formatCurrency(100 - guardado)}</span>`;
       }
     } else {
-      descEl.textContent = 'Gaste menos em despesas variÃ¡veis do que no mÃªs passado!';
+      descEl.textContent = 'Gaste menos em despesas variáveis do que no mês passado!';
       const mesPassado = this.dm.getMonth(this.currentMonth - 1);
       const mesAtual = this.dm.getMonth(this.currentMonth);
       
@@ -4654,9 +4658,9 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       if (gastoPassado === 0) {
         statusEl.innerHTML = '<span style="color:var(--text-muted)">Sem dados</span>';
       } else if (gastoAtual < gastoPassado) {
-        statusEl.innerHTML = '<span style="color:var(--green)">Vencendo! Ã°Å¸Ââ€ </span>';
+        statusEl.innerHTML = '<span style="color:var(--green)">Vencendo! ðŸ†</span>';
       } else {
-        statusEl.innerHTML = '<span style="color:var(--red)">Perdendo ðŸ˜¢</span>';
+        statusEl.innerHTML = '<span style="color:var(--red)">Perdendo 😢</span>';
       }
     }
   }
@@ -4736,7 +4740,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       data: {
         labels,
         datasets: [{
-          label: 'EvoluÃ§Ã£o do Saldo Mensal',
+          label: 'Evolução do Saldo Mensal',
           data: saldos,
           borderColor: '#448aff',
           backgroundColor: gradient,
@@ -4785,9 +4789,9 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
           const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
           
           if (diffDays < 0) {
-            alerts.push(`<div class="notification-item"><div class="notification-icon">âš ï¸Â</div><div class="notification-text">A conta <strong>${escapeHTML(g.descricao)}</strong> estÃ¡ atrasada hÃ¡ ${Math.abs(diffDays)} dia(s)!</div></div>`);
+            alerts.push(`<div class="notification-item"><div class="notification-icon">⚠️</div><div class="notification-text">A conta <strong>${escapeHTML(g.descricao)}</strong> está atrasada há ${Math.abs(diffDays)} dia(s)!</div></div>`);
           } else if (diffDays <= 3) {
-            alerts.push(`<div class="notification-item"><div class="notification-icon">Ã¢ÂÂ°</div><div class="notification-text">A conta <strong>${escapeHTML(g.descricao)}</strong> vence em ${diffDays === 0 ? 'hoje' : diffDays + ' dia(s)'}!</div></div>`);
+            alerts.push(`<div class="notification-item"><div class="notification-icon">â°</div><div class="notification-text">A conta <strong>${escapeHTML(g.descricao)}</strong> vence em ${diffDays === 0 ? 'hoje' : diffDays + ' dia(s)'}!</div></div>`);
           }
         }
       }
@@ -4829,7 +4833,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
 
 }
 
-// â”€â”€ INITIALIZE â”€â”€
+// ── INITIALIZE ──
 let app;
 document.addEventListener('DOMContentLoaded', () => {
   app = new App();
