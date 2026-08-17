@@ -109,6 +109,7 @@ function getDefaultData() {
     comprasCartao: [],
     nvidiaApiKey: '',
     reserva: {
+      saldoInicial: 0,
       movimentacoes: [],
       obs: ''
     },
@@ -196,7 +197,8 @@ class DataManager {
             const parsed = JSON.parse(localRaw);
             if (!parsed.perfil) parsed.perfil = { nome: 'Minha Conta', foto: '', nivel: 1, xp: 0 };
             if (!parsed.metas) parsed.metas = [];
-            if (!parsed.reserva) parsed.reserva = { movimentacoes: [], obs: '' };
+            if (!parsed.reserva) parsed.reserva = { saldoInicial: 0, movimentacoes: [], obs: '' };
+            if (parsed.reserva.saldoInicial === undefined) parsed.reserva.saldoInicial = 0;
             if (!parsed.categoriasFixas) parsed.categoriasFixas = getDefaultData().categoriasFixas;
             if (!parsed.categoriasVariaveis) parsed.categoriasVariaveis = getDefaultData().categoriasVariaveis;
             if (!parsed.cartoes) parsed.cartoes = [];
@@ -349,7 +351,8 @@ class DataManager {
     if (!this.data) this.data = getDefaultData();
     if (!this.data.perfil) this.data.perfil = { nome: 'Minha Conta', foto: '', nivel: 1, xp: 0 };
     if (!this.data.metas) this.data.metas = [];
-    if (!this.data.reserva) this.data.reserva = { movimentacoes: [], obs: '' };
+    if (!this.data.reserva) this.data.reserva = { saldoInicial: 0, movimentacoes: [], obs: '' };
+    if (this.data.reserva.saldoInicial === undefined) this.data.reserva.saldoInicial = 0;
     if (!this.data.categoriasFixas) this.data.categoriasFixas = getDefaultData().categoriasFixas;
     if (!this.data.categoriasVariaveis) this.data.categoriasVariaveis = getDefaultData().categoriasVariaveis;
     if (!this.data.cartoes) this.data.cartoes = [];
@@ -982,6 +985,22 @@ constructor() {
     });
     document.getElementById('btnSalvarReserva').addEventListener('click', () => this.saveReservaMov());
 
+    const reservaSaldoEl = document.getElementById('reservaSaldo');
+    if (reservaSaldoEl) {
+      reservaSaldoEl.style.cursor = 'pointer';
+      reservaSaldoEl.title = 'Clique para ajustar o saldo real da reserva';
+      reservaSaldoEl.setAttribute('role', 'button');
+      reservaSaldoEl.setAttribute('tabindex', '0');
+      const abrirAjuste = () => this.ajustarSaldoReserva();
+      reservaSaldoEl.addEventListener('click', abrirAjuste);
+      reservaSaldoEl.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          abrirAjuste();
+        }
+      });
+    }
+
     // Goal
     const openMetaModal = () => {
       document.getElementById('metaNome').value = '';
@@ -1061,6 +1080,50 @@ constructor() {
     closeModal('modalReceita');
     this.renderAll();
     showToast('Receita adicionada!', 'success');
+  }
+
+  async ajustarSaldoReserva() {
+    const saldoAtual = Number(this.calcReserva().saldo || 0);
+    const valorDigitado = window.prompt(
+      'Informe o saldo real atual da Reserva de Emergência.\nEsse ajuste não será registrado como depósito ou saque.',
+      saldoAtual.toFixed(2).replace('.', ',')
+    );
+
+    if (valorDigitado === null) return;
+
+    const bruto = String(valorDigitado)
+      .trim()
+      .replace(/^R\$\s*/i, '')
+      .replace(/\s/g, '');
+    const normalizado = bruto.includes(',')
+      ? bruto.replace(/\./g, '').replace(',', '.')
+      : bruto;
+    const saldoDesejado = Number(normalizado);
+
+    if (!Number.isFinite(saldoDesejado) || saldoDesejado < 0) {
+      showToast('Informe um saldo válido maior ou igual a zero.', 'error');
+      return;
+    }
+
+    const movimentacoes = this.dm.data.reserva.movimentacoes || [];
+    const saldoLiquidoMovimentacoes = movimentacoes.reduce((total, mov) => {
+      const valor = Number(mov.valor || 0);
+      return total + (mov.tipo === 'deposito' ? valor : -valor);
+    }, 0);
+
+    const saldoInicialAnterior = Number(this.dm.data.reserva.saldoInicial || 0);
+    this.dm.data.reserva.saldoInicial = saldoDesejado - saldoLiquidoMovimentacoes;
+
+    const salvo = await this.dm.saveNow();
+    if (!salvo) {
+      this.dm.data.reserva.saldoInicial = saldoInicialAnterior;
+      this.renderAll();
+      showToast('Não foi possível salvar o ajuste da reserva.', 'error');
+      return;
+    }
+
+    this.renderAll();
+    showToast('Saldo da reserva ajustado sem criar depósito.', 'success');
   }
 
   saveReservaMov() {
@@ -1267,7 +1330,7 @@ constructor() {
   }
 
   calcReserva() {
-    let saldo = 0;
+    let saldo = Number(this.dm.data.reserva?.saldoInicial || 0);
     let totalSaques = 0;
     let totalDepositos = 0;
     (this.dm.data.reserva.movimentacoes || []).forEach(m => {
