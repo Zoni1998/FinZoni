@@ -363,6 +363,32 @@ class DataManager {
       if (cartao.vencimento === undefined) cartao.vencimento = cartao.diaVencimento ?? cartao.dueDay ?? null;
     });
     if (!this.data.meses) this.data.meses = {};
+
+    const storedYear = Number(this.data.year || YEAR);
+    if (Number.isFinite(storedYear) && storedYear !== YEAR) {
+      const oldPrefix = `${storedYear}-`;
+      const newPrefix = `${YEAR}-`;
+      const migrateDateYears = (value) => {
+        if (!value || typeof value !== 'object') return;
+        if (Array.isArray(value)) {
+          value.forEach(migrateDateYears);
+          return;
+        }
+        Object.keys(value).forEach(key => {
+          const item = value[key];
+          if (typeof item === 'string' && item.startsWith(oldPrefix)) {
+            value[key] = newPrefix + item.slice(oldPrefix.length);
+          } else if (item && typeof item === 'object') {
+            migrateDateYears(item);
+          }
+        });
+      };
+      migrateDateYears(this.data);
+      this.data.year = YEAR;
+    } else if (!this.data.year) {
+      this.data.year = YEAR;
+    }
+
     if (this.data.appsScriptUrl === undefined) this.data.appsScriptUrl = '';
     if (this.data.nvidiaApiKey === undefined) this.data.nvidiaApiKey = '';
     if (this.data.nvidiaModel === undefined) this.data.nvidiaModel = 'meta/llama-3.1-8b-instruct';
@@ -706,13 +732,14 @@ constructor() {
   populateYearSelector() {
     const select = document.getElementById('extratoYearSelect');
     if (!select) return;
-    const currentYear = new Date().getFullYear();
+    const currentYear = YEAR;
+    const selectedYear = Number(this.dm?.data?.year || currentYear);
     select.innerHTML = '';
     for (let y = currentYear - 2; y <= currentYear + 2; y++) {
       const opt = document.createElement('option');
       opt.value = y;
       opt.textContent = y;
-      if (y === currentYear) opt.selected = true;
+      if (y === selectedYear) opt.selected = true;
       select.appendChild(opt);
     }
   }
@@ -5158,7 +5185,8 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
   renderExtratoAnual() {
     const yearSelect = document.getElementById('extratoYearSelect');
     if (!yearSelect) return;
-    const year = yearSelect.value;
+    const selectedYear = Number(yearSelect.value || this.dm.data.year || YEAR);
+    const dataYear = Number(this.dm.data.year || YEAR);
     const tbody = document.getElementById('extratoAnualBody');
     const tfoot = document.getElementById('extratoAnualFoot');
     
@@ -5168,10 +5196,11 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     let html = '';
     
     for(let m=1; m<=12; m++) {
-       const rec = this.calcTotalReceitas(m);
-       const desp = this.calcResumoDespesas(m).total;
+       const isDataYear = selectedYear === dataYear;
+       const rec = isDataYear ? this.calcTotalReceitas(m) : 0;
+       const desp = isDataYear ? this.calcResumoDespesas(m).total : 0;
        
-       const mesStr = `${year}-${String(m).padStart(2,'0')}`;
+       const mesStr = `${selectedYear}-${String(m).padStart(2,'0')}`;
        let inv = 0;
        this.dm.data.reserva.movimentacoes.forEach(mov => {
          if (mov.data && mov.data.startsWith(mesStr) && mov.tipo === 'deposito') inv += mov.valor;
