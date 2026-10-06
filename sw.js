@@ -1,9 +1,10 @@
-const CACHE_NAME = 'finzoni-cache-v31';
+const CACHE_NAME = 'finzoni-cache-v32';
 const urlsToCache = [
   './',
   './index.html',
   './style.css',
   './app.js',
+  './zoni-context.js',
   './manifest.json'
 ];
 
@@ -19,7 +20,7 @@ self.addEventListener('install', event => {
 
 self.addEventListener('fetch', event => {
   // Ignora chamadas à API, Supabase ou outros serviços externos
-  if (!event.request.url.startsWith(self.location.origin)) {
+  if (event.request.method !== 'GET' || new URL(event.request.url).pathname.startsWith('/api/') || !event.request.url.startsWith(self.location.origin)) {
     return;
   }
 
@@ -54,3 +55,4 @@ self.addEventListener('activate', event => {
     }).then(() => self.clients.claim()) // Immediately take control of clients
   );
 });
+
