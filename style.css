@@ -2775,3 +2775,151 @@ body {
     flex-basis: 38px !important;
   }
 }
+
+/* ── LIGHT WALLET GLASS PATCH ── */
+:root.theme-light #tab-cartoes {
+  color: #0f172a;
+}
+
+:root.theme-light .wallet-page-title,
+:root.theme-light .wallet-launches-header h3,
+:root.theme-light .wallet-table-toolbar,
+:root.theme-light .wallet-summary strong,
+:root.theme-light .wallet-invoice-copy strong {
+  color: #0f172a !important;
+}
+
+:root.theme-light .wallet-page-header p,
+:root.theme-light .wallet-summary-label,
+:root.theme-light .wallet-due-block,
+:root.theme-light .wallet-limit-percent,
+:root.theme-light .wallet-best-day,
+:root.theme-light .wallet-invoice-copy span {
+  color: #475569 !important;
+}
+
+:root.theme-light .wallet-summary,
+:root.theme-light .wallet-launches {
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.58), rgba(255,255,255,0.26)),
+    rgba(255,255,255,0.42) !important;
+  border: 1px solid rgba(100,116,139,0.22) !important;
+  box-shadow:
+    0 14px 34px rgba(15,23,42,0.12),
+    inset 0 1px 0 rgba(255,255,255,0.78) !important;
+  backdrop-filter: blur(24px) saturate(145%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(145%) !important;
+}
+
+:root.theme-light .wallet-summary {
+  --wallet-accent: #2563eb;
+}
+
+:root.theme-light .wallet-summary-amount {
+  color: #d97706 !important;
+}
+
+:root.theme-light .wallet-limit-amount,
+:root.theme-light .wallet-limit-percent strong,
+:root.theme-light .wallet-best-day strong,
+:root.theme-light .wallet-invoice-value {
+  color: #0f172a !important;
+}
+
+:root.theme-light .wallet-due-pill {
+  color: #334155 !important;
+  background: rgba(255,255,255,0.34);
+  border-color: rgba(100,116,139,0.25) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+:root.theme-light .wallet-summary-divider {
+  background: rgba(100,116,139,0.20) !important;
+}
+
+:root.theme-light .wallet-limit-track {
+  background: rgba(100,116,139,0.22) !important;
+}
+
+:root.theme-light .wallet-invoice-row {
+  background:
+    linear-gradient(145deg, rgba(219,234,254,0.68), rgba(255,255,255,0.34)),
+    rgba(255,255,255,0.38) !important;
+  border-color: rgba(59,130,246,0.20) !important;
+  box-shadow:
+    0 8px 20px rgba(30,64,175,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.72);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+:root.theme-light .wallet-invoice-next {
+  background:
+    linear-gradient(145deg, rgba(237,233,254,0.70), rgba(255,255,255,0.34)),
+    rgba(255,255,255,0.38) !important;
+  border-color: rgba(124,58,237,0.18) !important;
+}
+
+:root.theme-light .wallet-invoice-icon {
+  color: #2563eb !important;
+  background: rgba(255,255,255,0.42);
+  border-color: rgba(37,99,235,0.26) !important;
+}
+
+:root.theme-light .wallet-card-nav {
+  background: rgba(255,255,255,0.62) !important;
+  color: #0f172a !important;
+  border-color: rgba(100,116,139,0.24) !important;
+  box-shadow:
+    0 8px 18px rgba(15,23,42,0.10),
+    inset 0 1px 0 rgba(255,255,255,0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+:root.theme-light .wallet-card-nav:hover {
+  color: #2563eb !important;
+  border-color: rgba(37,99,235,0.45) !important;
+}
+
+:root.theme-light .wallet-dots span {
+  background: rgba(100,116,139,0.35) !important;
+}
+
+:root.theme-light .wallet-dots span.active {
+  background: #2563eb !important;
+}
+
+:root.theme-light .wallet-launches .form-input,
+:root.theme-light .wallet-filters .form-input {
+  background: rgba(255,255,255,0.68) !important;
+  color: #0f172a !important;
+  border-color: rgba(100,116,139,0.22) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+:root.theme-light .wallet-launches .data-table thead th {
+  background: rgba(248,250,252,0.84) !important;
+  color: #475569 !important;
+}
+
+:root.theme-light .wallet-launches .data-table tbody td {
+  color: #0f172a;
+  border-bottom-color: rgba(100,116,139,0.14) !important;
+}
+
+:root.theme-light .wallet-empty-state {
+  background: rgba(255,255,255,0.30);
+  border-color: rgba(100,116,139,0.22);
+}
+
+@media (max-width: 700px) {
+  :root.theme-light .wallet-summary,
+  :root.theme-light .wallet-launches {
+    background:
+      linear-gradient(145deg, rgba(255,255,255,0.62), rgba(255,255,255,0.28)),
+      rgba(255,255,255,0.46) !important;
+  }
+}
