@@ -9,6 +9,12 @@ export async function requestNvidia(action, requestData, apiKey, { fetchImpl = f
     max_tokens: requestData.max_tokens || 1024,
     stream: false
   };
+  // NVIDIA documents GLM-5.3's default as max reasoning. Use low for chat.
+  if (/^z-ai\/glm-5\.3(?:$|-)/.test(payload.model)) {
+    payload.reasoning_effort = 'low';
+    payload.chat_template_kwargs = { clear_thinking: true };
+    payload.max_tokens = Math.max(4096, payload.max_tokens);
+  }
   if (Array.isArray(requestData.tools) && requestData.tools.length) {
     payload.tools = requestData.tools;
     payload.tool_choice = requestData.tool_choice || 'auto';
@@ -36,6 +42,10 @@ export async function requestNvidia(action, requestData, apiKey, { fetchImpl = f
       if (retryAfter > 0) retryDelay = Math.min(2000, retryAfter * 1000);
       result = { status: response.status, data };
       if (response.ok && (!data || typeof data !== 'object' || data.error || (action === 'chat' && !data.choices?.[0]?.message) || (action === 'models' && !Array.isArray(data.data)))) result = { status: 502, data: { error: 'NVIDIA_INVALID_RESPONSE' } };
+      if (response.ok && action === 'chat' && data.choices?.[0]?.message) {
+        const message = data.choices[0].message;
+        if (!message.content?.trim() && !message.tool_calls?.length) result = { status: 502, data: { error: 'NVIDIA_EMPTY_RESPONSE' } };
+      }
     } catch (error) {
       result = { status: error?.name === 'AbortError' ? 504 : 502, data: { error: error?.name === 'AbortError' ? 'NVIDIA_TIMEOUT' : 'NVIDIA_CONNECTION_FAILED' } };
     } finally {

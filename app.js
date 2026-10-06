@@ -2212,6 +2212,11 @@ REGRAS OBRIGATÓRIAS:
     try {
       this.renderChatHistory();
       addLoading();
+      const exactAnswer = window.FinZoniContext.exactCardAnswer(this, text);
+      if (exactAnswer) {
+        this.conversationHistory.push({ role: 'assistant', content: exactAnswer });
+        return;
+      }
       const systemPrompt = await this.getSystemPrompt();
       this.conversationHistory = this.conversationHistory.filter(message => message.role !== 'system');
       // Keep complete turns together so tool results never lose their calls.
@@ -2229,7 +2234,7 @@ REGRAS OBRIGATÓRIAS:
         toolIterations++;
         const remainingMs = chatDeadline - Date.now();
         if (remainingMs < 1000) throw new Error('NVIDIA_TIMEOUT');
-        const responseMessage = await this.callNvidia(this.conversationHistory, 1000, 0.7, false, tools, Math.min(65000, remainingMs));
+        const responseMessage = await this.callNvidia(this.conversationHistory, 4096, 0.2, false, tools, Math.min(65000, remainingMs));
         
         if (responseMessage.tool_calls?.length) {
           this.conversationHistory.push(responseMessage);
@@ -2791,6 +2796,8 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
 
   
   forcarNovoInsight() {
+    if (this.insightBusy) return;
+    this.insightRetryAt = 0;
     this.dm.data.insightTurnoId = null;
     this.dm.data.insightTexto = null;
     this.dm.save();
@@ -2803,10 +2810,10 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     if (!contentEl) return;
     contentEl.innerHTML = `
       <div class="insight-fallback">
-        <span>${escapeHTML(message)}</span>
+        <span>${escapeHTML(window.FinZoniContext.insight(this))}</span>
         <button class="btn btn-outline btn-sm" onclick="app.forcarNovoInsight()">Tentar novamente</button>
       </div>`;
-    if (timerEl) timerEl.innerText = status;
+    if (timerEl) timerEl.innerText = status === 'Tente novamente quando quiser' ? 'Resumo calculado • IA indisponível' : status;
   }
 
   async checkAndFetchInsight() {
@@ -2817,8 +2824,8 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     if (!contentEl) return;
 
     if (!apiKey) {
-      contentEl.innerText = "Configure sua chave NVIDIA NIM em Configurações para ativar os insights do Zoni.";
-      if(timerEl) timerEl.innerText = "Zoni desconectado";
+      contentEl.innerText = window.FinZoniContext.insight(this);
+      if(timerEl) timerEl.innerText = "Resumo calculado • configure a IA para sugestões";
       return;
     }
 
@@ -2835,20 +2842,22 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
 
     const turnosNomes = ["(00:00 - 08:00)", "(08:00 - 16:00)", "(16:00 - 00:00)"];
 
-    if (this.dm.data.insightTurnoId === idTurno && this.dm.data.insightTexto) {
+    const localInsight = window.FinZoniContext.insight(this);
+    const insightDataKey = JSON.stringify([localInsight, window.FinZoniContext.cardReport(this)]);
+    if (this.dm.data.insightTurnoId === idTurno && this.dm.data.insightDataKey === insightDataKey && this.dm.data.insightTexto) {
       contentEl.innerHTML = window.DOMPurify ? window.DOMPurify.sanitize(this.dm.data.insightTexto) : this.dm.data.insightTexto;
       if(timerEl) timerEl.innerText = `Turno Atual ${turnosNomes[turnoAtual]}`;
       return;
     }
 
-    contentEl.innerHTML = "Lendo e processando seu fluxo de caixa para este turno... \uD83E\uDDE0";
+    contentEl.innerText = localInsight;
     if(timerEl) timerEl.innerText = "Analisando...";
     
     this.insightBusy = true;
     const insightUserId = this.dm.userId;
     try {
       // Pega o resumo de contexto
-      const sysPrompt = await this.getSystemPrompt();
+      const sysPrompt = 'Você é o Zoni. Dê uma sugestão breve baseada somente no resumo fornecido. Não calcule, não cite valores nem números, não invente informações. Responda em português, sem HTML e sem pensamentos internos.';
 
       const { data: aiData, error } = await window.nvidiaProxy({
           action: 'chat',
@@ -2856,10 +2865,10 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
           model: this.dm.data.nvidiaModel || 'meta/llama-3.1-8b-instruct',
           messages: [
             { role: 'system', content: sysPrompt },
-            { role: 'user', content: "Aja como um analista de dados frio e genial. Leia o contexto de números do dashboard. Forneça APENAS a dica final. NUNCA escreva seus pensamentos, NUNCA escreva 'The user wants me to...', NUNCA explique sua lógica. Máximo 2 frases. Use emojis." }
+            { role: 'user', content: `${localInsight}\nDê uma única sugestão útil, sem repetir os números.` }
           ],
           temperature: 0.2,
-          max_tokens: 150
+          max_tokens: 4096
       });
 
       if (error) throw new Error(error.message);
@@ -2886,7 +2895,8 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
         }
       }
       
-      const novoInsight = txt;
+      if (!txt || /\d|R\$|<|>/.test(txt)) throw new Error('Sugestão inválida; preservar resumo calculado.');
+      const novoInsight = `${localInsight}\n${txt}`;
 
       
             // Formata markdown básico antes de salvar e exibir
@@ -2895,8 +2905,9 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
         .replace(/\*(.*?)\*/g, '<em>$1</em>') // itálico
         .replace(/\n/g, '<br/>'); // quebra de linha
 
-      if (this.dm.userId !== insightUserId) return;
+      if (this.dm.userId !== insightUserId || this.currentMonth !== Number(idTurno.split('-').at(-1)) || window.FinZoniContext.insight(this) !== localInsight) return;
       this.dm.data.insightTurnoId = idTurno;
+      this.dm.data.insightDataKey = insightDataKey;
       this.dm.data.insightTexto = formattedInsight;
       this.dm.save();
       
@@ -4389,18 +4400,34 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     this.updateWalletSummary(selectedCard || cartoes[0]);
   }
 
-  calcFaturaCartao(cartaoId, monthKey) {
-    if (!monthKey) return 0;
+  valorParcelaCartao(compra, index) {
+    const parcelas = Math.max(1, Math.min(600, Math.trunc(Number(compra.parcelas) || 1)));
+    const total = Number(compra.valorTotal);
+    const stored = Number(compra.valorParcela);
+    if (Number.isFinite(total) && total > 0 && (!Number.isFinite(stored) || Math.abs(stored - total / parcelas) < 0.011)) {
+      const cents = Math.round(total * 100);
+      const regular = Math.floor(cents / parcelas);
+      return (index === parcelas - 1 ? cents - regular * (parcelas - 1) : regular) / 100;
+    }
+    return Number.isFinite(stored) ? Math.round(stored * 100) / 100 : 0;
+  }
+
+  parcelasFaturaCartao(cartaoId, monthKey) {
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(String(monthKey))) return [];
     const [targetYear, targetMonth] = String(monthKey).split('-').map(Number);
-    return (this.dm.data.comprasCartao || []).reduce((total, compra) => {
-      if (cartaoId !== 'all' && String(compra.cartaoId) !== String(cartaoId)) return total;
+    return (this.dm.data.comprasCartao || []).flatMap(compra => {
+      if (cartaoId !== 'all' && String(compra.cartaoId) !== String(cartaoId)) return [];
       const inicio = compra.mesInicio || String(compra.data || '').slice(0, 7);
       const [startYear, startMonth] = inicio.split('-').map(Number);
-      if (![targetYear, targetMonth, startYear, startMonth].every(Number.isFinite)) return total;
+      if (![targetYear, targetMonth, startYear, startMonth].every(Number.isFinite) || startMonth < 1 || startMonth > 12) return [];
       const diff = (targetYear - startYear) * 12 + (targetMonth - startMonth);
       const parcelas = Math.max(1, Number(compra.parcelas) || 1);
-      return diff >= 0 && diff < parcelas ? total + (Number(compra.valorParcela) || Number(compra.valorTotal) / parcelas || 0) : total;
-    }, 0);
+      return diff >= 0 && diff < parcelas ? [{ compra, parcelaAtual: diff + 1, valor: this.valorParcelaCartao(compra, diff) }] : [];
+    });
+  }
+
+  calcFaturaCartao(cartaoId, monthKey) {
+    return this.parcelasFaturaCartao(cartaoId, monthKey).reduce((total, item) => total + Math.round(item.valor * 100), 0) / 100;
   }
 
   calcCartaoEmAberto(cartaoId, monthKey) {
@@ -4413,8 +4440,9 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       const diff = (targetYear - startYear) * 12 + (targetMonth - startMonth);
       const parcelas = Math.max(1, Number(compra.parcelas) || 1);
       const remaining = diff < 0 ? parcelas : diff >= parcelas ? 0 : parcelas - diff;
-      const parcela = Number(compra.valorParcela) || Number(compra.valorTotal) / parcelas || 0;
-      return total + remaining * parcela;
+      let remainingCents = 0;
+      for (let index = parcelas - remaining; index < parcelas; index++) remainingCents += Math.round(this.valorParcelaCartao(compra, index) * 100);
+      return total + remainingCents / 100;
     }, 0);
   }
 
@@ -4526,11 +4554,11 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     let itemsHTML = '';
     let faturaTotal = 0;
     
-    const compras = this.dm.data.comprasCartao || [];
+    const compras = this.parcelasFaturaCartao(selectedCartaoId, selectedMonth);
     const cartoesDict = {};
     (this.dm.data.cartoes||[]).forEach(c => cartoesDict[c.id] = c);
     
-    compras.forEach(compra => {
+    compras.forEach(({ compra, parcelaAtual, valor }) => {
        if (selectedCartaoId !== 'all' && String(compra.cartaoId) !== String(selectedCartaoId)) return;
        
        const [y1, m1] = (compra.mesInicio || String(compra.data || '').slice(0, 7)).split('-').map(Number);
@@ -4539,15 +4567,14 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
        
        if (diffMonths >= 0 && diffMonths < compra.parcelas) {
           const cartao = cartoesDict[compra.cartaoId];
-          const parcelaAtual = diffMonths + 1;
-          faturaTotal += compra.valorParcela;
+          faturaTotal += Math.round(valor * 100);
           itemsHTML += `
             <tr>
               <td>${compra.data.split('-').reverse().join('/')}</td>
               <td><span style="border-bottom:2px solid ${cartao?.cor||'#fff'}">${cartao?.nome || 'Desconhecido'}</span></td>
               <td>${escapeHTML(compra.descricao)}</td>
               <td class="text-center">${parcelaAtual}/${compra.parcelas}</td>
-              <td class="text-right value-negative">${formatCurrency(compra.valorParcela)}</td>
+              <td class="text-right value-negative">${formatCurrency(valor)}</td>
               <td><button class="btn-icon" onclick="app.deleteCompraCartao('${compra.id}')" title="Excluir Compra Inteira" aria-label="Excluir compra">&#128465;</button></td>
             </tr>
           `;
@@ -4555,7 +4582,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     });
     
     tbody.innerHTML = itemsHTML || '<tr><td colspan="6" class="text-center text-muted">Nenhuma compra nesta fatura.</td></tr>';
-    totalEl.textContent = formatCurrency(faturaTotal);
+    totalEl.textContent = formatCurrency(faturaTotal / 100);
 
     const [selectedYear, selectedMonthNumber] = selectedMonth.split('-').map(Number);
     const nextDate = new Date(selectedYear, selectedMonthNumber, 1);
