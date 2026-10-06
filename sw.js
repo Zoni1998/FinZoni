@@ -1,8 +1,9 @@
-const CACHE_NAME = 'finzoni-cache-v33';
+const CACHE_NAME = 'finzoni-cache-v34';
 const urlsToCache = [
   './',
   './index.html',
   './style.css',
+  './finzoni-ui.css',
   './app.js',
   './zoni-context.js',
   './manifest.json'

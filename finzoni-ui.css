@@ -1,0 +1,118 @@
+/* Carteira e Zoni: superfícies opacas, contraste e hierarquia por tema. */
+:root {
+  --fz-surface: #151d2c; --fz-soft: #1d293b; --fz-ink: #f1f5fc;
+  --fz-muted: #b0bed2; --fz-line: #35445a; --fz-accent: #91b8ff;
+  --fz-accent-soft: #203555; --fz-warning: #ffc477;
+}
+:root.theme-light {
+  --fz-surface: #ffffff; --fz-soft: #f3f6fb; --fz-ink: #16243b;
+  --fz-muted: #53647c; --fz-line: #d5dfec; --fz-accent: #2459b5;
+  --fz-accent-soft: #edf3ff; --fz-warning: #9b4b0a;
+}
+:root.theme-amoled { --fz-surface: #0b0b0b; --fz-soft: #171717; --fz-line: #393939; }
+#tab-cartoes { color: var(--fz-ink); }
+#tab-cartoes .section-subtitle { color: var(--fz-muted); font-size: 14px; }
+.wallet-page-header { margin-bottom: 20px; gap: 16px; }
+.wallet-page-title { font-size: clamp(28px, 3vw, 36px); letter-spacing: -.035em; line-height: 1.2; margin-bottom: 6px; }
+.wallet-card-browser { grid-template-columns: 40px minmax(0,1fr) 40px; gap: 8px; }
+.wallet-card-nav { width: 40px; height: 40px; background: var(--fz-surface); color: var(--fz-ink); border-color: var(--fz-line); box-shadow: none; }
+.wallet-card-rail { gap: 16px; padding: 8px 5px 16px; scrollbar-color: var(--fz-line) transparent; }
+.wallet-credit-card { flex: 0 0 320px; min-height: 234px; padding: 20px; border-radius: 20px; box-shadow: 0 6px 16px #0c1d3620; transition: transform .16s ease, box-shadow .16s ease; background: linear-gradient(125deg,#264b85,#142942); }
+.wallet-credit-card.is-itau { background: linear-gradient(125deg,#9f460e,#6e2c0a); }
+.wallet-credit-card.is-amazon { background: linear-gradient(125deg,#254e55,#16363d); }
+.wallet-credit-card.is-selected { border-color: #fff; outline: 3px solid var(--fz-accent); outline-offset: 2px; box-shadow: 0 8px 20px #0c1d3626; }
+.wallet-credit-card:hover { transform: translateY(-2px); }
+.wallet-credit-card::before { opacity: .12; pointer-events: none; }
+.wallet-brand strong { font-size: 18px; }
+.wallet-brand-mark { width: 36px; height: 36px; font-size: 15px; border-radius: 10px; }
+.wallet-contactless { font-size: 11px; font-weight: 600; line-height: 1.3; white-space: nowrap; transform: none; letter-spacing: .04em; background: #ffffff18; border: 1px solid #ffffff60; border-radius: 20px; padding: 5px 8px; }
+.wallet-card-bottom { margin-top: 18px; }
+.wallet-card-bottom span, .wallet-card-meta { color: #e1eaf6; }
+.wallet-card-meta { margin-top: 16px; padding-top: 12px; gap: 10px; font-size: 12px; }
+.wallet-card-footer { font-size: 13px; margin-top: 12px; gap: 8px; }
+.wallet-card-footer > span { white-space: normal; }
+.wallet-card-edit { background: #ffffff12; border-color: #ffffff85; color: #fff; padding: 7px 9px; min-height: 36px; flex-shrink: 0; }
+.wallet-dots { margin: 0 0 20px; }
+.wallet-dots span { background: var(--fz-line); }
+.wallet-dots span.active { background: var(--fz-accent); }
+.wallet-summary, .wallet-launches { background: var(--fz-surface); border: 1px solid var(--fz-line); border-radius: 20px; box-shadow: 0 6px 24px #1328430b; color: var(--fz-ink); backdrop-filter: none; }
+.wallet-summary { padding: 24px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 32px; row-gap: 16px; margin-bottom: 24px; }
+.wallet-summary-top { grid-column: 1; grid-row: 1; gap: 14px; align-items: center; }
+.wallet-limit-row { grid-column: 2; grid-row: 1; gap: 12px; align-items: center; }
+.wallet-summary-divider { display: none; }
+.wallet-summary-label, .wallet-best-day, .wallet-due-block, .wallet-limit-percent { color: var(--fz-muted); font-size: 13px; }
+.wallet-summary-amount { color: var(--fz-warning); font-size: clamp(26px,3vw,32px); letter-spacing: -.03em; }
+.wallet-limit-amount { color: var(--fz-ink); font-size: 26px; letter-spacing: -.03em; }
+.wallet-limit-percent strong, .wallet-best-day strong { color: var(--fz-ink); font-size: 14px; }
+.wallet-due-pill { border-color: var(--fz-line); color: var(--fz-ink); background: var(--fz-soft); padding: 5px 10px; font-size: 12px; }
+.wallet-limit-track { grid-column: 2; grid-row: 2; background: var(--fz-soft); height: 8px; margin: 4px 0; }
+.wallet-limit-track > div { background: var(--fz-accent); transition: width .2s ease; }
+.wallet-best-day { grid-column: 1; grid-row: 2; justify-content: space-between; border-top: 1px solid var(--fz-line); padding-top: 12px; }
+.wallet-launches { padding: 24px; }
+.wallet-launches .section-title { color: var(--fz-ink); font-size: 20px; }
+.wallet-launches .form-input { background: var(--fz-soft); border-color: var(--fz-line); color: var(--fz-ink); font-size: 14px; min-height: 44px; }
+.wallet-invoice-overview { grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0 24px; }
+.wallet-invoice-row { grid-template-columns: 40px minmax(0,1fr); gap: 12px; background: var(--fz-accent-soft); border: 1px solid var(--fz-line); border-radius: 14px; padding: 18px; color: var(--fz-ink); }
+.wallet-invoice-next { background: var(--fz-soft); }
+.wallet-invoice-icon { width: 40px; height: 40px; border-radius: 12px; background: var(--fz-surface); color: var(--fz-accent); border-color: var(--fz-line); }
+.wallet-invoice-copy strong { font-size: 14px; }
+.wallet-invoice-copy span { font-size: 13px; color: var(--fz-muted); }
+.wallet-invoice-value { grid-column: 2; color: var(--fz-ink); font-size: 24px; letter-spacing: -.025em; }
+.wallet-table-toolbar { color: var(--fz-ink); gap: 12px; }
+.wallet-table-toolbar .btn-success { background: #187744; color: white; border-color: #187744; }
+.wallet-launches .data-table thead { background: var(--fz-soft); }
+.wallet-launches .data-table th { background: var(--fz-soft); color: var(--fz-muted); font-size: 12px; letter-spacing: .035em; }
+.wallet-launches .data-table td { color: var(--fz-ink); border-color: var(--fz-line); font-size: 14px; }
+.wallet-launches .data-table tbody tr:hover { background: var(--fz-soft); }
+.wallet-launches .text-muted, .wallet-empty-state { color: var(--fz-muted); }
+#modalIA { background: #09152899; backdrop-filter: blur(8px); padding: 24px; z-index: 3000; }
+#modalIA .zoni-modal { width: 100%; max-width: 800px; height: min(720px,calc(100dvh - 48px)); max-height: calc(100dvh - 48px); padding: 0; overflow: hidden; background: var(--fz-surface); border: 1px solid var(--fz-line); border-radius: 24px; color: var(--fz-ink); box-shadow: 0 24px 80px #0005; }
+.zoni-header { padding: 22px 24px !important; margin: 0; flex-wrap: wrap; gap: 16px; background: var(--fz-soft); border-bottom: 1px solid var(--fz-line) !important; }
+.zoni-header .modal-title { color: var(--fz-ink); font-size: 21px; letter-spacing: -.025em; }
+.zoni-context-label { color: var(--fz-muted); font-size: 13px; margin-top: 6px; }
+.zoni-header-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+#iaPersonaSelector { width: 230px; max-width: 100% !important; min-height: 40px; padding: 8px 10px !important; font-size: 13px !important; color: var(--fz-ink); background: var(--fz-surface); border: 1px solid var(--fz-line); }
+.zoni-clear { width: auto; padding: 8px 12px !important; color: var(--fz-muted) !important; background: var(--fz-surface); border: 1px solid var(--fz-line) !important; border-radius: 10px !important; min-height: 40px; }
+.zoni-header .modal-close { width: 40px; height: 40px; color: var(--fz-muted); background: var(--fz-surface); border: 1px solid var(--fz-line); border-radius: 10px; }
+#iaChatHistory { padding: 24px !important; gap: 18px !important; min-height: 0; scrollbar-color: var(--fz-line) transparent; }
+.zoni-message { display: flex; width: 100%; justify-content: flex-start; }
+.zoni-message.is-user { justify-content: flex-end; }
+.zoni-message-bubble { background: var(--fz-soft); color: var(--fz-ink); border: 1px solid var(--fz-line); padding: 16px 18px; border-radius: 4px 18px 18px; max-width: 90%; font-size: 15px; line-height: 1.65; overflow-wrap: anywhere; }
+.is-user .zoni-message-bubble { background: #2459b5; color: white; border-color: #2459b5; border-radius: 18px 4px 18px 18px; }
+.zoni-suggestions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0; }
+.zoni-suggestions button { padding: 14px; border: 1px solid var(--fz-line); border-radius: 12px; background: var(--fz-surface); color: var(--fz-ink); text-align: left; font-size: 14px; min-height: 48px; transition: background .16s ease; }
+.zoni-suggestions button:hover { color: var(--fz-accent); background: var(--fz-accent-soft); border-color: var(--fz-accent); }
+.zoni-composer { margin: 0; padding: 18px 24px !important; border-top: 1px solid var(--fz-line) !important; background: var(--fz-soft); }
+.zoni-composer .btn { width: 44px !important; height: 44px !important; min-width: 44px; border-radius: 12px !important; color: var(--fz-ink) !important; background: var(--fz-surface) !important; border-color: var(--fz-line) !important; }
+.zoni-composer #btnSendIA { color: white !important; background: #2459b5 !important; border-color: #2459b5 !important; }
+.zoni-composer svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+#iaChatInput { min-width: 0; min-height: 46px; color: var(--fz-ink); background: var(--fz-surface); border: 1px solid var(--fz-line); font-size: 15px; }
+#iaChatInput::placeholder { color: var(--fz-muted); opacity: 1; }
+#iaAttachmentPreview { margin: 0 24px 12px; color: var(--fz-ink); background: var(--fz-soft) !important; }
+#tab-cartoes :is(button,select,article):focus-visible, #modalIA :is(button,select,input):focus-visible { outline: 3px solid var(--fz-accent); outline-offset: 3px; }
+@media (max-width: 1100px) { .wallet-summary { grid-template-columns: 1fr; } .wallet-limit-row { grid-column: 1; grid-row: 3; border-top: 1px solid var(--fz-line); padding-top: 16px; } .wallet-limit-track { grid-column: 1; grid-row: 4; } }
+@media (max-width: 600px) {
+  .wallet-page-header { align-items: flex-start; }
+  .wallet-card-browser { grid-template-columns: 28px minmax(0,1fr) 28px; gap: 4px; }
+  .wallet-card-nav { width: 28px; height: 44px; border-radius: 10px; }
+  .wallet-credit-card { flex-basis: 100%; min-height: 234px; padding: 16px; }
+  .wallet-brand { gap: 8px; } .wallet-brand strong { font-size: 16px; }
+  .wallet-contactless { font-size: 10px; padding: 4px 6px; }
+  .wallet-card-meta { font-size: 11px; }
+  .wallet-summary, .wallet-launches { padding: 18px; border-radius: 16px; }
+  .wallet-invoice-overview { grid-template-columns: 1fr; }
+  .wallet-due-block { max-width: 45%; text-align: right; }
+  #modalIA { padding: 8px; align-items: center; }
+  #modalIA .zoni-modal { width: 100% !important; padding: 0 !important; margin: 0 !important; height: calc(100dvh - 16px) !important; max-height: calc(100dvh - 16px) !important; border-radius: 18px !important; }
+  .zoni-header { padding: 16px !important; gap: 12px; }
+  .zoni-header-controls { width: 100%; flex-wrap: nowrap; }
+  #iaPersonaSelector { flex: 1; min-width: 0; width: auto; }
+  #iaChatHistory { padding: 16px !important; }
+  .zoni-message-bubble { max-width: 95%; }
+  .zoni-suggestions { grid-template-columns: 1fr; }
+  .zoni-composer { padding: 12px !important; flex-wrap: wrap; }
+  #iaChatInput { flex: 1 1 calc(100% - 60px) !important; order: 0; }
+  .zoni-composer #btnSendIA { order: 1; }
+  .zoni-composer .btn:not(#btnSendIA) { order: 2; }
+}
+@media (prefers-reduced-motion: reduce) { .wallet-credit-card, .wallet-limit-track > div, .zoni-suggestions button { transition: none; } .wallet-card-rail { scroll-behavior: auto; } }

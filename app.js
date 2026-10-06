@@ -1767,11 +1767,6 @@ REGRAS OBRIGATÓRIAS:
       if (msg.tool_calls) continue; // Don't show the tool call raw JSON to user
       
       const isUser = msg.role === 'user';
-      const bg = isUser ? 'var(--purple)' : 'var(--bg-card)';
-      const color = isUser ? '#fff' : 'var(--text-primary)';
-      const border = isUser ? 'none' : '1px solid var(--border-color)';
-      const align = isUser ? 'flex-end' : 'flex-start';
-      
       let txt = '';
       if (msg.displayHtml) {
          txt = msg.displayHtml;
@@ -1783,8 +1778,8 @@ REGRAS OBRIGATÓRIAS:
       }
       
       html += `
-        <div style="display:flex; justify-content:${align}; width:100%;">
-          <div style="background:${bg}; color:${color}; border:${border}; padding:12px 16px; border-radius:12px; max-width:85%; font-size:0.95rem; line-height:1.5; box-shadow:0 1px 2px rgba(0,0,0,0.05); overflow-wrap: break-word;">
+        <div class="zoni-message ${isUser ? 'is-user' : 'is-assistant'}">
+          <div class="zoni-message-bubble">
             ${txt}
           </div>
         </div>
@@ -4360,7 +4355,6 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       const nomeNormalizado = String(c.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
       const brandClass = nomeNormalizado.includes('itau') ? 'is-itau' : nomeNormalizado.includes('amazon') ? 'is-amazon' : 'is-generic';
       const brandMark = nomeNormalizado.includes('amazon') ? 'a' : nomeNormalizado.includes('itau') ? 'itaú' : escapeHTML(String(c.nome || '?').slice(0, 1).toUpperCase());
-      const ending = String(c.id ?? index).replace(/\D/g, '').slice(-4).padStart(4, '0');
       const currentInvoice = this.calcFaturaCartao(c.id, monthKey);
 
       return `
@@ -4370,13 +4364,10 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
           aria-label="Selecionar ${escapeHTML(c.nome || 'cartão')}" aria-pressed="${selected}">
           <div class="wallet-card-top">
             <div class="wallet-brand"><span class="wallet-brand-mark">${brandMark}</span><strong>${escapeHTML(c.nome || 'Cartão')}</strong></div>
-            <span class="wallet-contactless" aria-hidden="true">)))</span>
+            <span class="wallet-contactless">${selected ? 'Selecionado' : 'Ver fatura'}</span>
           </div>
-          <div class="wallet-chip" aria-hidden="true"><span></span><span></span><span></span></div>
-          <div class="wallet-card-number">•••• &nbsp;•••• &nbsp;•••• &nbsp;${ending}</div>
           <div class="wallet-card-bottom">
             <div><span>Titular</span><strong>${escapeHTML(holder)}</strong></div>
-            <strong class="wallet-card-network">VISA</strong>
           </div>
           <div class="wallet-card-meta">
             <span>${fechamentoValido ? `Fecha dia ${fechamento}` : 'Fechamento não informado'}</span>
@@ -4384,7 +4375,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
           </div>
           <div class="wallet-card-footer">
             <span>${cadastroIncompleto ? 'Complete os dados para ver o resumo' : `Fatura ${formatCurrency(currentInvoice)}`}</span>
-            <button class="wallet-card-edit" onclick="event.stopPropagation();app.editCartao(${index})" aria-label="${cadastroIncompleto ? 'Completar dados' : 'Editar cartão'}">${cadastroIncompleto ? 'Completar dados' : 'Editar'}</button>
+            <button class="wallet-card-edit" onkeydown="event.stopPropagation()" onclick="event.stopPropagation();app.editCartao(${index})" aria-label="${cadastroIncompleto ? 'Completar dados' : 'Editar cartão'}">${cadastroIncompleto ? 'Completar dados' : 'Editar'}</button>
           </div>
         </article>`;
     }).join('');
