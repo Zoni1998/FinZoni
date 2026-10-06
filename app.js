@@ -804,7 +804,7 @@ constructor() {
       document.getElementById('sidebar').classList.toggle('open');
       document.getElementById('mobileOverlay').classList.toggle('show');
     });
-    document.getElementById('mobileOverlay').addEventListener('click', () => this.closeMobileMenu());
+    document.getElementById('mobileOverlay').addEventListener('click', (event) => { event.preventDefault(); });
     document.getElementById('sidebarCloseBtn')?.addEventListener('click', () => this.closeMobileMenu());
     document.addEventListener('keydown', event => {
       if (event.key === 'Escape') this.closeMobileMenu();
