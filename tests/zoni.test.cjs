@@ -244,3 +244,19 @@ test('installment totals use cents, string amounts and last-installment adjustme
   assert.equal(app.calcFaturaCartao('c', '2026-13'), 0);
   assert.equal(app.parcelasFaturaCartao('c', '2026-10')[0].valor, 33.34);
 });
+test('web saving refuses to overwrite a document changed by the integration', async () => {
+  const { app, sandbox } = fixture();
+  app.dm.userId = 'owner'; app.dm.loadedPayload = 'original';
+  let writes = 0;
+  sandbox.backend = { from: () => ({ select: () => ({ eq: () => ({ single: async () => ({ data: { user_id: 'owner', data: 'external change' }, error: null }) }) }), update: () => { writes++; throw Error('must not update'); } }) };
+  vm.runInContext('sbClient = backend; showToast = () => {};', sandbox);
+  assert.equal(await app.dm._save('my stale edit'), false); assert.equal(writes, 0); assert.equal(app.dm.loadedPayload, 'original');
+});
+test('web saving uses atomic RPC and advances baseline only on confirmed success', async () => {
+ const { app, sandbox } = fixture(); app.dm.userId = 'owner'; app.dm.loadedPayload = 'original';
+ let success = false;
+ sandbox.backend = { from: () => ({ select: () => ({ eq: () => ({ single: async () => ({ data: { user_id: 'owner', data: 'original' }, error: null }) }) }) }), rpc: async (name, body) => { assert.equal(name, 'save_finances_if_unchanged'); assert.equal(body.p_expected, 'original'); assert.equal(body.p_user_id, 'owner'); return { data: success, error: null }; } };
+ vm.runInContext('sbClient = backend; showToast = () => {};', sandbox);
+ assert.equal(await app.dm._save('edited'), false); assert.equal(app.dm.loadedPayload, 'original');
+ success = true; assert.equal(await app.dm._save('edited'), true); assert.equal(app.dm.loadedPayload, 'edited');
+});
