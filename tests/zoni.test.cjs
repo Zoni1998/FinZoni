@@ -187,3 +187,60 @@ test('proxy handles non-JSON and keeps timeout active during body consumption', 
 test('both server runtimes use the same inference client', () => {
   assert.equal(fs.readFileSync(path.join(base, 'api/_nvidia-client.js'), 'utf8').trim(), fs.readFileSync(path.join(base, 'supabase/functions/_shared/nvidia-client.js'), 'utf8').trim());
 });
+test('card payment answers distinguish registered bills from purchase invoices', async () => {
+  const { app, element } = fixture();
+  app.currentMonth = 10;
+  app.dm.data.cartoes = [{ id: 'c1', nome: 'Itaú', vencimento: 10 }];
+  app.dm.data.comprasCartao = [{ cartaoId: 'c1', descricao: 'Compra', mesInicio: '2026-10', valorTotal: 300, parcelas: 3, valorParcela: 100 }];
+  app.dm.data.meses[10].gastosFixos = [{ descricao: 'Cartão Itaú', valor: 291.95, pago: false }];
+  const answer = context.exactCardAnswer(app, 'Quanto tenho que pagar do cartão Itaú em outubro?');
+  assert.match(answer, /100,00/); assert.match(answer, /291,95/); assert.match(answer, /pendente/); assert.match(answer, /não some/);
+  let calls = 0; app.callNvidia = async () => { calls++; throw new Error('must not call'); };
+  element('iaChatInput').value = 'Quanto tenho que pagar do cartão Itaú em outubro?';
+  await app.enviarMensagemIA();
+  assert.equal(calls, 0); assert.equal(app.conversationHistory.at(-1).content, answer);
+  assert.equal(context.exactCardAnswer(app, 'Registre que paguei o cartão'), null);
+  assert.match(context.exactCardAnswer(app, 'Quanto pagar de cartão em 2025?'), /Não tenho dados/);
+});
+test('insight is calculated even when NVIDIA is unavailable and manual retry works', async () => {
+  const { app, element, sandbox } = fixture();
+  app.dm.data.meses[8].gastosFixos = [{ descricao: 'Cartão', valor: 291.95, pago: false }];
+  app.dm.data.nvidiaApiKey = 'key';
+  app.dm.save = () => {};
+  let calls = 0;
+  sandbox.window.nvidiaProxy = async () => { calls++; return { error: new Error('NVIDIA_TIMEOUT') }; };
+  await app.checkAndFetchInsight();
+  assert.match(element('insightContent').innerHTML, /291,95/);
+  assert.match(element('insightTimer').innerText, /Resumo calculado/);
+  app.forcarNovoInsight();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(calls, 2); assert.equal(app.insightBusy, false);
+});
+test('insight rejects invented numbers and does not cache them', async () => {
+  const { app, element, sandbox } = fixture();
+  app.dm.data.nvidiaApiKey = 'key';
+  sandbox.window.nvidiaProxy = async () => ({ data: { choices: [{ message: { content: 'Você deve pagar R$ 999,00.' } }] } });
+  await app.checkAndFetchInsight();
+  assert.ok(!element('insightContent').innerHTML.includes('999'));
+  assert.equal(app.dm.data.insightTexto, undefined);
+});
+test('GLM 5.3 gets a reasoning budget and reasoning-only output is not a success', async () => {
+  const { requestNvidia } = await import('../api/_nvidia-client.js');
+  let body;
+  const result = await requestNvidia('chat', { model: 'z-ai/glm-5.3', messages: [], max_tokens: 150 }, 'key', { sleep: async () => {}, fetchImpl: async (url, options) => {
+    body = JSON.parse(options.body);
+    return new Response('{"choices":[{"message":{"content":"","reasoning_content":"thinking"},"finish_reason":"length"}]}', { status: 200 });
+  } });
+  assert.equal(body.reasoning_effort, 'low'); assert.equal(body.chat_template_kwargs.clear_thinking, true); assert.equal(body.max_tokens, 4096);
+  assert.equal(result.status, 502); assert.equal(result.data.error, 'NVIDIA_EMPTY_RESPONSE');
+});
+test('installment totals use cents, string amounts and last-installment adjustment', () => {
+  const { app } = fixture();
+  app.dm.data.comprasCartao = [{ cartaoId: 'c', mesInicio: '2026-08', valorTotal: '100.00', parcelas: 3, valorParcela: String(100 / 3) }];
+  assert.equal(app.calcFaturaCartao('c', '2026-08'), 33.33);
+  assert.equal(app.calcFaturaCartao('c', '2026-09'), 33.33);
+  assert.equal(app.calcFaturaCartao('c', '2026-10'), 33.34);
+  assert.equal(app.calcCartaoEmAberto('c', '2026-08'), 100);
+  assert.equal(app.calcFaturaCartao('c', '2026-13'), 0);
+  assert.equal(app.parcelasFaturaCartao('c', '2026-10')[0].valor, 33.34);
+});
