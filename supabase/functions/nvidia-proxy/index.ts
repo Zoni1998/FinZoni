@@ -1,94 +1,21 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
-
-async function fetchNvidia(url: string, options: RequestInit = {}, timeoutMs = 22000) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    return await fetch(url, { ...options, signal: controller.signal });
-  } finally {
-    clearTimeout(timeoutId);
-  }
-}
-
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { requestNvidia } from '../_shared/nvidia-client.js';
+const headers = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Content-Type': 'application/json', 'Cache-Control': 'no-store' };
 serve(async (req: Request) => {
-  // Handle CORS preflight request
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
-
+  if (req.method === 'OPTIONS') return new Response('ok', { headers });
+  const reply = (data: unknown, status: number) => new Response(JSON.stringify(data), { headers, status });
+  if (req.method !== 'POST') return reply({ error: 'Method Not Allowed' }, 405);
   try {
-    const requestData = await req.json();
-    const action = requestData.action || 'chat'; // 'models' or 'chat'
-    
-    // Use the API key provided in the request payload, fallback to environment variable
-    const apiKey = requestData.apiKey || Deno.env.get('NVIDIA_API_KEY');
-    
-    if (!apiKey) {
-      throw new Error('NVIDIA API Key is missing. Provide it in the frontend or set NVIDIA_API_KEY environment variable.');
-    }
-
-    if (action === 'models') {
-      const response = await fetchNvidia('https://integrate.api.nvidia.com/v1/models', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Accept': 'application/json',
-        }
-      });
-      const data = await response.json();
-      return new Response(JSON.stringify(data), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: response.status,
-      });
-    } 
-    else if (action === 'chat') {
-      // Validate request schema to prevent exfiltration / abuse
-      if (!requestData.messages || !Array.isArray(requestData.messages)) {
-        throw new Error('Invalid request format: "messages" array is required');
-      }
-
-      const payload: Record<string, unknown> = {
-        model: requestData.model || 'meta/llama-3.1-8b-instruct',
-        messages: requestData.messages,
-        temperature: requestData.temperature ?? 0.7,
-        top_p: requestData.top_p ?? 1,
-        max_tokens: requestData.max_tokens || 1024,
-      };
-      if (Array.isArray(requestData.tools) && requestData.tools.length > 0) {
-        payload.tools = requestData.tools;
-        payload.tool_choice = requestData.tool_choice || 'auto';
-      }
-      if (requestData.response_format) payload.response_format = requestData.response_format;
-
-      const response = await fetchNvidia('https://integrate.api.nvidia.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await response.json();
-
-      return new Response(JSON.stringify(data), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: response.status,
-      });
-    } else {
-      throw new Error(`Invalid action: ${action}`);
-    }
-  } catch (error: any) {
-    const timedOut = error?.name === 'AbortError';
-    return new Response(JSON.stringify({ error: timedOut ? 'NVIDIA_TIMEOUT' : error.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: timedOut ? 504 : 400,
-    })
+    const body = await req.json();
+    const action = body.action || 'chat';
+    const apiKey = body.apiKey || Deno.env.get('NVIDIA_API_KEY');
+    if (!apiKey) return reply({ error: 'NVIDIA_API_KEY_MISSING' }, 400);
+    if (!['chat', 'models'].includes(action)) return reply({ error: 'Invalid action' }, 400);
+    if (action === 'chat' && (!Array.isArray(body.messages) || !body.messages.length)) return reply({ error: 'Messages are required' }, 400);
+    const result = await requestNvidia(action, body, apiKey);
+    return reply(result.data, result.status);
+  } catch {
+    return reply({ error: 'NVIDIA_CONNECTION_FAILED' }, 502);
   }
-})
+});
+
