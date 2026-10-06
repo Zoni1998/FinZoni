@@ -2626,3 +2626,152 @@ body {
     gap: 4px;
   }
 }
+
+/* ── MOBILE NAVBAR + GLASS SIDEBAR PATCH ── */
+
+/* Sidebar glass treatment shared by every theme */
+.sidebar {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.012)),
+    rgba(14, 15, 23, 0.84) !important;
+  backdrop-filter: blur(28px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(150%) !important;
+  border-color: rgba(255,255,255,0.10) !important;
+  box-shadow:
+    0 18px 48px rgba(0,0,0,0.42),
+    inset 0 1px 0 rgba(255,255,255,0.06) !important;
+}
+
+:root.theme-light .sidebar {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.48), rgba(255,255,255,0.18)),
+    rgba(248, 250, 252, 0.88) !important;
+  border-color: rgba(15,23,42,0.10) !important;
+  box-shadow:
+    0 18px 42px rgba(15,23,42,0.16),
+    inset 0 1px 0 rgba(255,255,255,0.72) !important;
+}
+
+:root.theme-amoled .sidebar {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.022), rgba(255,255,255,0.006)),
+    rgba(0, 0, 0, 0.90) !important;
+  border-color: rgba(255,255,255,0.09) !important;
+  box-shadow:
+    0 18px 48px rgba(0,0,0,0.72),
+    inset 0 1px 0 rgba(255,255,255,0.035) !important;
+}
+
+@media (max-width: 768px) {
+  .main-header {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    align-items: center !important;
+    row-gap: 10px !important;
+    width: calc(100% - 12px) !important;
+    max-width: calc(100% - 12px) !important;
+    min-height: 118px !important;
+    height: auto !important;
+    margin: 6px 6px 12px !important;
+    padding: 10px 10px 10px 58px !important;
+  }
+
+  .month-selector {
+    width: 100% !important;
+    min-width: 0 !important;
+    justify-content: center !important;
+    gap: 8px !important;
+  }
+
+  .month-selector .current-month {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    max-width: 170px !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    font-size: 0.9rem !important;
+  }
+
+  .header-actions {
+    width: 100% !important;
+    min-width: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+    overflow: visible !important;
+  }
+
+  #mainThemeSelector {
+    width: 116px !important;
+    min-width: 116px !important;
+    max-width: 116px !important;
+    flex: 0 0 116px !important;
+    padding: 7px 8px !important;
+    font-size: 0.78rem !important;
+  }
+
+  .header-actions .btn-icon,
+  .header-actions .btn-sm {
+    width: 40px !important;
+    min-width: 40px !important;
+    height: 40px !important;
+    padding: 0 !important;
+    flex: 0 0 40px !important;
+  }
+
+  .header-actions .btn-sm span {
+    display: none !important;
+  }
+
+  .search-bar {
+    display: none !important;
+  }
+
+  .sidebar {
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.012)),
+      rgba(14, 15, 23, 0.86) !important;
+  }
+
+  :root.theme-light .sidebar {
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.52), rgba(255,255,255,0.20)),
+      rgba(248, 250, 252, 0.90) !important;
+  }
+
+  :root.theme-amoled .sidebar {
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.018), rgba(255,255,255,0.004)),
+      rgba(0, 0, 0, 0.92) !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .main-header {
+    padding-left: 56px !important;
+    min-height: 116px !important;
+  }
+
+  .header-actions {
+    gap: 5px !important;
+  }
+
+  #mainThemeSelector {
+    width: 108px !important;
+    min-width: 108px !important;
+    max-width: 108px !important;
+    flex-basis: 108px !important;
+  }
+
+  .header-actions .btn-icon,
+  .header-actions .btn-sm {
+    width: 38px !important;
+    min-width: 38px !important;
+    height: 38px !important;
+    flex-basis: 38px !important;
+  }
+}
