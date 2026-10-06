@@ -2451,3 +2451,178 @@ body {
   .wallet-credit-card,
   .wallet-card-edit { transition: none !important; }
 }
+
+/* ── MOBILE LAYOUT STABILITY PATCH ── */
+@media (max-width: 768px) {
+  html,
+  body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .app-container {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .main-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin-left: 0 !important;
+  }
+
+  .page-content,
+  .tab-content,
+  .tab-content.active {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .page-content {
+    padding: 16px 12px 96px !important;
+  }
+
+  .section-header,
+  .summary-grid,
+  .charts-grid,
+  .forecast-grid,
+  .card,
+  .summary-card,
+  .forecast-card,
+  .reserve-summary,
+  .wallet-page-header,
+  .wallet-summary,
+  .wallet-launches {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .main-header {
+    width: calc(100% - 12px);
+    max-width: calc(100% - 12px);
+    min-height: 64px;
+    height: auto;
+    margin: 6px 6px 12px;
+    padding: 10px 10px 10px 58px;
+    gap: 8px;
+    flex-wrap: nowrap;
+    border-radius: 14px;
+  }
+
+  .month-selector {
+    gap: 6px;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .month-selector .current-month {
+    min-width: 0;
+    width: auto;
+    font-size: 0.9rem;
+    white-space: nowrap;
+  }
+
+  .month-selector .month-nav-btn {
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+  }
+
+  .header-actions {
+    flex: 0 0 auto;
+    min-width: 0;
+    gap: 6px;
+  }
+
+  .search-bar {
+    display: none !important;
+  }
+
+  .header-actions .btn,
+  .header-actions .btn-icon {
+    min-width: 34px;
+  }
+
+  .sidebar {
+    top: 0 !important;
+    left: 0 !important;
+    bottom: auto !important;
+    width: min(86vw, 320px) !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    border-radius: 0 16px 16px 0 !important;
+    overflow: hidden !important;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .sidebar-header,
+  .sidebar-profile {
+    flex: 0 0 auto;
+  }
+
+  .sidebar-nav {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding-bottom: 28px !important;
+  }
+
+  .sidebar-footer {
+    flex: 0 0 auto;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  }
+
+  .fab-ia {
+    position: fixed !important;
+    right: max(12px, env(safe-area-inset-right)) !important;
+    bottom: calc(18px + env(safe-area-inset-bottom)) !important;
+    width: 52px !important;
+    min-width: 52px !important;
+    height: 52px !important;
+    z-index: 3000 !important;
+    transform: none !important;
+    margin: 0 !important;
+  }
+
+  .fab-ia:hover {
+    transform: none !important;
+  }
+
+  .data-table {
+    max-width: 100%;
+  }
+
+  img,
+  canvas,
+  svg {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 420px) {
+  .main-header {
+    padding-left: 56px;
+  }
+
+  .month-selector .current-month {
+    font-size: 0.82rem;
+  }
+
+  .header-actions {
+    gap: 4px;
+  }
+}
