@@ -418,11 +418,26 @@ function showToast(msg, type = 'info') {
 }
 
 function openModal(id) {
-  document.getElementById(id).classList.add('show');
+  const modal = document.getElementById(id);
+  if (!modal) return;
+  modal.classList.add('show');
+  if (id === 'modalIA') {
+    document.body.classList.add('zoni-chat-open');
+    requestAnimationFrame(() => {
+      const input = document.getElementById('iaChatInput');
+      if (input) input.focus({ preventScroll: true });
+    });
+  }
 }
 
 function closeModal(id) {
-  document.getElementById(id).classList.remove('show');
+  const modal = document.getElementById(id);
+  if (!modal) return;
+  modal.classList.remove('show');
+  if (id === 'modalIA') {
+    document.body.classList.remove('zoni-chat-open');
+    document.getElementById('btnAudioIA')?.classList.remove('is-recording');
+  }
 }
 
 
@@ -1756,40 +1771,52 @@ REGRAS OBRIGATÓRIAS:
     this.enviarMensagemIA();
   }
 
+  resizeIAInput(input) {
+    if (!input) return;
+    input.style.height = 'auto';
+    input.style.height = `${Math.min(input.scrollHeight, 132)}px`;
+  }
+
+  handleIAInputKeydown(event) {
+    if (event.key !== 'Enter') return;
+    if (event.shiftKey) return;
+    event.preventDefault();
+    this.enviarMensagemIA();
+  }
+
   renderChatHistory() {
     const histDiv = document.getElementById('iaChatHistory');
     if (!histDiv) return;
-    
+
     let html = '';
     for (let i = 1; i < this.conversationHistory.length; i++) {
       const msg = this.conversationHistory[i];
-      if (msg.role === 'system' || msg.role === 'tool') continue; // Don't show system or tool results to user directly
-      if (msg.tool_calls) continue; // Don't show the tool call raw JSON to user
-      
+      if (msg.role === 'system' || msg.role === 'tool' || msg.tool_calls) continue;
+
       const isUser = msg.role === 'user';
-      const bg = isUser ? 'var(--purple)' : 'var(--bg-card)';
-      const color = isUser ? '#fff' : 'var(--text-primary)';
-      const border = isUser ? 'none' : '1px solid var(--border-color)';
-      const align = isUser ? 'flex-end' : 'flex-start';
-      
       let txt = '';
+
       if (msg.displayHtml) {
-         txt = msg.displayHtml;
+        txt = msg.displayHtml;
       } else if (typeof msg.content === 'string') {
-         txt = msg.content.replace(/\n/g, '<br/>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        txt = escapeHTML(msg.content)
+          .replace(/\n/g, '<br/>')
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
       } else if (Array.isArray(msg.content)) {
-         // Fallback if not mapped
-         txt = msg.content.map(c => c.type === 'text' ? c.text : '[Image]').join('<br/>');
+        txt = msg.content
+          .map(c => c.type === 'text' ? escapeHTML(c.text || '') : '[Imagem]')
+          .join('<br/>');
       }
-      
+
       html += `
-        <div style="display:flex; justify-content:${align}; width:100%;">
-          <div style="background:${bg}; color:${color}; border:${border}; padding:12px 16px; border-radius:12px; max-width:85%; font-size:0.95rem; line-height:1.5; box-shadow:0 1px 2px rgba(0,0,0,0.05); overflow-wrap: break-word;">
+        <div class="zoni-message-row ${isUser ? 'is-user' : 'is-assistant'}">
+          <div class="zoni-message-bubble">
             ${txt}
           </div>
         </div>
       `;
     }
+
     if (this.conversationHistory.filter(msg => msg.role !== 'system').length <= 1) {
       html += `
         <div class="zoni-suggestions" aria-label="Sugestões para o Zoni">
@@ -1799,11 +1826,11 @@ REGRAS OBRIGATÓRIAS:
           <button onclick="app.usarSugestaoZoni('Simule uma meta de investimento para mim')">Simular uma meta</button>
         </div>`;
     }
+
     histDiv.innerHTML = html;
     histDiv.scrollTop = histDiv.scrollHeight;
   }
 
-  
   handleIaFile(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -1960,9 +1987,11 @@ REGRAS OBRIGATÓRIAS:
     let slowTimer = null;
     const addLoading = () => {
       histDiv.innerHTML += `
-        <div id="iaLoadingIndicator" style="display:flex; justify-content:flex-start; width:100%; margin-top:5px;">
-          <div style="background:var(--bg-card); border:1px solid var(--border-color); color:var(--text-primary); padding:12px 16px; border-radius:12px; font-size:0.9rem; opacity:0.7;">
-            <span style="display:inline-block; animation: blink 1.4s infinite both;">✨</span> <span class="zoni-loading-text">Processando...</span>
+        <div id="iaLoadingIndicator" class="zoni-message-row is-assistant zoni-loading-row">
+          <div class="zoni-message-bubble zoni-loading-bubble">
+            <span class="zoni-loading-spark" aria-hidden="true">✨</span>
+            <span class="zoni-loading-text">Processando...</span>
+            <span class="zoni-typing-dots" aria-hidden="true"><i></i><i></i><i></i></span>
           </div>
         </div>
       `;
