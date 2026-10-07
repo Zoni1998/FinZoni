@@ -3837,3 +3837,252 @@ body {
     padding: 14px 13px;
   }
 }
+
+
+/* ── AMOLED + OVERLAY POLISH ── */
+
+/* Modal/assistant layers always sit above the persistent mobile navigation button. */
+.modal-overlay {
+  z-index: 3200;
+}
+
+body.zoni-chat-open .mobile-menu-btn,
+body.notifications-open .mobile-menu-btn {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transform: scale(.90) !important;
+}
+
+/* AMOLED: maximize absolute-black pixels while preserving hierarchy. */
+:root.theme-amoled {
+  color-scheme: dark;
+  --bg-primary: #000000;
+  --bg-secondary: #000000;
+  --bg-card: #000000;
+  --bg-card-hover: #050505;
+  --bg-glass: rgba(0,0,0,.965);
+  --bg-input: #050505;
+  --bg-modal: rgba(0,0,0,.97);
+
+  --text-primary: #f5f5f5;
+  --text-secondary: #a1a1aa;
+  --text-muted: #64646c;
+
+  --border: #171717;
+  --border-light: #2a2a2a;
+
+  --shadow-sm: 0 4px 18px rgba(0,0,0,.52);
+  --shadow-md: 0 8px 28px rgba(0,0,0,.70);
+  --shadow-lg: 0 16px 42px rgba(0,0,0,.82);
+}
+
+:root.theme-amoled body {
+  background: #000000 !important;
+  background-image: none !important;
+}
+
+:root.theme-amoled .app-container,
+:root.theme-amoled .main-content,
+:root.theme-amoled .page-content,
+:root.theme-amoled .tab-content {
+  background: transparent !important;
+}
+
+:root.theme-amoled .main-header,
+:root.theme-amoled .sidebar,
+:root.theme-amoled .card,
+:root.theme-amoled .summary-card,
+:root.theme-amoled .chart-card,
+:root.theme-amoled .forecast-card,
+:root.theme-amoled .investment-fold,
+:root.theme-amoled .wallet-summary,
+:root.theme-amoled .wallet-launches,
+:root.theme-amoled .wallet-invoice-row,
+:root.theme-amoled .wallet-invoice-next,
+:root.theme-amoled .auth-card,
+:root.theme-amoled .modal,
+:root.theme-amoled .notifications-panel,
+:root.theme-amoled .zoni-modal {
+  background: rgba(0,0,0,.968) !important;
+  background-image: none !important;
+  border-color: #171717 !important;
+  box-shadow:
+    0 12px 34px rgba(0,0,0,.74),
+    inset 0 1px 0 rgba(255,255,255,.024) !important;
+  backdrop-filter: blur(12px) saturate(112%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(112%) !important;
+}
+
+:root.theme-amoled .main-header,
+:root.theme-amoled .sidebar {
+  background: #000000 !important;
+}
+
+:root.theme-amoled .summary-card.income,
+:root.theme-amoled .summary-card.expense,
+:root.theme-amoled .summary-card.balance,
+:root.theme-amoled .summary-card.diarias {
+  background: #000000 !important;
+}
+
+:root.theme-amoled .summary-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(255,255,255,.015), transparent 38%);
+}
+
+:root.theme-amoled .card:hover,
+:root.theme-amoled .summary-card:hover {
+  background: #030303 !important;
+  border-color: #262626 !important;
+  box-shadow:
+    0 10px 26px rgba(0,0,0,.80),
+    inset 0 1px 0 rgba(255,255,255,.03) !important;
+  transform: translateY(-1px);
+}
+
+:root.theme-amoled .form-input,
+:root.theme-amoled .form-select,
+:root.theme-amoled .form-textarea,
+:root.theme-amoled .editable-value,
+:root.theme-amoled .search-bar input,
+:root.theme-amoled .month-selector .month-nav-btn,
+:root.theme-amoled .btn-ghost,
+:root.theme-amoled .btn-icon,
+:root.theme-amoled .mode-toggle,
+:root.theme-amoled .calendar-day,
+:root.theme-amoled .zoni-persona-select,
+:root.theme-amoled .zoni-header-button,
+:root.theme-amoled .zoni-tool-button,
+:root.theme-amoled .zoni-input-shell,
+:root.theme-amoled .notifications-close {
+  background: #050505 !important;
+  border-color: #202020 !important;
+  color: var(--text-primary) !important;
+  box-shadow: none !important;
+}
+
+:root.theme-amoled .form-input:focus,
+:root.theme-amoled .form-select:focus,
+:root.theme-amoled .form-textarea:focus,
+:root.theme-amoled .zoni-input-shell:focus-within {
+  border-color: rgba(168,85,247,.50) !important;
+  box-shadow: 0 0 0 2px rgba(168,85,247,.09) !important;
+}
+
+:root.theme-amoled .data-table thead th {
+  background: #000000 !important;
+  color: #a1a1aa !important;
+  border-bottom-color: #171717 !important;
+}
+
+:root.theme-amoled .data-table tbody td {
+  border-bottom-color: #151515 !important;
+}
+
+:root.theme-amoled .data-table tbody tr:hover td {
+  background: #030303 !important;
+}
+
+:root.theme-amoled .zoni-header,
+:root.theme-amoled .zoni-composer-area {
+  background: #000000 !important;
+  border-color: #171717 !important;
+}
+
+:root.theme-amoled .zoni-message-row.is-assistant .zoni-message-bubble {
+  background: #050505 !important;
+  border-color: #1c1c1c !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.024) !important;
+}
+
+:root.theme-amoled .zoni-message-row.is-user .zoni-message-bubble {
+  background: linear-gradient(135deg, #5b21b6, #7e22ce) !important;
+  box-shadow: none !important;
+}
+
+:root.theme-amoled .zoni-suggestions button {
+  color: #a1a1aa !important;
+  background: #030303 !important;
+  border-color: #23152f !important;
+}
+
+:root.theme-amoled .notifications-panel {
+  background: rgba(0,0,0,.988) !important;
+}
+
+:root.theme-amoled .notification-item:hover,
+:root.theme-amoled .notification-item:focus-visible {
+  background: #050505 !important;
+}
+
+:root.theme-amoled .notification-icon {
+  background: #080600 !important;
+  border-color: #2a2108 !important;
+}
+
+:root.theme-amoled .wallet-invoice-row,
+:root.theme-amoled .wallet-invoice-next {
+  background: #030303 !important;
+}
+
+:root.theme-amoled .wallet-card-nav,
+:root.theme-amoled .wallet-due-pill,
+:root.theme-amoled .wallet-invoice-icon {
+  background: #050505 !important;
+  border-color: #202020 !important;
+}
+
+:root.theme-amoled .progress-bar,
+:root.theme-amoled .wallet-limit-track {
+  background: #0a0a0a !important;
+}
+
+:root.theme-amoled .fab-ia {
+  background: rgba(0,0,0,.97) !important;
+  box-shadow:
+    0 10px 24px rgba(0,0,0,.82),
+    inset 0 0 0 1px rgba(168,85,247,.26) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+:root.theme-amoled .mobile-menu-btn {
+  background: #000000 !important;
+  border-color: #202020 !important;
+  box-shadow: 0 8px 22px rgba(0,0,0,.76) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+/* Minimal, intentional motion in AMOLED. */
+:root.theme-amoled .card,
+:root.theme-amoled .summary-card,
+:root.theme-amoled .btn,
+:root.theme-amoled .btn-icon,
+:root.theme-amoled .nav-item,
+:root.theme-amoled .mobile-menu-btn,
+:root.theme-amoled .fab-ia {
+  transition-duration: .14s !important;
+}
+
+:root.theme-amoled .skeleton-box::after,
+:root.theme-amoled .loading-data .card-value::after {
+  animation-duration: 2.4s !important;
+  opacity: .42;
+}
+
+@media (max-width: 768px) {
+  body.zoni-chat-open .mobile-menu-btn,
+  body.notifications-open .mobile-menu-btn {
+    display: none !important;
+  }
+
+  :root.theme-amoled .main-header {
+    background: #000000 !important;
+    border-color: #171717 !important;
+  }
+}
