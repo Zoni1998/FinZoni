@@ -1,0 +1,18 @@
+name: Validate restored charts
+
+on:
+  push:
+    branches:
+      - fix/restore-charts-rendering
+    paths:
+      - .github/workflows/validate-restored-charts.yml
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/restore-charts-rendering
+      - name: Check JavaScript syntax
+        run: node --check app.js
