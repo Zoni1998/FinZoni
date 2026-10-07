@@ -706,10 +706,19 @@ constructor() {
     
     // Initial GSAP Entrance
     if (window.gsap) {
-      gsap.fromTo(".sidebar", { x: -30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: "power3.out", clearProps: "all" });
-      gsap.fromTo(".main-header", { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, delay: 0.1, ease: "power3.out", clearProps: "all" });
-      gsap.fromTo(".summary-card", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.08, delay: 0.2, ease: "power3.out", clearProps: "all" });
-      gsap.fromTo(".card", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.05, delay: 0.4, ease: "power3.out", clearProps: "all" });
+      const isAmoled = document.documentElement.classList.contains('theme-amoled');
+      if (isAmoled) {
+        gsap.fromTo(
+          [".sidebar", ".main-header", ".summary-card", ".card"],
+          { opacity: 0 },
+          { opacity: 1, duration: 0.18, ease: "power1.out", clearProps: "all" }
+        );
+      } else {
+        gsap.fromTo(".sidebar", { x: -30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: "power3.out", clearProps: "all" });
+        gsap.fromTo(".main-header", { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, delay: 0.1, ease: "power3.out", clearProps: "all" });
+        gsap.fromTo(".summary-card", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.08, delay: 0.2, ease: "power3.out", clearProps: "all" });
+        gsap.fromTo(".card", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.05, delay: 0.4, ease: "power3.out", clearProps: "all" });
+      }
     }
   }
 
@@ -758,12 +767,13 @@ constructor() {
 
   getChartColors() {
     const isLight = document.documentElement.classList.contains('theme-light');
+    const isAmoled = document.documentElement.classList.contains('theme-amoled');
     return {
-      text: isLight ? '#1a1a24' : '#e8e8f0',
-      grid: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)',
-      tooltipBg: isLight ? 'rgba(255,255,255,0.95)' : '#1a1a2e',
+      text: isLight ? '#1a1a24' : (isAmoled ? '#d4d4d8' : '#e8e8f0'),
+      grid: isLight ? 'rgba(0,0,0,0.05)' : (isAmoled ? 'rgba(255,255,255,0.075)' : 'rgba(255,255,255,0.05)'),
+      tooltipBg: isLight ? 'rgba(255,255,255,0.95)' : (isAmoled ? '#000000' : '#1a1a2e'),
       tooltipText: isLight ? '#1a1a24' : '#e8e8f0',
-      tooltipBorder: isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)'
+      tooltipBorder: isLight ? 'rgba(0,0,0,0.1)' : (isAmoled ? '#262626' : 'rgba(255,255,255,0.1)')
     };
   }
 
@@ -775,14 +785,20 @@ constructor() {
     } else {
       document.documentElement.className = '';
     }
+
     const selector = document.getElementById('themeSelector');
     if (selector) selector.value = theme;
-    
+
     const authSelector = document.getElementById('authThemeSelector');
     if (authSelector) authSelector.value = theme;
 
     const mainSelector = document.getElementById('mainThemeSelector');
     if (mainSelector) mainSelector.value = theme;
+
+    const themeMeta = document.querySelector('meta[name="theme-color"]');
+    if (themeMeta) {
+      themeMeta.setAttribute('content', theme === 'amoled' ? '#000000' : (theme === 'light' ? '#f8fafc' : '#0a0a1a'));
+    }
   }
 
   // ── NAVIGATION ──
@@ -799,10 +815,15 @@ constructor() {
         if (tab) {
           tab.classList.add('active');
           if (window.gsap) {
-             gsap.fromTo(tab, 
-               { opacity: 0, y: 15 }, 
-               { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }
-             );
+             const isAmoled = document.documentElement.classList.contains('theme-amoled');
+             if (isAmoled) {
+               gsap.fromTo(tab, { opacity: 0 }, { opacity: 1, duration: 0.18, ease: "power1.out" });
+             } else {
+               gsap.fromTo(tab,
+                 { opacity: 0, y: 15 },
+                 { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }
+               );
+             }
           } else {
              tab.style.opacity = '1';
           }
@@ -5473,6 +5494,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     const isOpen = panel.style.display !== 'none';
     panel.style.display = isOpen ? 'none' : 'block';
     panel.classList.toggle('is-open', !isOpen);
+    document.body.classList.toggle('notifications-open', !isOpen);
   }
 
   closeNotifications() {
@@ -5480,6 +5502,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     if (!panel) return;
     panel.style.display = 'none';
     panel.classList.remove('is-open');
+    document.body.classList.remove('notifications-open');
   }
 
   openNotificationTarget(tabName, expenseIndex = null) {
