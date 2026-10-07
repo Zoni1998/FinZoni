@@ -11,7 +11,7 @@
   <meta name="theme-color" content="#0a0a1a">
   <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data: https://cdnjs.cloudflare.com; connect-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://jbzypqaimerrptxhovzq.supabase.co https://kqjdslnysmhhwccukbuz.supabase.co https://api.bcb.gov.br https://economia.awesomeapi.com.br; img-src 'self' data: blob:;">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=352">
+  <link rel="stylesheet" href="style.css?v=353">
   <!-- DOMPurify for XSS mitigation -->
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
   <!-- Chart.js -->
@@ -1436,28 +1436,105 @@
   </div>
 
     <!-- Modal Profile -->
-    <div class="modal-overlay" id="modalProfile">
-      <div class="modal-content" style="max-width: 400px;">
-        <div class="modal-header">
-          <div class="modal-title">Editar Perfil</div>
-          <button class="btn btn-ghost" onclick="closeModal('modalProfile')">✕</button>
-        </div>
-        <div class="form-group" style="text-align: center;">
-          <div class="profile-pic-large" style="width: 100px; height: 100px; border-radius: 50%; overflow: hidden; margin: 0 auto 16px auto; background: var(--bg-glass); border: 2px solid var(--border);">
-            <img id="profilePicPreview" src="" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">
+    <div class="modal-overlay profile-overlay" id="modalProfile">
+      <div class="profile-modal" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle">
+        <div class="profile-modal-header">
+          <div>
+            <div class="profile-eyebrow">Seu perfil no FinZoni</div>
+            <h2 id="profileModalTitle">Perfil financeiro</h2>
+            <p>Personalize sua conta e dê ao Zoni contexto para recomendações mais coerentes.</p>
           </div>
-          <label class="btn btn-ghost btn-sm" style="cursor: pointer;">
-            📷 Alterar Foto
-            <input type="file" id="profilePicInput" accept="image/*" style="display: none;" onchange="app.handleProfilePicSelect(event)">
-          </label>
+          <button class="profile-close" onclick="closeModal('modalProfile')" aria-label="Fechar perfil">✕</button>
         </div>
-        <div class="form-group">
-          <label class="form-label">Nome de Exibição</label>
-          <input type="text" class="form-input" id="profileNameInput" placeholder="Seu nome">
+
+        <div class="profile-hero">
+          <div class="profile-photo-wrap">
+            <div class="profile-pic-large">
+              <img id="profilePicPreview" src="" alt="Foto de perfil">
+            </div>
+            <label class="profile-photo-button">
+              <span>📷</span> Alterar foto
+              <input type="file" id="profilePicInput" accept="image/*" hidden onchange="app.handleProfilePicSelect(event)">
+            </label>
+          </div>
+
+          <div class="profile-progress-card">
+            <div class="profile-progress-top">
+              <div>
+                <span class="profile-mini-label">PROGRESSO</span>
+                <strong id="profileModalLevel">Nível 1</strong>
+              </div>
+              <span id="profileModalXp">0 XP</span>
+            </div>
+            <div class="profile-modal-xp-track"><div class="profile-modal-xp-fill" id="profileModalXpFill"></div></div>
+            <p>Continue registrando e organizando suas finanças para evoluir no FinZoni.</p>
+          </div>
         </div>
-        <div class="modal-footer">
+
+        <div class="profile-stats-grid">
+          <div class="profile-stat">
+            <span>🏦 Reserva atual</span>
+            <strong id="profileModalReserve">R$ 0,00</strong>
+          </div>
+          <div class="profile-stat">
+            <span>💎 Saldo do mês</span>
+            <strong id="profileModalBalance">R$ 0,00</strong>
+          </div>
+        </div>
+
+        <div class="profile-form-section">
+          <div class="profile-section-heading">
+            <h3>Identidade</h3>
+            <span>Como você aparece no app</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="profileNameInput">Nome de exibição</label>
+            <input type="text" class="form-input" id="profileNameInput" maxlength="50" placeholder="Seu nome">
+          </div>
+        </div>
+
+        <div class="profile-form-section">
+          <div class="profile-section-heading">
+            <h3>Contexto financeiro</h3>
+            <span>Essas informações ajudam o Zoni a contextualizar análises e simulações.</span>
+          </div>
+
+          <div class="profile-form-grid">
+            <div class="form-group">
+              <label class="form-label" for="profileRiskInput">Perfil de risco</label>
+              <select class="form-select" id="profileRiskInput">
+                <option value="conservador">Conservador</option>
+                <option value="moderado">Moderado</option>
+                <option value="arrojado">Arrojado</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="profileHorizonInput">Horizonte principal</label>
+              <div class="profile-input-suffix">
+                <input type="number" class="form-input" id="profileHorizonInput" min="0" max="50" step="1" placeholder="Ex.: 5">
+                <span>anos</span>
+              </div>
+            </div>
+
+            <div class="form-group profile-grid-wide">
+              <label class="form-label" for="profileGoalInput">Objetivo financeiro principal</label>
+              <input type="text" class="form-input" id="profileGoalInput" maxlength="100" placeholder="Ex.: formar reserva, comprar carro, investir para longo prazo">
+            </div>
+
+            <div class="form-group profile-grid-wide">
+              <label class="form-label" for="profileMonthlyContributionInput">Meta de aporte mensal</label>
+              <div class="profile-input-prefix">
+                <span>R$</span>
+                <input type="number" class="form-input" id="profileMonthlyContributionInput" min="0" step="0.01" placeholder="0,00">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="profile-modal-footer">
           <button class="btn btn-ghost" onclick="closeModal('modalProfile')">Cancelar</button>
-          <button class="btn btn-primary" onclick="app.saveProfile()">Salvar Perfil</button>
+          <button class="btn btn-primary profile-save-button" onclick="app.saveProfile()">Salvar perfil</button>
         </div>
       </div>
     </div>
@@ -1641,8 +1718,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
   
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="zoni-context.js?v=349"></script>
-  <script src="app.js?v=352"></script>
+  <script src="zoni-context.js?v=353"></script>
+  <script src="app.js?v=353"></script>
 </body>
 </html>
 

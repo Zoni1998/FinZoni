@@ -82,7 +82,7 @@ const YEAR = new Date().getFullYear();
 function getDefaultData() {
   return {
     year: YEAR,
-    perfil: { nome: 'Minha Conta', foto: '', nivel: 1, xp: 0 },
+    perfil: { nome: 'Minha Conta', foto: '', nivel: 1, xp: 0, perfilRisco: 'moderado', objetivoFinanceiro: '', aporteMensal: 0, horizonteAnos: 0 },
     clinicas: [
       { id: 'advance', nome: 'Advance', diariaPadrao: 170, cor: '#448aff' },
       { id: 'bm', nome: 'BM Odontologia', diariaPadrao: 150, cor: '#b388ff' },
@@ -837,8 +837,12 @@ constructor() {
 
     // Mobile menu
     document.getElementById('mobileMenuBtn').addEventListener('click', () => {
-      document.getElementById('sidebar').classList.toggle('open');
-      document.getElementById('mobileOverlay').classList.toggle('show');
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('mobileOverlay');
+      const willOpen = !sidebar.classList.contains('open');
+      sidebar.classList.toggle('open', willOpen);
+      overlay.classList.toggle('show', willOpen);
+      document.body.classList.toggle('sidebar-open', willOpen);
     });
     document.getElementById('mobileOverlay').addEventListener('click', (event) => { event.preventDefault(); });
     document.getElementById('sidebarCloseBtn')?.addEventListener('click', () => this.closeMobileMenu());
@@ -1468,14 +1472,14 @@ constructor() {
     return window.FinZoniContext.prompt(this, persona);
   }
 
-  async callNvidia(messages, max_tokens = 500, temp = 0.7, jsonMode = false, tools = null, timeoutMs = 65000) {
+  async callNvidia(messages, max_tokens = 500, temp = 0.7, jsonMode = false, tools = null, timeoutMs = 65000, modelOverride = null) {
     const apiKey = this.dm.data.nvidiaApiKey;
     if (!apiKey) throw new Error('Chave da API NVIDIA não configurada na aba de Configurações.');
     
     const body = {
       action: 'chat',
       apiKey: apiKey,
-      model: this.dm.data.nvidiaModel || 'meta/llama-3.1-8b-instruct',
+      model: modelOverride || this.dm.data.nvidiaModel || 'meta/llama-3.1-8b-instruct',
       messages,
       temperature: temp,
       max_tokens
@@ -1571,58 +1575,127 @@ constructor() {
   }
 
   parseMarkdownTable(markdown) {
-    // Procura por tabela Markdown simples e converte para HTML
-    let inTable = false;
-    let tableHtml = '<table class="data-table" style="margin-top: 15px;">';
-    const lines = markdown.split('\n');
-    let hasTable = false;
-    
+    const source = typeof markdown === 'string' ? markdown : '';
+    const lines = source.split('\n');
     let htmlResult = '';
-    
-    for (let i = 0; i < lines.length; i++) {
-      let line = lines[i].trim();
-      
-      if (line.startsWith('|') && line.endsWith('|')) {
-        hasTable = true;
-        if (!inTable) {
-           inTable = true;
-        }
-        
-        if (line.includes('---')) {
-          continue; // Ignorar linha separadora
-        }
-        
-        let cols = line.split('|').slice(1, -1).map(c => c.trim());
+    let tableRows = [];
+    let sawTable = false;
+
+    const flushTable = () => {
+      if (!tableRows.length) return;
+      const header = tableRows[0];
+      const body = tableRows.slice(1);
+      let tableHtml = '<div class="consultoria-table-wrap"><table class="data-table consultoria-table"><thead><tr>';
+      header.forEach(col => { tableHtml += `<th>${escapeHTML(col.replace(/\*\*/g, ''))}</th>`; });
+      tableHtml += '</tr></thead><tbody>';
+      body.forEach(row => {
         tableHtml += '<tr>';
-        cols.forEach(col => {
-           // Checar se é a primeira linha para th
-           if (i === 0 || lines[i-1].includes('---')) {
-             tableHtml += `<th>${col.replace(/\*\*/g, '')}</th>`;
-           } else {
-             tableHtml += `<td>${col.replace(/\*\*/g, '')}</td>`;
-           }
-        });
+        row.forEach(col => { tableHtml += `<td>${escapeHTML(col.replace(/\*\*/g, ''))}</td>`; });
         tableHtml += '</tr>';
-      } else {
-        if (inTable) {
-          tableHtml += '</table>';
-          htmlResult += tableHtml;
-          inTable = false;
-        }
-        if (line !== '') {
-          // Normal paragraph
-          let formattedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-          htmlResult += `<p style="margin-bottom: 8px;">${formattedLine}</p>`;
-        }
-      }
-    }
-    
-    if (inTable) {
-      tableHtml += '</table>';
+      });
+      tableHtml += '</tbody></table></div>';
       htmlResult += tableHtml;
+      tableRows = [];
+    };
+
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+      const isTableLine = line.startsWith('|') && line.endsWith('|');
+
+      if (isTableLine) {
+        sawTable = true;
+        const cells = line.split('|').slice(1, -1).map(cell => cell.trim());
+        const isSeparator = cells.every(cell => /^:?-{3,}:?$/.test(cell));
+        if (!isSeparator) tableRows.push(cells);
+        continue;
+      }
+
+      flushTable();
+
+      if (!line) continue;
+      const formatted = escapeHTML(line)
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      htmlResult += `<p class="consultoria-paragraph">${formatted}</p>`;
     }
-    
-    return hasTable ? htmlResult : markdown.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+    flushTable();
+
+    if (sawTable) return htmlResult;
+    return escapeHTML(source)
+      .replace(/\n/g, '<br>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  }
+
+  buildConsultoriaFallback(personaId, aporte, marketData, despesasMensais = 0, reservaSaldo = 0) {
+    const valor = Math.max(0, Number(aporte) || 0);
+    const reservaMeses = despesasMensais > 0 ? reservaSaldo / despesasMensais : 0;
+
+    const profiles = {
+      thiago: [
+        ['BOVA11', 25, 'Mensal'],
+        ['HGLG11', 25, 'Mensal'],
+        ['Tesouro Selic', 25, 'Mensal'],
+        ['IVVB11', 25, 'Mensal']
+      ],
+      bruno: [
+        ['Tesouro IPCA+', 60, 'Mensal'],
+        ['Tesouro Selic', 20, 'Mensal'],
+        ['BOVA11', 15, 'Mensal'],
+        ['Bitcoin', 5, 'Mensal']
+      ],
+      nathalia: [
+        ['CDB 100%+ CDI com liquidez diária', 60, 'Mensal'],
+        ['Tesouro Selic', 30, 'Mensal'],
+        ['Tesouro IPCA+', 10, 'Mensal']
+      ],
+      barsi: [
+        ['BBAS3', 30, 'Mensal'],
+        ['TAEE11', 25, 'Mensal'],
+        ['EGIE3', 20, 'Mensal'],
+        ['SANB11', 15, 'Mensal'],
+        ['KLBN11', 10, 'Mensal']
+      ],
+      mira: [
+        ['HGLG11', 30, 'Mensal'],
+        ['BTLG11', 25, 'Mensal'],
+        ['MXRF11', 20, 'Mensal'],
+        ['BOVA11', 15, 'Mensal'],
+        ['Tesouro Selic', 10, 'Mensal']
+      ]
+    };
+
+    let allocation = profiles[personaId];
+    if (!allocation) {
+      allocation = reservaMeses < 3
+        ? [
+            ['Tesouro Selic', 50, 'Mensal'],
+            ['CDB 100%+ CDI com liquidez diária', 25, 'Mensal'],
+            ['IVVB11', 15, 'Mensal'],
+            ['BOVA11', 10, 'Mensal']
+          ]
+        : [
+            ['Tesouro Selic', 30, 'Mensal'],
+            ['IVVB11', 25, 'Mensal'],
+            ['BOVA11', 20, 'Mensal'],
+            ['HGLG11', 15, 'Mensal'],
+            ['Tesouro IPCA+', 10, 'Mensal']
+          ];
+    }
+
+    const rows = allocation.map(([asset, pct, recurrence], index) => {
+      let itemValue = valor * pct / 100;
+      if (index === allocation.length - 1) {
+        const allocated = allocation.slice(0, -1).reduce((sum, [, p]) => sum + Math.round((valor * p / 100) * 100) / 100, 0);
+        itemValue = Math.max(0, valor - allocated);
+      }
+      return `| ${asset} | ${itemValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} | ${pct}% | ${recurrence} |`;
+    });
+
+    const reservaMsg = reservaMeses < 3
+      ? `Sua reserva cobre aproximadamente ${reservaMeses.toFixed(1)} mês(es) das despesas atuais. Por isso, a simulação prioriza liquidez e segurança antes de aumentar o risco.`
+      : `Sua reserva já cobre aproximadamente ${reservaMeses.toFixed(1)} mês(es) das despesas atuais, então a simulação pode distribuir melhor entre liquidez, proteção e crescimento.`;
+
+    return `**Plano de contingência do Zoni**\n\nA NVIDIA demorou mais do que o limite desta consulta, então gerei uma simulação local para você não ficar sem resposta. ${reservaMsg}\n\nCom Selic em ${marketData.selic}% a.a. e CDI em ${marketData.cdi.toFixed(2)}% a.a., renda fixa continua relevante na composição. Esta é uma simulação educacional e deve ser revisada antes de qualquer aporte.\n\n| Ativo | Valor (R$) | Porcentagem (%) | Recorrência |\n|---|---:|---:|---|\n${rows.join('\n')}`;
   }
 
   async gerarConsultoria() {
@@ -1630,87 +1703,101 @@ constructor() {
     const resultEl = document.getElementById('consultoriaResultado');
     const marketEl = document.getElementById('consultoriaMarketData');
     const btn = document.getElementById('btnGerarConsultoria');
-    
-    if (!this.dm.data.nvidiaApiKey) {
-      showToast('Configure a chave da API NVIDIA nas Configurações!', 'error');
-      return;
-    }
-    
+
+    const hasNvidiaKey = Boolean(this.dm.data.nvidiaApiKey);
+
     statusEl.classList.remove('hidden');
     resultEl.classList.add('hidden');
     marketEl.classList.add('hidden');
     btn.disabled = true;
-    
+
     try {
-      // 1. Fetch Dados Reais
       const marketData = await this.fetchMarketData();
-      marketEl.innerHTML = `<strong>Taxas Atuais (Tempo Real):</strong> Selic: ${marketData.selic}% a.a. | CDI: ${marketData.cdi.toFixed(2)}% a.a. | Dólar: R$ ${marketData.dolar.toFixed(2)} | BTC: R$ ${marketData.btc.toLocaleString('pt-BR')}`;
+      marketEl.innerHTML = `<strong>Taxas usadas na análise:</strong> Selic: ${marketData.selic}% a.a. · CDI: ${marketData.cdi.toFixed(2)}% a.a. · Dólar: R$ ${marketData.dolar.toFixed(2)} · BTC: R$ ${marketData.btc.toLocaleString('pt-BR')}`;
       marketEl.classList.remove('hidden');
-      
-      // 2. Prepara Contexto Base
+
       const selectedPersonaId = document.getElementById('consultoriaPersonaSelect').value;
       const sysPrompt = await this.getSystemPrompt(selectedPersonaId);
-      
+
       const receitas = this.calcTotalReceitas(this.currentMonth) || 0;
       const despesas = this.calcResumoDespesas(this.currentMonth).total || 0;
       const availableMoney = receitas - despesas;
-      
       const reservaSaldo = Number(this.calcReserva().saldo || 0);
-      let totalMetasAcumulado = 0;
-      (this.dm.data.metas || []).forEach(mt => { totalMetasAcumulado += (mt.valorAtual || 0); });
-      const patrimonioTotal = reservaSaldo + totalMetasAcumulado;
-      
-      const targetAporte = availableMoney > 0 ? availableMoney : (receitas * 0.3); // Sugere aportar 30% da receita se não sobrar nada
-      const strAporte = targetAporte > 0 ? targetAporte.toFixed(2) : '1000.00';
-      
-      let filosofiaInstrucao = "Especifique ativos reais de mercado focados em diversificação.";
+      const patrimonioTotal = reservaSaldo + (this.dm.data.metas || []).reduce((sum, mt) => sum + Number(mt.valorAtual || 0), 0);
+      const targetAporte = availableMoney > 0 ? availableMoney : Math.max(0, receitas * 0.3);
+      const aporte = targetAporte > 0 ? targetAporte : 1000;
+
+      let filosofiaInstrucao = "Diversifique entre liquidez, proteção contra inflação e crescimento, sem concentrar excessivamente.";
       if (selectedPersonaId === 'thiago') {
-        filosofiaInstrucao = "Siga ESTRITAMENTE a metodologia ARCA: Ações (nacionais), Real Estate (FIIs), Caixa (Renda Fixa/Tesouro) e Ativos Internacionais (BDRs/ETFs). A tabela DEVE dividir os aportes nestas 4 categorias e sugerir um ativo real para cada (ex: BOVA11, VISC11, Tesouro Selic, IVVB11).";
+        filosofiaInstrucao = "Use a lógica ARCA: Ações, Real Estate/FIIs, Caixa/Renda Fixa e Ativos Internacionais.";
       } else if (selectedPersonaId === 'bruno') {
-        filosofiaInstrucao = "Siga a estratégia do Barbell (anti-fragilidade) e longo prazo: maior peso em Tesouro IPCA+ longo (segurança/renda fixa) e uma parte em Bitcoin/Cripto ou Ações de valor. Sugira ativos como Tesouro IPCA+, BTC e Ações.";
+        filosofiaInstrucao = "Use estratégia barbell: maior peso em proteção/renda fixa e pequena parcela em ativos de maior volatilidade.";
       } else if (selectedPersonaId === 'nathalia') {
-        filosofiaInstrucao = "Foque pesado na Reserva de Emergência (Tesouro Selic ou CDB 100%+ CDI com liquidez diária). Só sugira Renda Variável se o patrimônio já for alto. Recomende CDBs de bancos médios ou Tesouro IPCA.";
+        filosofiaInstrucao = "Priorize reserva de emergência e produtos líquidos; só aumente renda variável se a reserva estiver adequada.";
       } else if (selectedPersonaId === 'barsi') {
-        filosofiaInstrucao = "Foco 100% em AÇÕES BOAS PAGADORAS DE DIVIDENDOS (Setores BEST: Bancos, Energia, Saneamento, Telecom, Seguros). NUNCA recomende Renda Fixa (chame de 'perda fixa'). Sugira ações reais (ex: TAEE11, BBAS3, KLBN11, EGIE3, SANB11).";
+        filosofiaInstrucao = "Foque em ações brasileiras de empresas sólidas e pagadoras de dividendos, com diversificação setorial.";
       } else if (selectedPersonaId === 'mira') {
-        filosofiaInstrucao = "Foco em montar uma carteira de FIIs (Fundos Imobiliários) e Ações para gerar renda passiva (dividendos mensais) com segurança. Sugira ativos reais (ex: MXRF11, HGLG11, BTLG11 e ações perenes).";
+        filosofiaInstrucao = "Foque em FIIs e ações de qualidade, explicando a lógica de renda passiva e diversificação.";
       }
 
       const consultoriaPrompt = `
-Você é a Persona definida no sistema. 
-TAREFA EXCLUSIVA: Fazer uma Consultoria de Aportes baseada nos dados do mercado em TEMPO REAL.
+TAREFA: gerar uma simulação de aporte objetiva e curta.
 
-DADOS DE PATRIMÔNIO DO USUÁRIO:
-- Patrimônio Total Investido: R$ ${patrimonioTotal.toFixed(2)}
-- Salário/Receitas deste mês: R$ ${receitas.toFixed(2)}
-- Capital livre sugerido para aportar AGORA: R$ ${strAporte}
-
-DADOS DE MERCADO HOJE:
-- Selic: ${marketData.selic}% ao ano
-- CDI: ${marketData.cdi.toFixed(2)}% ao ano
+DADOS:
+- Patrimônio registrado: R$ ${patrimonioTotal.toFixed(2)}
+- Receitas do mês: R$ ${receitas.toFixed(2)}
+- Despesas do mês: R$ ${despesas.toFixed(2)}
+- Reserva atual: R$ ${reservaSaldo.toFixed(2)}
+- Capital sugerido para simular aporte agora: R$ ${aporte.toFixed(2)}
+- Selic: ${marketData.selic}% a.a.
+- CDI: ${marketData.cdi.toFixed(2)}% a.a.
 - Dólar: R$ ${marketData.dolar.toFixed(2)}
 - Bitcoin: R$ ${marketData.btc}
 
-REGRAS OBRIGATÓRIAS:
-1. Comece com 1 ou 2 parágrafos analisando o Patrimônio Total dele e sugerindo em quais ativos ele deve investir os R$ ${strAporte} livres hoje, usando as taxas atuais de mercado. O seu texto inicial DEVE incorporar muito fortemente o seu tom de voz, seus jargões e sua metodologia.
-2. A SUA ÚNICA RESPOSTA ESTRUTURAL DEVE CONTER UMA TABELA MARKDOWN EXATA COM ESTAS COLUNAS: | Ativo | Valor (R$) | Porcentagem (%) | Recorrência |
-3. REGRAS DE ALOCAÇÃO DA SUA PERSONA: ${filosofiaInstrucao}
-4. O Valor na tabela deve dividir EXATAMENTE os R$ ${strAporte}. A soma das porcentagens deve dar 100%.`;
+ESTILO: ${filosofiaInstrucao}
+
+REGRAS:
+1. Responda em português do Brasil.
+2. Seja direto: no máximo 2 parágrafos antes da tabela.
+3. Inclua exatamente uma tabela Markdown com: | Ativo | Valor (R$) | Porcentagem (%) | Recorrência |
+4. A soma dos valores deve ser R$ ${aporte.toFixed(2)} e das porcentagens 100%.
+5. Não prometa retorno e deixe claro que é simulação educacional.
+`;
 
       const msgList = [
         { role: 'system', content: sysPrompt },
         { role: 'user', content: consultoriaPrompt }
       ];
 
-      // 3. Chama LLM
-      const responseText = await this.callNvidia(msgList, 1000, 0.7);
-      
-      // 4. Renderiza Resposta
-      resultEl.innerHTML = window.DOMPurify ? window.DOMPurify.sanitize(this.parseMarkdownTable(responseText)) : this.parseMarkdownTable(responseText);
+      let responseText;
+      if (hasNvidiaKey) {
+        try {
+          statusEl.innerHTML = '<span class="consultoria-spinner">✨</span> Gerando uma sugestão objetiva...';
+          responseText = await this.callNvidia(
+            msgList,
+            700,
+            0.45,
+            false,
+            null,
+            45000,
+            'meta/llama-3.1-8b-instruct'
+          );
+        } catch (aiError) {
+          console.warn('Consultoria NVIDIA indisponível; usando fallback local:', aiError);
+          statusEl.innerHTML = '<span class="consultoria-spinner">⚡</span> A IA demorou. Montando uma simulação local...';
+          responseText = this.buildConsultoriaFallback(selectedPersonaId, aporte, marketData, despesas, reservaSaldo);
+        }
+      } else {
+        statusEl.innerHTML = '<span class="consultoria-spinner">⚡</span> Montando uma simulação local...';
+        responseText = this.buildConsultoriaFallback(selectedPersonaId, aporte, marketData, despesas, reservaSaldo);
+      }
+
+      resultEl.innerHTML = window.DOMPurify
+        ? window.DOMPurify.sanitize(this.parseMarkdownTable(responseText))
+        : this.parseMarkdownTable(responseText);
       resultEl.classList.remove('hidden');
-      
-    } catch(e) {
-      resultEl.innerHTML = `<div style="color:var(--red);">Erro: ${e.message}</div>`;
+    } catch (e) {
+      resultEl.innerHTML = `<div class="consultoria-error"><strong>Não consegui montar a carteira agora.</strong><br><span>${escapeHTML(e.message || 'Erro inesperado')}</span><br><button class="btn btn-ghost btn-sm" onclick="app.gerarConsultoria()">Tentar novamente</button></div>`;
       resultEl.classList.remove('hidden');
     } finally {
       statusEl.classList.add('hidden');
@@ -1794,6 +1881,7 @@ REGRAS OBRIGATÓRIAS:
   closeMobileMenu() {
     document.getElementById('sidebar')?.classList.remove('open');
     document.getElementById('mobileOverlay')?.classList.remove('show');
+    document.body.classList.remove('sidebar-open');
   }
 
   usarSugestaoZoni(texto) {
@@ -5241,11 +5329,47 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
   }
   // â•â•â•â•â•â•â•â•â•â•â• NEW FEATURES (PROFILE, GAMIFICATION, EXTRATO) â•â•â•â•â•â•â•â•â•â•â•
   openProfileModal() {
-    const p = this.dm.data.perfil;
-    document.getElementById('profileNameInput').value = p.nome || '';
-    if (p.foto) {
-      document.getElementById('profilePicPreview').src = p.foto;
+    const p = this.dm.data.perfil || (this.dm.data.perfil = {});
+    const nameInput = document.getElementById('profileNameInput');
+    const riskInput = document.getElementById('profileRiskInput');
+    const goalInput = document.getElementById('profileGoalInput');
+    const aporteInput = document.getElementById('profileMonthlyContributionInput');
+    const horizonInput = document.getElementById('profileHorizonInput');
+    const preview = document.getElementById('profilePicPreview');
+
+    if (nameInput) nameInput.value = p.nome || '';
+    if (riskInput) riskInput.value = p.perfilRisco || 'moderado';
+    if (goalInput) goalInput.value = p.objetivoFinanceiro || '';
+    if (aporteInput) aporteInput.value = Number(p.aporteMensal || 0) || '';
+    if (horizonInput) horizonInput.value = Number(p.horizonteAnos || 0) || '';
+    if (preview) {
+      preview.src = p.foto || document.getElementById('userProfilePic')?.src || '';
     }
+
+    const nivel = Number(p.nivel || 1);
+    const xp = Number(p.xp || 0);
+    const xpBase = (nivel - 1) * 1000;
+    const xpPct = Math.min(100, Math.max(0, ((xp - xpBase) / 1000) * 100));
+    const reserva = Number(this.calcReserva().saldo || 0);
+    const receitas = Number(this.calcTotalReceitas(this.currentMonth) || 0);
+    const despesas = Number(this.calcResumoDespesas(this.currentMonth).total || 0);
+    const saldo = receitas - despesas;
+
+    const levelEl = document.getElementById('profileModalLevel');
+    const xpEl = document.getElementById('profileModalXp');
+    const xpFill = document.getElementById('profileModalXpFill');
+    const reserveEl = document.getElementById('profileModalReserve');
+    const balanceEl = document.getElementById('profileModalBalance');
+
+    if (levelEl) levelEl.textContent = `Nível ${nivel}`;
+    if (xpEl) xpEl.textContent = `${xp.toLocaleString('pt-BR')} XP`;
+    if (xpFill) xpFill.style.width = `${xpPct}%`;
+    if (reserveEl) reserveEl.textContent = formatCurrency(reserva);
+    if (balanceEl) {
+      balanceEl.textContent = formatCurrency(saldo);
+      balanceEl.classList.toggle('is-negative', saldo < 0);
+    }
+
     openModal('modalProfile');
   }
 
@@ -5257,7 +5381,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        const MAX = 200;
+        const MAX = 320;
         let width = img.width;
         let height = img.height;
         if (width > height) {
@@ -5269,7 +5393,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
-        document.getElementById('profilePicPreview').src = canvas.toDataURL('image/jpeg', 0.8);
+        document.getElementById('profilePicPreview').src = canvas.toDataURL('image/jpeg', 0.84);
       };
       img.src = ev.target.result;
     };
@@ -5277,14 +5401,25 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
   }
 
   saveProfile() {
-    const nome = document.getElementById('profileNameInput').value.trim();
-    const fotoSrc = document.getElementById('profilePicPreview').src;
-    if (nome) this.dm.data.perfil.nome = nome;
-    if (fotoSrc && fotoSrc.startsWith('data:')) this.dm.data.perfil.foto = fotoSrc;
+    const p = this.dm.data.perfil || (this.dm.data.perfil = {});
+    const nome = document.getElementById('profileNameInput')?.value.trim();
+    const fotoSrc = document.getElementById('profilePicPreview')?.src || '';
+    const perfilRisco = document.getElementById('profileRiskInput')?.value || 'moderado';
+    const objetivoFinanceiro = document.getElementById('profileGoalInput')?.value.trim() || '';
+    const aporteMensal = Math.max(0, Number(document.getElementById('profileMonthlyContributionInput')?.value || 0));
+    const horizonteAnos = Math.max(0, Number(document.getElementById('profileHorizonInput')?.value || 0));
+
+    if (nome) p.nome = nome;
+    if (fotoSrc && fotoSrc.startsWith('data:')) p.foto = fotoSrc;
+    p.perfilRisco = perfilRisco;
+    p.objetivoFinanceiro = objetivoFinanceiro;
+    p.aporteMensal = aporteMensal;
+    p.horizonteAnos = horizonteAnos;
+
     this.dm.save();
     this.updateProfileUI();
     closeModal('modalProfile');
-    showToast('Perfil atualizado!', 'success');
+    showToast('Perfil financeiro atualizado!', 'success');
   }
 
   updateProfileUI() {
