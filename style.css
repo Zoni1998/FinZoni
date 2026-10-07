@@ -4125,6 +4125,47 @@ body.sidebar-open .mobile-menu-btn {
   margin-top: 12px;
 }
 
+.consultoria-paragraph {
+  margin: 0 0 10px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.consultoria-paragraph strong {
+  color: var(--text-primary);
+}
+
+.consultoria-table-wrap {
+  width: 100%;
+  margin-top: 14px;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-card);
+}
+
+.consultoria-table {
+  min-width: 560px;
+  margin: 0 !important;
+}
+
+.consultoria-table th,
+.consultoria-table td {
+  white-space: nowrap;
+}
+
+.consultoria-table th:first-child,
+.consultoria-table td:first-child {
+  min-width: 180px;
+  white-space: normal;
+}
+
+:root.theme-amoled .consultoria-table-wrap {
+  background: #000000 !important;
+  border-color: #1d1d1d !important;
+}
+
+
 /* Profile modal */
 .profile-overlay {
   padding: 18px;
