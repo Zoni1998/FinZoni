@@ -1,0 +1,30 @@
+name: Validate notification navigation
+
+on:
+  push:
+    branches:
+      - fix/notification-navigation
+    paths:
+      - .github/workflows/validate-notification-navigation.yml
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/notification-navigation
+      - name: Check JavaScript syntax
+        run: node --check app.js
+      - name: Check notification markup
+        shell: python
+        run: |
+          from pathlib import Path
+          html = Path("index.html").read_text(encoding="utf-8")
+          css = Path("style.css").read_text(encoding="utf-8")
+          js = Path("app.js").read_text(encoding="utf-8")
+          assert 'onclick="app.closeNotifications()"' in html
+          assert "openNotificationTarget('despesas'" in js
+          assert 'data-expense-index=' in js
+          assert '.notification-target-highlight' in css
+          assert css.count("{") == css.count("}")
