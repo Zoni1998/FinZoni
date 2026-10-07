@@ -1704,10 +1704,7 @@ constructor() {
     const marketEl = document.getElementById('consultoriaMarketData');
     const btn = document.getElementById('btnGerarConsultoria');
 
-    if (!this.dm.data.nvidiaApiKey) {
-      showToast('Configure a chave da API NVIDIA nas Configurações!', 'error');
-      return;
-    }
+    const hasNvidiaKey = Boolean(this.dm.data.nvidiaApiKey);
 
     statusEl.classList.remove('hidden');
     resultEl.classList.add('hidden');
@@ -1773,20 +1770,25 @@ REGRAS:
       ];
 
       let responseText;
-      try {
-        statusEl.innerHTML = '<span class="consultoria-spinner">✨</span> Gerando uma sugestão objetiva...';
-        responseText = await this.callNvidia(
-          msgList,
-          700,
-          0.45,
-          false,
-          null,
-          45000,
-          'meta/llama-3.1-8b-instruct'
-        );
-      } catch (aiError) {
-        console.warn('Consultoria NVIDIA indisponível; usando fallback local:', aiError);
-        statusEl.innerHTML = '<span class="consultoria-spinner">⚡</span> A IA demorou. Montando uma simulação local...';
+      if (hasNvidiaKey) {
+        try {
+          statusEl.innerHTML = '<span class="consultoria-spinner">✨</span> Gerando uma sugestão objetiva...';
+          responseText = await this.callNvidia(
+            msgList,
+            700,
+            0.45,
+            false,
+            null,
+            45000,
+            'meta/llama-3.1-8b-instruct'
+          );
+        } catch (aiError) {
+          console.warn('Consultoria NVIDIA indisponível; usando fallback local:', aiError);
+          statusEl.innerHTML = '<span class="consultoria-spinner">⚡</span> A IA demorou. Montando uma simulação local...';
+          responseText = this.buildConsultoriaFallback(selectedPersonaId, aporte, marketData, despesas, reservaSaldo);
+        }
+      } else {
+        statusEl.innerHTML = '<span class="consultoria-spinner">⚡</span> Montando uma simulação local...';
         responseText = this.buildConsultoriaFallback(selectedPersonaId, aporte, marketData, despesas, reservaSaldo);
       }
 
