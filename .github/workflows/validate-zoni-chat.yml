@@ -1,0 +1,34 @@
+name: Validate Zoni chat redesign
+
+on:
+  push:
+    branches:
+      - feat/redesign-zoni-chat
+    paths:
+      - .github/workflows/validate-zoni-chat.yml
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/redesign-zoni-chat
+
+      - name: Check JavaScript syntax
+        run: node --check app.js
+
+      - name: Check Zoni markup and CSS basics
+        shell: python
+        run: |
+          from pathlib import Path
+          html = Path("index.html").read_text(encoding="utf-8")
+          css = Path("style.css").read_text(encoding="utf-8")
+          required_ids = ["modalIA","iaChatHistory","iaPersonaSelector","iaChatInput","btnSendIA","btnAudioIA","iaAttachmentPreview"]
+          for rid in required_ids:
+              count = html.count(f'id="{rid}"')
+              assert count == 1, f"{rid}: expected once, found {count}"
+          assert "zoni-chat-open" in css
+          assert ".zoni-composer" in css
+          assert ".zoni-message-bubble" in css
+          assert css.count("{") == css.count("}"), "Unbalanced CSS braces"
