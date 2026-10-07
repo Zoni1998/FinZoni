@@ -1575,58 +1575,55 @@ constructor() {
   }
 
   parseMarkdownTable(markdown) {
-    // Procura por tabela Markdown simples e converte para HTML
-    let inTable = false;
-    let tableHtml = '<table class="data-table" style="margin-top: 15px;">';
-    const lines = markdown.split('\n');
-    let hasTable = false;
-    
+    const source = typeof markdown === 'string' ? markdown : '';
+    const lines = source.split('\n');
     let htmlResult = '';
-    
-    for (let i = 0; i < lines.length; i++) {
-      let line = lines[i].trim();
-      
-      if (line.startsWith('|') && line.endsWith('|')) {
-        hasTable = true;
-        if (!inTable) {
-           inTable = true;
-        }
-        
-        if (line.includes('---')) {
-          continue; // Ignorar linha separadora
-        }
-        
-        let cols = line.split('|').slice(1, -1).map(c => c.trim());
+    let tableRows = [];
+    let sawTable = false;
+
+    const flushTable = () => {
+      if (!tableRows.length) return;
+      const header = tableRows[0];
+      const body = tableRows.slice(1);
+      let tableHtml = '<div class="consultoria-table-wrap"><table class="data-table consultoria-table"><thead><tr>';
+      header.forEach(col => { tableHtml += `<th>${escapeHTML(col.replace(/\*\*/g, ''))}</th>`; });
+      tableHtml += '</tr></thead><tbody>';
+      body.forEach(row => {
         tableHtml += '<tr>';
-        cols.forEach(col => {
-           // Checar se é a primeira linha para th
-           if (i === 0 || lines[i-1].includes('---')) {
-             tableHtml += `<th>${col.replace(/\*\*/g, '')}</th>`;
-           } else {
-             tableHtml += `<td>${col.replace(/\*\*/g, '')}</td>`;
-           }
-        });
+        row.forEach(col => { tableHtml += `<td>${escapeHTML(col.replace(/\*\*/g, ''))}</td>`; });
         tableHtml += '</tr>';
-      } else {
-        if (inTable) {
-          tableHtml += '</table>';
-          htmlResult += tableHtml;
-          inTable = false;
-        }
-        if (line !== '') {
-          // Normal paragraph
-          let formattedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-          htmlResult += `<p style="margin-bottom: 8px;">${formattedLine}</p>`;
-        }
-      }
-    }
-    
-    if (inTable) {
-      tableHtml += '</table>';
+      });
+      tableHtml += '</tbody></table></div>';
       htmlResult += tableHtml;
+      tableRows = [];
+    };
+
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+      const isTableLine = line.startsWith('|') && line.endsWith('|');
+
+      if (isTableLine) {
+        sawTable = true;
+        const cells = line.split('|').slice(1, -1).map(cell => cell.trim());
+        const isSeparator = cells.every(cell => /^:?-{3,}:?$/.test(cell));
+        if (!isSeparator) tableRows.push(cells);
+        continue;
+      }
+
+      flushTable();
+
+      if (!line) continue;
+      const formatted = escapeHTML(line)
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      htmlResult += `<p class="consultoria-paragraph">${formatted}</p>`;
     }
-    
-    return hasTable ? htmlResult : markdown.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+    flushTable();
+
+    if (sawTable) return htmlResult;
+    return escapeHTML(source)
+      .replace(/\n/g, '<br>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
   }
 
   buildConsultoriaFallback(personaId, aporte, marketData, despesasMensais = 0, reservaSaldo = 0) {
