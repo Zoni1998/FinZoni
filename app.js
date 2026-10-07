@@ -2925,10 +2925,28 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
 
   // ── CHARTS ──
   renderCharts() {
-    this.renderDespesasChart();
-    this.renderReceitasDespesasChart();
-    this.renderDiariasChart();
-    this.renderSaldoChart();
+    const renderers = [
+      ['despesas', () => this.renderDespesasChart()],
+      ['receitas/despesas', () => this.renderReceitasDespesasChart()],
+      ['diárias', () => this.renderDiariasChart()],
+      ['saldo', () => this.renderSaldoChart()]
+    ];
+
+    renderers.forEach(([name, render]) => {
+      try {
+        render();
+      } catch (error) {
+        console.error(`Erro ao renderizar gráfico de ${name}:`, error);
+      }
+    });
+  }
+
+  formatChartCurrency(value) {
+    const n = Number(value) || 0;
+    const abs = Math.abs(n);
+    if (abs >= 1000000) return `R$ ${(n / 1000000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mi`;
+    if (abs >= 1000) return `R$ ${(n / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mil`;
+    return formatCurrency(n);
   }
 
   renderDespesasChart() {
@@ -2936,84 +2954,125 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     const cats = {};
 
     (mes.gastosFixos || []).forEach(g => {
-      const label = g.descricao;
-      const val = g.compartilhado ? g.valor / 2 : g.valor;
-      cats[label] = (cats[label] || 0) + val;
-    });
-    (mes.gastosVariaveis || []).forEach(g => {
-      cats[g.descricao] = (cats[g.descricao] || 0) + g.valor;
+      const label = g.descricao || 'Outros';
+      const valor = g.compartilhado ? Number(g.valor || 0) / 2 : Number(g.valor || 0);
+      cats[label] = (cats[label] || 0) + valor;
     });
 
-    const labels = Object.keys(cats);
-    const values = Object.values(cats);
-    const colors = ['#ff5252','#ff8a80','#b388ff','#448aff','#18ffff','#69f0ae','#ffd740','#ffab40','#ff6e40','#a1887f','#90a4ae','#e0e0e0'];
+    (mes.gastosVariaveis || []).forEach(g => {
+      const label = g.descricao || 'Outros';
+      cats[label] = (cats[label] || 0) + Number(g.valor || 0);
+    });
+
+    const isMobile = window.innerWidth <= 768;
+    const maxCategorias = isMobile ? 5 : 7;
+    const ordenadas = Object.entries(cats)
+      .filter(([, valor]) => valor > 0)
+      .sort((a, b) => b[1] - a[1]);
+
+    const visiveis = ordenadas.slice(0, maxCategorias);
+    if (ordenadas.length > maxCategorias) {
+      const restante = ordenadas.slice(maxCategorias).reduce((total, [, valor]) => total + valor, 0);
+      visiveis.push(['Outros', restante]);
+    }
+
+    const labels = visiveis.map(([label]) => label);
+    const values = visiveis.map(([, valor]) => valor);
+    const palette = ['#3b82f6', '#ef4444', '#8b5cf6', '#14b8a6', '#f59e0b', '#06b6d4', '#64748b', '#ec4899'];
 
     if (this.charts.despesas) this.charts.despesas.destroy();
 
-    const ctx = document.getElementById('chartDespesas');
-    if (labels.length === 0) {
-      this.charts.despesas = new Chart(ctx, { type: 'doughnut', data: { labels: ['Sem dados'], datasets: [{ data: [1], backgroundColor: ['rgba(255,255,255,0.05)'] }] }, options: { plugins: { legend: { display: false } } } });
+    const canvas = document.getElementById('chartDespesas');
+    if (!canvas) return;
+
+    const cColor = this.getChartColors();
+    const total = values.reduce((sum, value) => sum + value, 0);
+
+    if (!labels.length) {
+      this.charts.despesas = new Chart(canvas, {
+        type: 'doughnut',
+        data: {
+          labels: ['Sem dados'],
+          datasets: [{ data: [1], backgroundColor: ['rgba(148,163,184,0.16)'], borderWidth: 0 }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          aspectRatio: isMobile ? 1.1 : 1.5,
+          cutout: '72%',
+          plugins: { legend: { display: false }, tooltip: { enabled: false } }
+        }
+      });
       return;
     }
 
-    const cColor = this.getChartColors();
-    const totalDespesas = values.reduce((a, b) => a + b, 0);
-
     const centerTextPlugin = {
-      id: 'centerText',
-      beforeDraw(chart) {
-        if (chart.config.type !== 'doughnut') return;
-        const { ctx } = chart;
+      id: 'centerTextFinZoni',
+      afterDraw(chart) {
         const meta = chart.getDatasetMeta(0);
-        if (!meta || !meta.data || meta.data.length === 0) return;
-        
-        const centerX = meta.data[0].x;
-        const centerY = meta.data[0].y;
-        const innerRadius = chart.innerRadius || 50;
+        if (!meta || !meta.data || !meta.data.length) return;
 
-        ctx.restore();
-        ctx.textBaseline = 'middle';
-        const text = formatCurrency(totalDespesas);
-        
-        let fontSize = 20;
-        ctx.font = `800 ${fontSize}px Inter`;
-        while(ctx.measureText(text).width > innerRadius * 1.7 && fontSize > 10) {
-          fontSize -= 1;
-          ctx.font = `800 ${fontSize}px Inter`;
-        }
-        
-        ctx.fillStyle = cColor.text;
-        const textX = Math.round(centerX - ctx.measureText(text).width / 2);
-        const textY = centerY + 8;
-        ctx.fillText(text, textX, textY);
-        
-        ctx.font = `600 12px Inter`;
-        ctx.fillStyle = cColor.text.replace('1)', '0.5)');
-        const subText = 'TOTAL';
-        const subX = Math.round(centerX - ctx.measureText(subText).width / 2);
-        ctx.fillText(subText, subX, textY - 22);
+        const arc = meta.data[0];
+        const ctx = chart.ctx;
+        const x = arc.x;
+        const y = arc.y;
+
         ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = cColor.text;
+        ctx.font = `700 ${isMobile ? 17 : 19}px Inter`;
+        ctx.fillText(formatCurrency(total), x, y + 8);
+        ctx.fillStyle = document.documentElement.classList.contains('theme-light') ? '#64748b' : '#94a3b8';
+        ctx.font = `600 ${isMobile ? 9 : 10}px Inter`;
+        ctx.fillText('TOTAL', x, y - 17);
+        ctx.restore();
       }
     };
 
-    this.charts.despesas = new Chart(ctx, {
+    this.charts.despesas = new Chart(canvas, {
       type: 'doughnut',
       data: {
         labels,
-        datasets: [{ data: values, backgroundColor: colors.slice(0, labels.length), borderWidth: 0, hoverOffset: 8, cutout: '75%' }]
+        datasets: [{
+          data: values,
+          backgroundColor: palette.slice(0, labels.length),
+          borderWidth: 0,
+          hoverOffset: 6
+        }]
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false,
+        maintainAspectRatio: true,
+        aspectRatio: isMobile ? 1.08 : 1.35,
+        cutout: '72%',
+        layout: { padding: 6 },
         plugins: {
-          legend: { position: 'bottom', labels: { color: cColor.text, font: { family: 'Inter', size: 11 }, padding: 12 } },
+          legend: {
+            position: 'bottom',
+            labels: {
+              color: cColor.text,
+              usePointStyle: true,
+              pointStyle: 'circle',
+              boxWidth: 8,
+              padding: isMobile ? 10 : 12,
+              font: { family: 'Inter', size: isMobile ? 10 : 11 }
+            }
+          },
           tooltip: {
             backgroundColor: cColor.tooltipBg,
             titleColor: cColor.tooltipText,
             bodyColor: cColor.tooltipText,
             borderColor: cColor.tooltipBorder,
             borderWidth: 1,
-            callbacks: { label: (ctx) => `${ctx.label}: ${formatCurrency(ctx.raw)}` }
+            padding: 10,
+            callbacks: {
+              label: ctx => {
+                const valor = Number(ctx.raw || 0);
+                const pct = total > 0 ? (valor / total) * 100 : 0;
+                return `${ctx.label}: ${formatCurrency(valor)} · ${pct.toFixed(1)}%`;
+              }
+            }
           }
         }
       },
@@ -3024,6 +3083,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
   renderReceitasDespesasChart() {
     const receitas = [];
     const despesas = [];
+
     for (let m = 1; m <= 12; m++) {
       receitas.push(this.calcTotalReceitas(m));
       despesas.push(this.calcTotalDespesas(m));
@@ -3031,26 +3091,81 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
 
     if (this.charts.receitasDespesas) this.charts.receitasDespesas.destroy();
 
+    const isMobile = window.innerWidth <= 768;
     const cColor = this.getChartColors();
-    this.charts.receitasDespesas = new Chart(document.getElementById('chartReceitasDespesas'), {
+    const canvas = document.getElementById('chartReceitasDespesas');
+    if (!canvas) return;
+
+    this.charts.receitasDespesas = new Chart(canvas, {
       type: 'bar',
       data: {
-        labels: MONTHS.map(m => m.substring(0,3)),
+        labels: MONTHS.map(m => m.substring(0, 3)),
         datasets: [
-          { label: 'Receitas', data: receitas, backgroundColor: '#10b981', borderRadius: 4 },
-          { label: 'Despesas', data: despesas, backgroundColor: '#ef4444', borderRadius: 4 }
+          {
+            label: 'Receitas',
+            data: receitas,
+            backgroundColor: 'rgba(16,185,129,0.82)',
+            borderRadius: 6,
+            borderSkipped: false,
+            maxBarThickness: isMobile ? 15 : 22
+          },
+          {
+            label: 'Despesas',
+            data: despesas,
+            backgroundColor: 'rgba(239,68,68,0.80)',
+            borderRadius: 6,
+            borderSkipped: false,
+            maxBarThickness: isMobile ? 15 : 22
+          }
         ]
       },
       options: {
         responsive: true,
         maintainAspectRatio: true,
+        aspectRatio: isMobile ? 1.18 : 1.65,
+        interaction: { mode: 'index', intersect: false },
         scales: {
-          x: { grid: { color: cColor.grid }, ticks: { color: cColor.text, font: { family: 'Inter', size: 11 } } },
-          y: { grid: { color: cColor.grid }, ticks: { color: cColor.text, font: { family: 'Inter', size: 11 }, callback: v => formatCurrency(v) } }
+          x: {
+            grid: { display: false },
+            ticks: {
+              color: cColor.text,
+              maxRotation: 0,
+              autoSkip: true,
+              maxTicksLimit: isMobile ? 6 : 12,
+              font: { family: 'Inter', size: isMobile ? 10 : 11 }
+            }
+          },
+          y: {
+            beginAtZero: true,
+            grid: { color: cColor.grid },
+            ticks: {
+              color: cColor.text,
+              maxTicksLimit: 5,
+              font: { family: 'Inter', size: isMobile ? 10 : 11 },
+              callback: value => this.formatChartCurrency(value)
+            }
+          }
         },
         plugins: {
-          legend: { labels: { color: cColor.text, font: { family: 'Inter' } } },
-          tooltip: { backgroundColor: cColor.tooltipBg, titleColor: cColor.tooltipText, bodyColor: cColor.tooltipText, borderColor: cColor.tooltipBorder, borderWidth: 1, callbacks: { label: c => `${c.dataset.label}: ${formatCurrency(c.raw)}` } }
+          legend: {
+            position: 'top',
+            labels: {
+              color: cColor.text,
+              usePointStyle: true,
+              pointStyle: 'circle',
+              boxWidth: 8,
+              padding: 14,
+              font: { family: 'Inter', size: isMobile ? 10 : 11 }
+            }
+          },
+          tooltip: {
+            backgroundColor: cColor.tooltipBg,
+            titleColor: cColor.tooltipText,
+            bodyColor: cColor.tooltipText,
+            borderColor: cColor.tooltipBorder,
+            borderWidth: 1,
+            callbacks: { label: ctx => `${ctx.dataset.label}: ${formatCurrency(ctx.raw)}` }
+          }
         }
       }
     });
@@ -3058,31 +3173,74 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
 
   renderDiariasChart() {
     const totals = this.calcDiariasAuto(this.currentMonth);
-    const clinicas = this.dm.data.clinicas;
+    const clinicas = this.dm.data.clinicas || [];
 
     if (this.charts.diarias) this.charts.diarias.destroy();
 
+    const isMobile = window.innerWidth <= 768;
     const cColor = this.getChartColors();
-    this.charts.diarias = new Chart(document.getElementById('chartDiarias'), {
+    const canvas = document.getElementById('chartDiarias');
+    if (!canvas) return;
+
+    const dados = clinicas.map(c => ({
+      nome: c.nome,
+      cor: c.cor || '#3b82f6',
+      dias: Number(totals[c.id]?.dias || 0),
+      valor: Number(totals[c.id]?.valor || 0)
+    }));
+
+    this.charts.diarias = new Chart(canvas, {
       type: 'bar',
       data: {
-        labels: clinicas.map(c => c.nome),
-        datasets: [
-          { label: 'Dias', data: clinicas.map(c => totals[c.id]?.dias || 0), backgroundColor: clinicas.map(c => c.cor + '99'), borderRadius: 6, yAxisID: 'y' },
-          { label: 'Valor (R$)', data: clinicas.map(c => totals[c.id]?.valor || 0), backgroundColor: clinicas.map(c => c.cor), borderRadius: 6, yAxisID: 'y1' }
-        ]
+        labels: dados.map(item => item.nome),
+        datasets: [{
+          label: 'Ganhos',
+          data: dados.map(item => item.valor),
+          backgroundColor: dados.map(item => item.cor + 'CC'),
+          borderRadius: 7,
+          borderSkipped: false,
+          maxBarThickness: 22
+        }]
       },
       options: {
+        indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: true,
+        aspectRatio: isMobile ? 1.22 : 1.75,
         scales: {
-          y: { position: 'left', grid: { color: cColor.grid }, ticks: { color: cColor.text, font: { family: 'Inter' } }, title: { display: true, text: 'Dias', color: cColor.text } },
-          y1: { position: 'right', grid: { display: false }, ticks: { color: cColor.text, font: { family: 'Inter' }, callback: v => formatCurrency(v) }, title: { display: true, text: 'Valor', color: cColor.text } },
-          x: { grid: { color: cColor.grid }, ticks: { color: cColor.text, font: { family: 'Inter' } } }
+          x: {
+            beginAtZero: true,
+            grid: { color: cColor.grid },
+            ticks: {
+              color: cColor.text,
+              maxTicksLimit: 5,
+              font: { family: 'Inter', size: isMobile ? 10 : 11 },
+              callback: value => this.formatChartCurrency(value)
+            }
+          },
+          y: {
+            grid: { display: false },
+            ticks: {
+              color: cColor.text,
+              font: { family: 'Inter', size: isMobile ? 10 : 11, weight: '600' }
+            }
+          }
         },
         plugins: {
-          legend: { labels: { color: cColor.text, font: { family: 'Inter' } } },
-          tooltip: { backgroundColor: cColor.tooltipBg, titleColor: cColor.tooltipText, bodyColor: cColor.tooltipText, borderColor: cColor.tooltipBorder, borderWidth: 1 }
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: cColor.tooltipBg,
+            titleColor: cColor.tooltipText,
+            bodyColor: cColor.tooltipText,
+            borderColor: cColor.tooltipBorder,
+            borderWidth: 1,
+            callbacks: {
+              label: ctx => {
+                const item = dados[ctx.dataIndex];
+                return [`Ganhos: ${formatCurrency(item.valor)}`, `${item.dias} ${item.dias === 1 ? 'diária' : 'diárias'}`];
+              }
+            }
+          }
         }
       }
     });
@@ -3096,34 +3254,65 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
 
     if (this.charts.saldo) this.charts.saldo.destroy();
 
+    const isMobile = window.innerWidth <= 768;
     const cColor = this.getChartColors();
-    this.charts.saldo = new Chart(document.getElementById('chartSaldo'), {
+    const canvas = document.getElementById('chartSaldo');
+    if (!canvas) return;
+
+    this.charts.saldo = new Chart(canvas, {
       type: 'line',
       data: {
-        labels: MONTHS.map(m => m.substring(0,3)),
+        labels: MONTHS.map(m => m.substring(0, 3)),
         datasets: [{
           label: 'Saldo',
           data: saldos,
           borderColor: '#3b82f6',
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          backgroundColor: 'rgba(59,130,246,0.10)',
           fill: true,
-          tension: 0.4,
-          pointBackgroundColor: saldos.map(s => s >= 0 ? '#00e676' : '#ff5252'),
-          pointBorderColor: saldos.map(s => s >= 0 ? '#00e676' : '#ff5252'),
-          pointRadius: 5,
-          pointHoverRadius: 8
+          tension: 0.35,
+          borderWidth: 3,
+          pointBackgroundColor: saldos.map(s => s >= 0 ? '#10b981' : '#ef4444'),
+          pointBorderColor: saldos.map(s => s >= 0 ? '#10b981' : '#ef4444'),
+          pointRadius: isMobile ? 3 : 4,
+          pointHoverRadius: 6
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: true,
+        aspectRatio: isMobile ? 1.2 : 1.7,
+        interaction: { mode: 'index', intersect: false },
         scales: {
-          x: { grid: { color: cColor.grid }, ticks: { color: cColor.text, font: { family: 'Inter' } } },
-          y: { grid: { color: cColor.grid }, ticks: { color: cColor.text, font: { family: 'Inter' }, callback: v => formatCurrency(v) } }
+          x: {
+            grid: { display: false },
+            ticks: {
+              color: cColor.text,
+              maxRotation: 0,
+              autoSkip: true,
+              maxTicksLimit: isMobile ? 6 : 12,
+              font: { family: 'Inter', size: isMobile ? 10 : 11 }
+            }
+          },
+          y: {
+            grid: { color: cColor.grid },
+            ticks: {
+              color: cColor.text,
+              maxTicksLimit: 6,
+              font: { family: 'Inter', size: isMobile ? 10 : 11 },
+              callback: value => this.formatChartCurrency(value)
+            }
+          }
         },
         plugins: {
-          legend: { labels: { color: cColor.text, font: { family: 'Inter' } } },
-          tooltip: { backgroundColor: cColor.tooltipBg, titleColor: cColor.tooltipText, bodyColor: cColor.tooltipText, borderColor: cColor.tooltipBorder, borderWidth: 1, callbacks: { label: c => `Saldo: ${formatCurrency(c.raw)}` } }
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: cColor.tooltipBg,
+            titleColor: cColor.tooltipText,
+            bodyColor: cColor.tooltipText,
+            borderColor: cColor.tooltipBorder,
+            borderWidth: 1,
+            callbacks: { label: ctx => `Saldo: ${formatCurrency(ctx.raw)}` }
+          }
         }
       }
     });

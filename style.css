@@ -2926,48 +2926,36 @@ body {
 
 /* ── DASHBOARD CHART POLISH ── */
 .chart-card {
-  max-height: none;
-  min-height: 370px;
-  padding: 22px;
-  overflow: hidden;
+  min-height: 330px;
+  padding: 20px;
   background:
-    linear-gradient(145deg, rgba(255,255,255,0.028), rgba(255,255,255,0.008)),
+    linear-gradient(145deg, rgba(255,255,255,0.025), rgba(255,255,255,0.008)),
     var(--bg-glass);
   border-color: rgba(148,163,184,0.14);
   box-shadow:
-    0 16px 36px rgba(0,0,0,0.20),
+    0 14px 32px rgba(0,0,0,0.18),
     inset 0 1px 0 rgba(255,255,255,0.035);
-  backdrop-filter: blur(26px) saturate(135%);
-  -webkit-backdrop-filter: blur(26px) saturate(135%);
+  backdrop-filter: blur(24px) saturate(130%);
+  -webkit-backdrop-filter: blur(24px) saturate(130%);
 }
 
 .chart-card .card-header {
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .chart-card .card-title {
-  font-size: 0.82rem;
-  letter-spacing: 0.07em;
-}
-
-.chart-card canvas {
-  width: 100% !important;
-  height: 300px !important;
-  max-height: none !important;
-}
-
-#chartDespesas {
-  height: 320px !important;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
 }
 
 :root.theme-light .chart-card {
   background:
-    linear-gradient(145deg, rgba(255,255,255,0.58), rgba(255,255,255,0.24)),
-    rgba(255,255,255,0.38);
+    linear-gradient(145deg, rgba(255,255,255,0.60), rgba(255,255,255,0.28)),
+    rgba(255,255,255,0.42);
   border-color: rgba(100,116,139,0.18);
   box-shadow:
-    0 14px 30px rgba(15,23,42,0.10),
-    inset 0 1px 0 rgba(255,255,255,0.78);
+    0 12px 28px rgba(15,23,42,0.09),
+    inset 0 1px 0 rgba(255,255,255,0.82);
 }
 
 @media (max-width: 768px) {
@@ -2976,25 +2964,18 @@ body {
   }
 
   .chart-card {
-    min-height: 340px;
-    padding: 18px 16px;
+    min-height: 315px;
+    padding: 18px 14px;
     border-radius: 18px;
-  }
-
-  .chart-card canvas {
-    height: 270px !important;
-  }
-
-  #chartDespesas {
-    height: 300px !important;
-  }
-
-  .chart-card .card-header {
-    margin-bottom: 6px;
+    overflow: hidden;
   }
 
   .chart-card .card-title {
-    font-size: 0.78rem;
+    font-size: 0.76rem;
     line-height: 1.35;
+  }
+
+  .chart-card canvas {
+    max-height: 270px !important;
   }
 }
