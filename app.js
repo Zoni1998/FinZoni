@@ -822,7 +822,18 @@ constructor() {
     document.getElementById('mobileOverlay').addEventListener('click', (event) => { event.preventDefault(); });
     document.getElementById('sidebarCloseBtn')?.addEventListener('click', () => this.closeMobileMenu());
     document.addEventListener('keydown', event => {
-      if (event.key === 'Escape') this.closeMobileMenu();
+      if (event.key === 'Escape') {
+        this.closeMobileMenu();
+        this.closeNotifications();
+      }
+    });
+
+    document.addEventListener('pointerdown', event => {
+      const panel = document.getElementById('notificationsPanel');
+      const trigger = document.getElementById('btnNotifications');
+      if (!panel || panel.style.display === 'none') return;
+      if (panel.contains(event.target) || trigger?.contains(event.target)) return;
+      this.closeNotifications();
     });
     window.addEventListener('resize', () => {
       if (window.innerWidth > 768) this.closeMobileMenu();
@@ -3681,7 +3692,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       }
 
       fixHTML += `
-        <tr style="opacity: ${g.pago ? '0.6' : '1'}; transition: opacity 0.2s;">
+        <tr data-expense-index="${recordIndex}" style="opacity: ${g.pago ? '0.6' : '1'}; transition: opacity 0.2s;">
           <td>
             ${escapeHTML(g.descricao)}
             ${g.compartilhado ? '<span class="shared-badge">50/50</span>' : ''}
@@ -5458,37 +5469,66 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
 
   toggleNotifications() {
     const panel = document.getElementById('notificationsPanel');
-    if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    if (!panel) return;
+    const isOpen = panel.style.display !== 'none';
+    panel.style.display = isOpen ? 'none' : 'block';
+    panel.classList.toggle('is-open', !isOpen);
+  }
+
+  closeNotifications() {
+    const panel = document.getElementById('notificationsPanel');
+    if (!panel) return;
+    panel.style.display = 'none';
+    panel.classList.remove('is-open');
+  }
+
+  openNotificationTarget(tabName, expenseIndex = null) {
+    this.closeNotifications();
+
+    const navItem = document.querySelector(`.nav-item[data-tab="${tabName}"]`);
+    if (navItem) navItem.click();
+
+    if (tabName === 'despesas' && expenseIndex !== null && expenseIndex !== undefined) {
+      window.setTimeout(() => {
+        const row = document.querySelector(`#gastosFixosBody tr[data-expense-index="${expenseIndex}"]`);
+        if (!row) return;
+        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        row.classList.remove('notification-target-highlight');
+        void row.offsetWidth;
+        row.classList.add('notification-target-highlight');
+        window.setTimeout(() => row.classList.remove('notification-target-highlight'), 2600);
+      }, 220);
+    }
   }
 
   checkAlerts() {
     const mes = this.dm.getMonth(this.currentMonth);
     if (!mes || !mes.gastosFixos) return;
-    
+
     const today = new Date();
     today.setHours(0,0,0,0);
     const currentYear = this.dm.data.year || new Date().getFullYear();
-    
-    let alerts = [];
-    mes.gastosFixos.forEach(g => {
+
+    const alerts = [];
+    mes.gastosFixos.forEach((g, expenseIndex) => {
       if (!g.pago && g.vencimento) {
         const day = parseInt(g.vencimento, 10);
         if (!isNaN(day)) {
           const vDate = new Date(currentYear, this.currentMonth - 1, day);
           vDate.setHours(0,0,0,0);
-          
+
           const diffTime = vDate.getTime() - today.getTime();
           const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          
+
           if (diffDays < 0) {
-            alerts.push(`<div class="notification-item"><div class="notification-icon">⚠️</div><div class="notification-text">A conta <strong>${escapeHTML(g.descricao)}</strong> está atrasada há ${Math.abs(diffDays)} dia(s)!</div></div>`);
+            alerts.push(`<button type="button" class="notification-item" onclick="app.openNotificationTarget('despesas', ${expenseIndex})"><div class="notification-icon">⚠️</div><div class="notification-text"><span class="notification-kicker">Conta atrasada</span>A conta <strong>${escapeHTML(g.descricao)}</strong> está atrasada há ${Math.abs(diffDays)} dia(s)!</div><div class="notification-arrow" aria-hidden="true">›</div></button>`);
           } else if (diffDays <= 3) {
-            alerts.push(`<div class="notification-item"><div class="notification-icon">\u23F0</div><div class="notification-text">A conta <strong>${escapeHTML(g.descricao)}</strong> vence em ${diffDays === 0 ? 'hoje' : diffDays + ' dia(s)'}!</div></div>`);
+            alerts.push(`<button type="button" class="notification-item" onclick="app.openNotificationTarget('despesas', ${expenseIndex})"><div class="notification-icon">⏰</div><div class="notification-text"><span class="notification-kicker">Vencimento próximo</span>A conta <strong>${escapeHTML(g.descricao)}</strong> vence em ${diffDays === 0 ? 'hoje' : diffDays + ' dia(s)'}!</div><div class="notification-arrow" aria-hidden="true">›</div></button>`);
           }
         }
       }
     });
-    
+
     const badge = document.getElementById('notificationBadge');
     const body = document.getElementById('notificationsBody');
     if (badge && body) {
