@@ -1,0 +1,28 @@
+name: Validate mobile login fix
+
+on:
+  push:
+    branches:
+      - fix/mobile-login-layout
+    paths:
+      - .github/workflows/validate-mobile-login.yml
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/mobile-login-layout
+      - name: Check mobile login CSS
+        shell: python
+        run: |
+          from pathlib import Path
+          html=Path("index.html").read_text(encoding="utf-8")
+          css=Path("style.css").read_text(encoding="utf-8")
+          assert "style.css?v=356" in html
+          assert "MOBILE LOGIN EMERGENCY LAYOUT FIX" in css
+          assert ".auth-card-reference" in css
+          assert "box-sizing: border-box" in css
+          assert "width: 100vw !important" in css
+          assert css.count("{")==css.count("}")
