@@ -1,0 +1,35 @@
+name: Validate login reference
+
+on:
+  push:
+    branches:
+      - feat/login-reference-implementation
+    paths:
+      - .github/workflows/validate-login-reference.yml
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/login-reference-implementation
+      - name: Check JavaScript syntax
+        run: node --check app.js
+      - name: Check login structure
+        shell: python
+        run: |
+          from pathlib import Path
+          html=Path("index.html").read_text(encoding="utf-8")
+          css=Path("style.css").read_text(encoding="utf-8")
+          js=Path("app.js").read_text(encoding="utf-8")
+          for rid in ["authOverlay","authThemeSelector","authLoginView","authRegisterView","authResetView","authUpdateView","loginEmail","loginPassword","registerEmail","registerPassword"]:
+              assert html.count(f'id="{rid}"')==1, rid
+          assert "auth-feature-row" in html
+          assert "auth-security-note" in html
+          assert "togglePasswordVisibility" in js
+          assert "theme-amoled .auth-card-reference" in css
+          assert "theme-light .auth-card-reference" in css
+          assert "style.css?v=355" in html
+          assert "app.js?v=355" in html
+          assert css.count("{")==css.count("}")
