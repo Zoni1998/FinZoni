@@ -1,0 +1,27 @@
+name: Validate auth overlay fix
+
+on:
+  push:
+    branches:
+      - fix/auth-overlay-login
+    paths:
+      - .github/workflows/validate-auth-overlay.yml
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/auth-overlay-login
+      - name: Check auth overlay visibility rules
+        shell: python
+        run: |
+          from pathlib import Path
+          html=Path("index.html").read_text(encoding="utf-8")
+          css=Path("style.css").read_text(encoding="utf-8")
+          assert "style.css?v=357" in html
+          assert "AUTH VISIBILITY SAFEGUARD" in css
+          assert 'display: block !important;' not in css[css.find("MOBILE LOGIN EMERGENCY LAYOUT FIX"):]
+          assert '.auth-overlay[style*="display: none"]' in css
+          assert css.count("{")==css.count("}")
