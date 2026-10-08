@@ -11,7 +11,7 @@
   <meta name="theme-color" content="#0a0a1a">
   <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data: https://cdnjs.cloudflare.com; connect-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://jbzypqaimerrptxhovzq.supabase.co https://kqjdslnysmhhwccukbuz.supabase.co https://api.bcb.gov.br https://economia.awesomeapi.com.br; img-src 'self' data: blob:;">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=353">
+  <link rel="stylesheet" href="style.css?v=354">
   <!-- DOMPurify for XSS mitigation -->
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
   <!-- Chart.js -->
@@ -28,99 +28,174 @@
 
   <!-- Auth Overlay -->
   <div class="auth-overlay" id="authOverlay">
-    <div style="position: absolute; top: 20px; right: 20px; z-index: 10;">
-      <select class="form-input" style="width: auto; background: var(--bg-glass); border: 1px solid var(--border); backdrop-filter: blur(10px); color: var(--text-primary); cursor: pointer;" onchange="app.changeTheme(this.value)" id="authThemeSelector">
-        <option value="dark">🌙 Modo Escuro</option>
-        <option value="amoled">🌑 AMOLED (Preto)</option>
-        <option value="light">☀️ Modo Claro</option>
+    <div class="auth-theme-control">
+      <label for="authThemeSelector">Tema</label>
+      <select class="auth-theme-select" onchange="app.changeTheme(this.value)" id="authThemeSelector">
+        <option value="dark">🌙 Escuro</option>
+        <option value="amoled">🌑 AMOLED</option>
+        <option value="light">☀️ Claro</option>
       </select>
     </div>
 
-    <div class="auth-card">
-      <div class="sidebar-logo" style="justify-content: center; margin-bottom: 24px;">
-        <div class="logo-icon">
-          <img src="assets/logo.png" alt="FinZoni Logo" style="width:100%; height:100%; object-fit:cover; border-radius: var(--radius-md);">
+    <div class="auth-shell">
+      <section class="auth-brand-panel" aria-label="FinZoni">
+        <div class="finzoni-brand">
+  <div class="finzoni-logo-wrap"><svg class="finzoni-mark" viewBox="0 0 64 64" aria-hidden="true">
+  <defs>
+    <linearGradient id="finzoniAccent" x1="12" y1="52" x2="52" y2="12" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="var(--logo-accent-1)"/>
+      <stop offset="1" stop-color="var(--logo-accent-2)"/>
+    </linearGradient>
+  </defs>
+  <rect x="5" y="5" width="54" height="54" rx="17" fill="var(--logo-surface)" stroke="var(--logo-border)" stroke-width="2"/>
+  <path d="M18 43h11.5L46 24H35.5l6.5-8H29L17.5 31H28l-10 12Z" fill="none" stroke="url(#finzoniAccent)" stroke-width="5.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M42 18h8v8" fill="none" stroke="var(--logo-highlight)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="18" cy="43" r="2.7" fill="var(--logo-highlight)"/>
+</svg></div>
+  <div class="finzoni-brand-copy">
+    <div class="finzoni-wordmark">FinZoni</div>
+    <div class="finzoni-tagline">Sua vida financeira, com contexto.</div>
+  </div>
+</div>
+        <div class="auth-brand-message">
+          <span class="auth-kicker">Gestão financeira com IA</span>
+          <h2>Entenda seu dinheiro antes de decidir o próximo passo.</h2>
+          <p>Controle despesas, acompanhe metas e converse com o Zoni usando os dados que você já registrou no app.</p>
         </div>
-        <h1>FinZoni<span>Minha Gestão Financeira</span></h1>
-      </div>
-      
-      <!-- Login View -->
-      <div id="authLoginView" class="auth-view">
-        <div class="auth-tabs">
-          <button class="auth-tab active">Entrar</button>
-          <button class="auth-tab" onclick="app.showAuthView('register')">Registrar</button>
+        <div class="auth-benefits" aria-hidden="true">
+          <div><span>01</span><strong>Visão mensal</strong><small>Receitas, despesas e saldo em um só lugar.</small></div>
+          <div><span>02</span><strong>Patrimônio</strong><small>Reserva, metas e aportes com contexto.</small></div>
+          <div><span>03</span><strong>Zoni</strong><small>IA conectada aos dados da sua própria plataforma.</small></div>
         </div>
-        <form onsubmit="event.preventDefault(); app.handleLogin();">
-          <div class="form-group">
-            <label class="form-label">E-mail</label>
-            <input type="email" id="loginEmail" class="form-input" required placeholder="seu@email.com" autocomplete="email">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Senha</label>
-            <input type="password" id="loginPassword" class="form-input" required placeholder="Sua senha" autocomplete="current-password">
-          </div>
-          <div class="form-group" style="display:flex; justify-content:space-between; align-items:center; margin-top: -8px;">
-            <label class="form-check" style="margin: 0;">
-              <input type="checkbox" id="rememberMe">
-              <span style="font-size: 0.8rem;">Lembrar de mim</span>
-            </label>
-            <a href="#" onclick="app.showAuthView('reset')" style="font-size: 0.8rem; color: var(--blue); text-decoration: none; transition: opacity 0.2s;">Esqueci a senha</a>
-          </div>
-          <button type="submit" class="btn btn-primary" style="width:100%; margin-top: 16px;">Entrar no Painel</button>
-        </form>
-      </div>
+      </section>
 
-      <!-- Register View -->
-      <div id="authRegisterView" class="auth-view" style="display: none;">
-        <div class="auth-tabs">
-          <button class="auth-tab" onclick="app.showAuthView('login')">Entrar</button>
-          <button class="auth-tab active">Registrar</button>
+      <section class="auth-card auth-card-redesign">
+        <div class="auth-mobile-brand">
+          <div class="finzoni-brand">
+  <div class="finzoni-logo-wrap"><svg class="finzoni-mark" viewBox="0 0 64 64" aria-hidden="true">
+  <defs>
+    <linearGradient id="finzoniAccent" x1="12" y1="52" x2="52" y2="12" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="var(--logo-accent-1)"/>
+      <stop offset="1" stop-color="var(--logo-accent-2)"/>
+    </linearGradient>
+  </defs>
+  <rect x="5" y="5" width="54" height="54" rx="17" fill="var(--logo-surface)" stroke="var(--logo-border)" stroke-width="2"/>
+  <path d="M18 43h11.5L46 24H35.5l6.5-8H29L17.5 31H28l-10 12Z" fill="none" stroke="url(#finzoniAccent)" stroke-width="5.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M42 18h8v8" fill="none" stroke="var(--logo-highlight)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="18" cy="43" r="2.7" fill="var(--logo-highlight)"/>
+</svg></div>
+  <div class="finzoni-brand-copy">
+    <div class="finzoni-wordmark">FinZoni</div>
+    <div class="finzoni-tagline">Sua vida financeira, com contexto.</div>
+  </div>
+</div>
         </div>
-        <form onsubmit="event.preventDefault(); app.handleRegister();">
-          <div class="form-group">
-            <label class="form-label">E-mail</label>
-            <input type="email" id="registerEmail" class="form-input" required placeholder="seu@email.com" autocomplete="email">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Senha</label>
-            <input type="password" id="registerPassword" class="form-input" required placeholder="Crie uma senha forte" autocomplete="new-password">
-          </div>
-          <button type="submit" class="btn btn-success" style="width:100%; margin-top: 16px;">Criar Conta Grátis</button>
-        </form>
-      </div>
 
-      <!-- Reset Request View -->
-      <div id="authResetView" class="auth-view" style="display: none;">
-        <h3 style="font-size: 1.1rem; text-align: center; margin-bottom: 16px; color: var(--text-primary);">Recuperar Senha</h3>
-        <p style="font-size: 0.85rem; color: var(--text-secondary); text-align: center; margin-bottom: 20px;">
-          Digite seu e-mail para receber um link de redefinição de senha.
-        </p>
-        <form onsubmit="event.preventDefault(); app.handlePasswordReset();">
-          <div class="form-group">
-            <label class="form-label">E-mail</label>
-            <input type="email" id="resetEmail" class="form-input" required placeholder="seu@email.com">
+        <div id="authLoginView" class="auth-view">
+          <div class="auth-card-heading">
+            <span class="auth-kicker">Bem-vindo de volta</span>
+            <h1>Entre no seu painel</h1>
+            <p>Continue de onde parou e mantenha sua vida financeira organizada.</p>
           </div>
-          <button type="submit" class="btn btn-primary" style="width:100%; margin-top: 8px;">Enviar Link</button>
-          <div style="text-align: center; margin-top: 16px;">
-            <a href="#" onclick="app.showAuthView('login')" style="font-size: 0.8rem; color: var(--text-muted); text-decoration: none; transition: color 0.2s;">← Voltar para o Login</a>
-          </div>
-        </form>
-      </div>
 
-      <!-- Update Password View (after clicking email link) -->
-      <div id="authUpdateView" class="auth-view" style="display: none;">
-        <h3 style="font-size: 1.1rem; text-align: center; margin-bottom: 16px; color: var(--text-primary);">Criar Nova Senha</h3>
-        <p style="font-size: 0.85rem; color: var(--text-secondary); text-align: center; margin-bottom: 20px;">
-          Digite sua nova senha de acesso abaixo.
-        </p>
-        <form onsubmit="event.preventDefault(); app.handleUpdatePassword();">
-          <div class="form-group">
-            <label class="form-label">Nova Senha</label>
-            <input type="password" id="newPassword" class="form-input" required placeholder="Nova senha" autocomplete="new-password">
+          <div class="auth-tabs">
+            <button class="auth-tab active" type="button">Entrar</button>
+            <button class="auth-tab" type="button" onclick="app.showAuthView('register')">Registrar</button>
           </div>
-          <button type="submit" class="btn btn-success" style="width:100%; margin-top: 16px;">Atualizar Senha</button>
-        </form>
-      </div>
+
+          <form class="auth-form" onsubmit="event.preventDefault(); app.handleLogin();">
+            <div class="form-group">
+              <label class="form-label" for="loginEmail">E-mail</label>
+              <div class="auth-input-wrap">
+                <span class="auth-input-icon" aria-hidden="true">✉</span>
+                <input type="email" id="loginEmail" class="form-input auth-input" required placeholder="seu@email.com" autocomplete="email">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="loginPassword">Senha</label>
+              <div class="auth-input-wrap">
+                <span class="auth-input-icon" aria-hidden="true">●</span>
+                <input type="password" id="loginPassword" class="form-input auth-input" required placeholder="Sua senha" autocomplete="current-password">
+              </div>
+            </div>
+            <div class="auth-form-options">
+              <label class="form-check auth-remember">
+                <input type="checkbox" id="rememberMe">
+                <span>Lembrar de mim</span>
+              </label>
+              <a href="#" onclick="app.showAuthView('reset')">Esqueci a senha</a>
+            </div>
+            <button type="submit" class="btn btn-primary auth-primary-button">Entrar no FinZoni <span aria-hidden="true">→</span></button>
+          </form>
+          <div class="auth-trust-note">Seus dados financeiros ficam vinculados à sua conta.</div>
+        </div>
+
+        <div id="authRegisterView" class="auth-view" style="display: none;">
+          <div class="auth-card-heading">
+            <span class="auth-kicker">Criar conta</span>
+            <h1>Comece sua organização financeira</h1>
+            <p>Crie seu acesso e monte seu painel aos poucos.</p>
+          </div>
+          <div class="auth-tabs">
+            <button class="auth-tab" type="button" onclick="app.showAuthView('login')">Entrar</button>
+            <button class="auth-tab active" type="button">Registrar</button>
+          </div>
+          <form class="auth-form" onsubmit="event.preventDefault(); app.handleRegister();">
+            <div class="form-group">
+              <label class="form-label" for="registerEmail">E-mail</label>
+              <div class="auth-input-wrap">
+                <span class="auth-input-icon" aria-hidden="true">✉</span>
+                <input type="email" id="registerEmail" class="form-input auth-input" required placeholder="seu@email.com" autocomplete="email">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="registerPassword">Senha</label>
+              <div class="auth-input-wrap">
+                <span class="auth-input-icon" aria-hidden="true">●</span>
+                <input type="password" id="registerPassword" class="form-input auth-input" required placeholder="Crie uma senha forte" autocomplete="new-password">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-success auth-primary-button">Criar minha conta <span aria-hidden="true">→</span></button>
+          </form>
+        </div>
+
+        <div id="authResetView" class="auth-view" style="display: none;">
+          <div class="auth-card-heading">
+            <span class="auth-kicker">Recuperar acesso</span>
+            <h1>Redefinir senha</h1>
+            <p>Informe seu e-mail e enviaremos o link de recuperação.</p>
+          </div>
+          <form class="auth-form" onsubmit="event.preventDefault(); app.handlePasswordReset();">
+            <div class="form-group">
+              <label class="form-label" for="resetEmail">E-mail</label>
+              <div class="auth-input-wrap">
+                <span class="auth-input-icon" aria-hidden="true">✉</span>
+                <input type="email" id="resetEmail" class="form-input auth-input" required placeholder="seu@email.com">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary auth-primary-button">Enviar link</button>
+            <button type="button" class="auth-back-button" onclick="app.showAuthView('login')">← Voltar para o login</button>
+          </form>
+        </div>
+
+        <div id="authUpdateView" class="auth-view" style="display: none;">
+          <div class="auth-card-heading">
+            <span class="auth-kicker">Nova senha</span>
+            <h1>Crie uma nova senha</h1>
+            <p>Escolha uma senha nova para voltar ao seu painel.</p>
+          </div>
+          <form class="auth-form" onsubmit="event.preventDefault(); app.handleUpdatePassword();">
+            <div class="form-group">
+              <label class="form-label" for="newPassword">Nova senha</label>
+              <div class="auth-input-wrap">
+                <span class="auth-input-icon" aria-hidden="true">●</span>
+                <input type="password" id="newPassword" class="form-input auth-input" required placeholder="Nova senha" autocomplete="new-password">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-success auth-primary-button">Atualizar senha</button>
+          </form>
+        </div>
+      </section>
     </div>
   </div>
 
@@ -135,10 +210,19 @@
     <aside class="sidebar" id="sidebar">
       <button class="sidebar-close-btn" id="sidebarCloseBtn" onclick="app.closeMobileMenu()" aria-label="Fechar menu">✕</button>
       <div class="sidebar-header">
-        <div class="sidebar-logo">
-          <div class="logo-icon">
-            <img src="assets/logo.png" alt="FinZoni Logo" style="width:100%; height:100%; object-fit:cover; border-radius: inherit;">
-          </div>
+        <div class="sidebar-logo sidebar-brand-modern">
+          <div class="logo-icon finzoni-logo-compact"><svg class="finzoni-mark" viewBox="0 0 64 64" aria-hidden="true">
+  <defs>
+    <linearGradient id="finzoniAccent" x1="12" y1="52" x2="52" y2="12" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="var(--logo-accent-1)"/>
+      <stop offset="1" stop-color="var(--logo-accent-2)"/>
+    </linearGradient>
+  </defs>
+  <rect x="5" y="5" width="54" height="54" rx="17" fill="var(--logo-surface)" stroke="var(--logo-border)" stroke-width="2"/>
+  <path d="M18 43h11.5L46 24H35.5l6.5-8H29L17.5 31H28l-10 12Z" fill="none" stroke="url(#finzoniAccent)" stroke-width="5.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M42 18h8v8" fill="none" stroke="var(--logo-highlight)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="18" cy="43" r="2.7" fill="var(--logo-highlight)"/>
+</svg></div>
           <h1>FinZoni<span>Minha Gestão Financeira</span></h1>
         </div>
       </div>
