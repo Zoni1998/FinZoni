@@ -5050,3 +5050,156 @@ body.sidebar-open .mobile-menu-btn {
   .auth-feature strong{font-size:.62rem}
   .auth-form-options{align-items:center}
 }
+
+
+/* ── MOBILE LOGIN EMERGENCY LAYOUT FIX ── */
+.auth-overlay,
+.auth-overlay *,
+.auth-shell,
+.auth-card-reference,
+.auth-card-reference * {
+  box-sizing: border-box;
+}
+
+.auth-card-reference {
+  animation: none !important;
+}
+
+@media (max-width: 860px) {
+  .auth-overlay {
+    display: block !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    padding: 82px 12px 18px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    align-items: initial !important;
+    justify-content: initial !important;
+  }
+
+  .auth-shell,
+  .auth-shell-centered {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    min-height: auto !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+  }
+
+  .auth-card-reference {
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    max-width: 520px !important;
+    min-width: 0 !important;
+    margin: 0 auto !important;
+    padding: 26px 20px 22px !important;
+    overflow: hidden !important;
+  }
+
+  .auth-card-reference > *,
+  .auth-card-reference .auth-view,
+  .auth-card-reference form,
+  .auth-card-reference .form-group,
+  .auth-card-reference .auth-input-wrap,
+  .auth-card-reference .auth-tabs,
+  .auth-card-reference .auth-security-note {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    transform: none !important;
+  }
+
+  .auth-reference-brand {
+    width: 100% !important;
+    text-align: center !important;
+  }
+
+  .auth-reference-logo {
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  .auth-feature-row {
+    width: 100% !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .auth-feature {
+    width: auto !important;
+    min-width: 0 !important;
+  }
+
+  .auth-input {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .auth-theme-control {
+    position: fixed !important;
+    top: max(10px, env(safe-area-inset-top)) !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    max-width: none !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .auth-theme-select {
+    max-width: 180px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .auth-overlay {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  .auth-card-reference {
+    max-width: none !important;
+    padding: 24px 16px 20px !important;
+    border-radius: 22px !important;
+  }
+
+  .auth-reference-logo {
+    width: 64px !important;
+    height: 64px !important;
+  }
+
+  .auth-reference-wordmark {
+    font-size: 1.6rem !important;
+  }
+
+  .auth-reference-subtitle {
+    font-size: .66rem !important;
+    letter-spacing: .12em !important;
+  }
+
+  .auth-feature-row {
+    gap: 2px !important;
+  }
+
+  .auth-feature {
+    padding: 8px 2px !important;
+  }
+
+  .auth-feature strong {
+    font-size: .59rem !important;
+  }
+
+  .auth-form-options {
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+  }
+}
