@@ -4567,3 +4567,435 @@ body.sidebar-open .mobile-menu-btn {
     flex: 1;
   }
 }
+
+
+/* ── AUTH + ADAPTIVE LOGO REDESIGN ── */
+:root {
+  --logo-accent-1: #3b82f6;
+  --logo-accent-2: #a855f7;
+  --logo-highlight: #7dd3fc;
+  --logo-surface: rgba(255,255,255,.035);
+  --logo-border: rgba(148,163,184,.20);
+}
+:root.theme-light {
+  --logo-accent-1: #2563eb;
+  --logo-accent-2: #7c3aed;
+  --logo-highlight: #0f172a;
+  --logo-surface: rgba(255,255,255,.82);
+  --logo-border: rgba(15,23,42,.14);
+}
+:root.theme-amoled {
+  --logo-accent-1: #60a5fa;
+  --logo-accent-2: #c084fc;
+  --logo-highlight: #ffffff;
+  --logo-surface: #000000;
+  --logo-border: #202020;
+}
+
+.finzoni-mark {
+  width: 100%;
+  height: 100%;
+  display: block;
+  filter: drop-shadow(0 8px 18px rgba(59,130,246,.14));
+}
+:root.theme-light .finzoni-mark { filter: drop-shadow(0 8px 16px rgba(37,99,235,.10)); }
+:root.theme-amoled .finzoni-mark { filter: drop-shadow(0 0 10px rgba(96,165,250,.10)); }
+
+.auth-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  overflow-y: auto;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(59,130,246,.12), transparent 32%),
+    radial-gradient(circle at 85% 78%, rgba(168,85,247,.10), transparent 34%),
+    var(--bg-primary);
+}
+.auth-overlay::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,.55), transparent 86%);
+}
+
+.auth-theme-control {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px 7px 11px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--bg-secondary) 82%, transparent);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+.auth-theme-control label {
+  font-size: .67rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.auth-theme-select {
+  border: 0;
+  outline: 0;
+  color: var(--text-primary);
+  background: transparent;
+  font: 600 .76rem/1 'Outfit', 'Inter', sans-serif;
+  cursor: pointer;
+}
+
+.auth-shell {
+  width: min(1060px, 100%);
+  min-height: calc(100dvh - 48px);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(380px, .85fr);
+  align-items: center;
+  gap: 26px;
+}
+.auth-brand-panel,
+.auth-card-redesign {
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  backdrop-filter: blur(24px) saturate(135%);
+  -webkit-backdrop-filter: blur(24px) saturate(135%);
+}
+.auth-brand-panel {
+  min-height: 620px;
+  padding: 42px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background:
+    linear-gradient(150deg, rgba(59,130,246,.07), rgba(168,85,247,.045)),
+    color-mix(in srgb, var(--bg-secondary) 76%, transparent);
+  box-shadow:
+    0 28px 70px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.finzoni-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.finzoni-logo-wrap {
+  width: 62px;
+  height: 62px;
+  flex: 0 0 62px;
+}
+.finzoni-wordmark {
+  color: var(--text-primary);
+  font-size: 1.55rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -.035em;
+}
+.finzoni-tagline {
+  margin-top: 5px;
+  color: var(--text-muted);
+  font-size: .72rem;
+  letter-spacing: .015em;
+}
+
+.auth-brand-message { max-width: 560px; }
+.auth-kicker {
+  display: inline-block;
+  margin-bottom: 9px;
+  color: var(--blue);
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+.auth-brand-message h2 {
+  margin: 0;
+  max-width: 560px;
+  color: var(--text-primary);
+  font-size: clamp(2.05rem, 4vw, 3.35rem);
+  line-height: 1.02;
+  letter-spacing: -.045em;
+}
+.auth-brand-message p {
+  max-width: 520px;
+  margin-top: 16px;
+  color: var(--text-secondary);
+  font-size: .94rem;
+  line-height: 1.55;
+}
+
+.auth-benefits {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 10px;
+}
+.auth-benefits > div {
+  min-width: 0;
+  padding: 15px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--bg-card) 80%, transparent);
+}
+.auth-benefits span {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--text-muted);
+  font-size: .62rem;
+  font-weight: 700;
+}
+.auth-benefits strong {
+  display: block;
+  color: var(--text-primary);
+  font-size: .78rem;
+}
+.auth-benefits small {
+  display: block;
+  margin-top: 5px;
+  color: var(--text-muted);
+  font-size: .66rem;
+  line-height: 1.35;
+}
+
+.auth-card-redesign {
+  width: 100%;
+  max-width: none;
+  min-height: 570px;
+  padding: 34px;
+  justify-self: stretch;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.035), rgba(255,255,255,.012)),
+    color-mix(in srgb, var(--bg-secondary) 88%, transparent);
+  box-shadow:
+    0 28px 70px rgba(0,0,0,.28),
+    inset 0 1px 0 rgba(255,255,255,.035);
+}
+.auth-card-redesign::before { display: none; }
+.auth-mobile-brand { display: none; }
+
+.auth-card-heading { margin-bottom: 22px; }
+.auth-card-heading h1 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.62rem;
+  line-height: 1.1;
+  letter-spacing: -.035em;
+  text-align: left;
+}
+.auth-card-heading p {
+  margin-top: 7px;
+  color: var(--text-secondary);
+  font-size: .78rem;
+  line-height: 1.5;
+}
+.auth-card-redesign .auth-tabs {
+  margin-bottom: 22px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: color-mix(in srgb, var(--bg-input) 88%, transparent);
+}
+.auth-card-redesign .auth-tab {
+  min-height: 42px;
+  border-radius: 11px;
+  font-size: .78rem;
+}
+.auth-card-redesign .auth-tab.active {
+  background:
+    linear-gradient(135deg, rgba(59,130,246,.10), rgba(168,85,247,.08)),
+    var(--bg-card);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.auth-form { display: flex; flex-direction: column; gap: 2px; }
+.auth-card-redesign .form-label {
+  margin-bottom: 7px;
+  color: var(--text-secondary);
+  font-size: .68rem;
+  font-weight: 750;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.auth-input-wrap { position: relative; }
+.auth-input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  z-index: 1;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: .72rem;
+  pointer-events: none;
+}
+.auth-input {
+  min-height: 52px;
+  padding-left: 40px !important;
+  border-radius: 14px !important;
+  background: color-mix(in srgb, var(--bg-input) 92%, transparent) !important;
+}
+.auth-input:focus {
+  border-color: color-mix(in srgb, var(--blue) 58%, var(--border)) !important;
+  box-shadow: 0 0 0 3px rgba(59,130,246,.08) !important;
+}
+.auth-form-options {
+  margin-top: -2px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.auth-form-options a,
+.auth-back-button {
+  color: var(--blue);
+  text-decoration: none;
+  font-size: .72rem;
+  font-weight: 600;
+}
+.auth-remember {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: .72rem;
+}
+.auth-primary-button {
+  width: 100%;
+  min-height: 52px;
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 15px;
+  font-size: .86rem;
+  font-weight: 700;
+  box-shadow: 0 12px 24px rgba(59,130,246,.18);
+}
+.auth-primary-button span { transition: transform .18s ease; }
+.auth-primary-button:hover span { transform: translateX(3px); }
+.auth-trust-note {
+  margin-top: 17px;
+  color: var(--text-muted);
+  font-size: .65rem;
+  text-align: center;
+}
+.auth-back-button {
+  margin: 12px auto 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.sidebar-brand-modern .finzoni-logo-compact {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  overflow: visible;
+  background: transparent;
+  box-shadow: none;
+}
+.sidebar-brand-modern .finzoni-mark {
+  width: 42px;
+  height: 42px;
+}
+
+:root.theme-light .auth-overlay {
+  background:
+    radial-gradient(circle at 14% 18%, rgba(59,130,246,.08), transparent 30%),
+    radial-gradient(circle at 86% 82%, rgba(168,85,247,.07), transparent 34%),
+    #f7f9fc;
+}
+:root.theme-light .auth-overlay::before {
+  background:
+    linear-gradient(rgba(15,23,42,.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15,23,42,.028) 1px, transparent 1px);
+}
+:root.theme-light .auth-brand-panel,
+:root.theme-light .auth-card-redesign {
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.78), rgba(255,255,255,.52)),
+    rgba(248,250,252,.82);
+  border-color: rgba(100,116,139,.16);
+  box-shadow:
+    0 24px 56px rgba(15,23,42,.10),
+    inset 0 1px 0 rgba(255,255,255,.90);
+}
+:root.theme-light .auth-benefits > div {
+  background: rgba(255,255,255,.55);
+  border-color: rgba(100,116,139,.14);
+}
+
+:root.theme-amoled .auth-overlay { background: #000000 !important; }
+:root.theme-amoled .auth-overlay::before {
+  opacity: .25;
+  background:
+    linear-gradient(#111 1px, transparent 1px),
+    linear-gradient(90deg, #111 1px, transparent 1px);
+}
+:root.theme-amoled .auth-brand-panel,
+:root.theme-amoled .auth-card-redesign,
+:root.theme-amoled .auth-theme-control {
+  background: #000000 !important;
+  border-color: #1c1c1c !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.018) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+:root.theme-amoled .auth-benefits > div,
+:root.theme-amoled .auth-card-redesign .auth-tabs,
+:root.theme-amoled .auth-input {
+  background: #050505 !important;
+  border-color: #202020 !important;
+}
+:root.theme-amoled .auth-primary-button { box-shadow: none !important; }
+
+@media (max-width: 860px) {
+  .auth-overlay { padding: 84px 16px 20px; }
+  .auth-shell { min-height: calc(100dvh - 104px); display: block; }
+  .auth-brand-panel { display: none; }
+  .auth-card-redesign {
+    max-width: 520px;
+    min-height: 0;
+    margin: 0 auto;
+    padding: 26px 22px;
+    border-radius: 24px;
+  }
+  .auth-mobile-brand {
+    display: block;
+    margin-bottom: 26px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .auth-mobile-brand .finzoni-logo-wrap {
+    width: 50px;
+    height: 50px;
+    flex-basis: 50px;
+  }
+  .auth-mobile-brand .finzoni-wordmark { font-size: 1.28rem; }
+  .auth-mobile-brand .finzoni-tagline { font-size: .68rem; }
+}
+
+@media (max-width: 520px) {
+  .auth-overlay { padding: 76px 10px 14px; }
+  .auth-theme-control {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    justify-content: space-between;
+  }
+  .auth-card-redesign {
+    padding: 22px 18px;
+    border-radius: 22px;
+  }
+  .auth-card-heading h1 { font-size: 1.45rem; }
+  .auth-form-options { align-items: flex-start; }
+}
