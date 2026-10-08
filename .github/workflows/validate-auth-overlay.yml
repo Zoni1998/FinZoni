@@ -22,6 +22,8 @@ jobs:
           css=Path("style.css").read_text(encoding="utf-8")
           assert "style.css?v=357" in html
           assert "AUTH VISIBILITY SAFEGUARD" in css
-          assert 'display: block !important;' not in css[css.find("MOBILE LOGIN EMERGENCY LAYOUT FIX"):]
+          tail=css[css.find("MOBILE LOGIN EMERGENCY LAYOUT FIX"):]
+          mobile_auth=tail[tail.find(".auth-overlay {"):tail.find("}", tail.find(".auth-overlay {"))]
+          assert "display:" not in mobile_auth
           assert '.auth-overlay[style*="display: none"]' in css
           assert css.count("{")==css.count("}")
