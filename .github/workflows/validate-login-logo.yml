@@ -1,0 +1,30 @@
+name: Validate login logo redesign
+
+on:
+  push:
+    branches:
+      - feat/login-logo-redesign
+    paths:
+      - .github/workflows/validate-login-logo.yml
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/login-logo-redesign
+      - name: Check markup and CSS
+        shell: python
+        run: |
+          from pathlib import Path
+          html = Path("index.html").read_text(encoding="utf-8")
+          css = Path("style.css").read_text(encoding="utf-8")
+          for rid in ["authOverlay","authThemeSelector","authLoginView","authRegisterView","authResetView","authUpdateView","loginEmail","loginPassword"]:
+              assert html.count(f'id="{rid}"') == 1, rid
+          assert html.count('class="finzoni-mark"') >= 3
+          assert "--logo-accent-1" in css
+          assert ":root.theme-light" in css
+          assert ":root.theme-amoled" in css
+          assert "style.css?v=354" in html
+          assert css.count("{") == css.count("}")
