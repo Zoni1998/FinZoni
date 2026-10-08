@@ -462,6 +462,17 @@ constructor() {
     this.checkSession();
   }
 
+  togglePasswordVisibility(inputId, button) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const reveal = input.type === 'password';
+    input.type = reveal ? 'text' : 'password';
+    if (button) {
+      button.textContent = reveal ? '◌' : '◉';
+      button.setAttribute('aria-label', reveal ? 'Ocultar senha' : 'Mostrar senha');
+    }
+  }
+
   showAuthView(viewId) {
     const views = ['login', 'register', 'reset', 'update'];
     views.forEach(v => {
