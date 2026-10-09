@@ -1,0 +1,9 @@
+# FinZoni production is hosted on Vercel.
+# Keep this file so any Netlify site still linked to this repository
+# skips Git-triggered builds instead of consuming production-deploy credits.
+#
+# Netlify semantics:
+# exit code 0 => stop/ignore the build
+# exit code 1 => continue the build
+[build]
+  ignore = "exit 0"
