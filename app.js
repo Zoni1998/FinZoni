@@ -148,6 +148,7 @@ class DataManager {
     this.data = getDefaultData();
     this.userId = null;
     this.savePromise = Promise.resolve(true);
+    this.loadedPayload = undefined;
   }
 
   async load() {
@@ -164,6 +165,7 @@ class DataManager {
         return false;
       }
       
+      this.loadedPayload = data ? data.data : null;
       if (data && data.data) {
         let parsedData = data.data;
         if (typeof parsedData === 'string') {
@@ -251,20 +253,34 @@ class DataManager {
   async _save(payload = JSON.stringify(this.data)) {
     if (!this.userId || !sbClient) return false;
     try {
-      const { data: exist } = await sbClient
+      const { data: exist, error: checkError } = await sbClient
         .from('finances')
-        .select('user_id')
+        .select('user_id, data')
         .eq('user_id', this.userId)
         .single();
 
+      if (checkError && checkError.code !== 'PGRST116') throw checkError;
       let error;
       if (exist) {
-        const { error: updateError } = await sbClient
-          .from('finances')
-          .update({ data: payload })
-          .eq('user_id', this.userId);
+        const same = typeof exist.data === 'string'
+          ? exist.data === this.loadedPayload
+          : JSON.stringify(exist.data) === JSON.stringify(this.loadedPayload);
+        if (this.loadedPayload === undefined || !same) {
+          showToast('Dados alterados em outro dispositivo ou no Zoni OS. Exporte suas alterações e recarregue antes de salvar.', 'error');
+          return false;
+        }
+        const { data: updated, error: updateError } = await sbClient.rpc('save_finances_if_unchanged', {
+          p_user_id: this.userId,
+          p_expected: this.loadedPayload,
+          p_payload: payload
+        });
         error = updateError;
+        if (!error && updated !== true) {
+          showToast('Conflito de sincronização. Exporte suas alterações e recarregue antes de salvar.', 'error');
+          return false;
+        }
       } else {
+        if (this.loadedPayload !== null) return false;
         const { error: insertError } = await sbClient
           .from('finances')
           .insert({ user_id: this.userId, data: payload });
@@ -276,6 +292,7 @@ class DataManager {
         showToast('Erro ao salvar na nuvem!', 'error');
         return false;
       }
+      this.loadedPayload = payload;
       return true;
     } catch (e) {
       console.error('Error in save:', e);

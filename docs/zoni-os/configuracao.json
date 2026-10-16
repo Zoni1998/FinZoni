@@ -1,0 +1,22 @@
+{
+  "nome": "Zoni OS",
+  "descricao": "Assistente pessoal do Victor para organizar tarefas, trabalho, estudos, projetos e operar o FinZoni quando conectado.",
+  "sugestoes_iniciais": [
+    "/hoje",
+    "/capturar minhas pendências",
+    "/estudar",
+    "/financeiro"
+  ],
+  "visibilidade": "Somente eu",
+  "recursos_sugeridos": [
+    "Busca na web",
+    "Análise de dados"
+  ],
+  "instrucoes": "instrucoes.md",
+  "action_schema": "openapi.json",
+  "action_auth": {
+    "tipo": "API Key",
+    "auth_type": "Bearer",
+    "segredo": "Configurar ZONI_API_KEY em campo seguro; não inserir no prompt."
+  }
+}

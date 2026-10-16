@@ -1,0 +1,248 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "FinZoni para Zoni OS",
+    "version": "1.0.0",
+    "description": "Integração privada, restrita à conta configurada no servidor."
+  },
+  "servers": [
+    {
+      "url": "https://fin-zoni.vercel.app"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {}
+  },
+  "paths": {
+    "/api/zoni": {
+      "get": {
+        "operationId": "consultarFinZoni",
+        "summary": "Consultar resumo, categorias ou transações reais.",
+        "description": "Resumo e transações exigem ano e mês explícitos. Categorias dispensa ano/mês. Salário vem da produção anterior. Percorrer páginas via proximoOffset.",
+        "x-openai-isConsequential": false,
+        "parameters": [
+          {
+            "name": "operacao",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "resumo",
+                "categorias",
+                "transacoes"
+              ]
+            }
+          },
+          {
+            "name": "ano",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "mes",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 12
+            }
+          },
+          {
+            "name": "tipo",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "receita",
+                "despesa"
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resultado calculado, lista de registros ou recibo.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Pedido inválido"
+          },
+          "401": {
+            "description": "Chave inválida"
+          },
+          "403": {
+            "description": "Gravação desativada"
+          },
+          "404": {
+            "description": "Dados ou conta ausentes"
+          },
+          "409": {
+            "description": "Conflito; não repetir com novo requestId"
+          },
+          "422": {
+            "description": "Ano ou esquema incompatível"
+          },
+          "502": {
+            "description": "Falha ou timeout; resultado de escrita pode ser incerto"
+          },
+          "503": {
+            "description": "Integração ainda não configurada"
+          }
+        }
+      },
+      "post": {
+        "operationId": "executarFinZoni",
+        "summary": "Registrar receita/despesa ou marcar conta fixa como paga.",
+        "description": "registrar exige tipo, descrição, valor e data; categoriaId opcional só para despesa variável. marcar_paga exige ano, mês e id de conta fixa. Não efetua pagamentos. requestId obrigatório em ambos.",
+        "x-openai-isConsequential": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "operacao": {
+                    "type": "string",
+                    "enum": [
+                      "registrar",
+                      "marcar_paga"
+                    ]
+                  },
+                  "requestId": {
+                    "type": "string",
+                    "minLength": 8,
+                    "maxLength": 100,
+                    "pattern": "^[A-Za-z0-9_-]+$",
+                    "description": "Identificador único; reutilizar no mesmo pedido após timeout."
+                  },
+                  "tipo": {
+                    "type": "string",
+                    "enum": [
+                      "receita",
+                      "despesa"
+                    ]
+                  },
+                  "descricao": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "valor": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "multipleOf": 0.01,
+                    "maximum": 100000000
+                  },
+                  "data": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "categoriaId": {
+                    "type": "string"
+                  },
+                  "ano": {
+                    "type": "integer"
+                  },
+                  "mes": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 12
+                  },
+                  "id": {
+                    "type": "string",
+                    "description": "ID exato da conta fixa retornada na consulta."
+                  }
+                },
+                "required": [
+                  "operacao",
+                  "requestId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resultado calculado, lista de registros ou recibo.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Pedido inválido"
+          },
+          "401": {
+            "description": "Chave inválida"
+          },
+          "403": {
+            "description": "Gravação desativada"
+          },
+          "404": {
+            "description": "Dados ou conta ausentes"
+          },
+          "409": {
+            "description": "Conflito; não repetir com novo requestId"
+          },
+          "422": {
+            "description": "Ano ou esquema incompatível"
+          },
+          "502": {
+            "description": "Falha ou timeout; resultado de escrita pode ser incerto"
+          },
+          "503": {
+            "description": "Integração ainda não configurada"
+          }
+        }
+      }
+    }
+  }
+}

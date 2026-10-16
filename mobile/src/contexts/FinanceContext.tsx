@@ -23,6 +23,7 @@ export function FinanceProvider({ children }: React.PropsWithChildren) {
   const { session } = useAuth();
   const [data, setData] = useState<FinanceData>(createDefaultData);
   const dataRef = useRef(data);
+  const loadedPayload = useRef<unknown>(undefined);
   const [month, setMonthState] = useState(new Date().getMonth() + 1);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -45,6 +46,7 @@ export function FinanceProvider({ children }: React.PropsWithChildren) {
         .eq('user_id', session.user.id)
         .maybeSingle();
       if (queryError) throw queryError;
+      loadedPayload.current = row ? row.data : null;
       let raw: unknown = row?.data;
       if (typeof raw === 'string') {
         try {
@@ -75,14 +77,20 @@ export function FinanceProvider({ children }: React.PropsWithChildren) {
         const payload = JSON.stringify(snapshot);
         const { data: existing, error: checkError } = await supabase
           .from('finances')
-          .select('user_id')
+          .select('user_id, data')
           .eq('user_id', session.user.id)
           .maybeSingle();
         if (checkError) throw checkError;
+        const expected = loadedPayload.current;
+        if (expected === undefined || (existing && JSON.stringify(existing.data) !== JSON.stringify(expected)) || (!existing && expected !== null)) {
+          throw new Error('Dados alterados em outro dispositivo ou no Zoni OS. Recarregue antes de tentar novamente.');
+        }
         const result = existing
-          ? await supabase.from('finances').update({ data: payload }).eq('user_id', session.user.id)
+          ? await supabase.rpc('save_finances_if_unchanged', { p_user_id: session.user.id, p_expected: expected, p_payload: payload })
           : await supabase.from('finances').insert({ user_id: session.user.id, data: payload });
         if (result.error) throw result.error;
+        if (existing && result.data !== true) throw new Error('Conflito de sincronização. Recarregue antes de tentar novamente.');
+        loadedPayload.current = payload;
         setError(null);
         return true;
       } catch (cause) {
