@@ -5447,7 +5447,7 @@ body::after {
   position: absolute;
   inset: 1px;
   z-index: -1;
-  border-radius: calc(inherit - 1px);
+  border-radius: inherit;
   background:
     linear-gradient(
       180deg,
