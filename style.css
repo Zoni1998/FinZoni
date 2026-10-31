@@ -5408,3 +5408,196 @@ body::after {
 :root.theme-amoled .auth-overlay::before {
   opacity: .45;
 }
+
+
+/* ── PREMIUM GRADIENT CTA SYSTEM ── */
+.btn-premium-glow,
+.btn-premium-icon-glow {
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+}
+
+.btn-premium-glow::before,
+.btn-premium-icon-glow::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  z-index: -2;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      105deg,
+      rgba(59,130,246,.95) 0%,
+      rgba(99,102,241,.95) 24%,
+      rgba(168,85,247,.98) 52%,
+      rgba(244,114,182,.90) 78%,
+      rgba(251,146,60,.72) 100%
+    );
+  opacity: .78;
+  transition:
+    opacity .18s ease,
+    filter .18s ease,
+    transform .18s ease;
+}
+
+.btn-premium-glow::after,
+.btn-premium-icon-glow::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg-secondary) 96%, transparent),
+      color-mix(in srgb, var(--bg-card) 98%, transparent)
+    );
+}
+
+.btn-premium-glow {
+  color: var(--text-primary) !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.025),
+    0 10px 24px rgba(59,130,246,.10),
+    0 12px 34px rgba(168,85,247,.10) !important;
+  transition:
+    transform .16s ease,
+    box-shadow .18s ease,
+    color .18s ease;
+}
+
+.btn-premium-glow:hover {
+  color: var(--text-primary) !important;
+  background: transparent !important;
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.035),
+    0 12px 30px rgba(59,130,246,.14),
+    0 16px 38px rgba(168,85,247,.16) !important;
+}
+
+.btn-premium-glow:hover::before,
+.btn-premium-icon-glow:hover::before {
+  opacity: 1;
+  filter: saturate(118%) brightness(1.06);
+  transform: scale(1.008);
+}
+
+.btn-premium-glow:active,
+.btn-premium-icon-glow:active {
+  transform: translateY(0) scale(.985);
+}
+
+.btn-premium-glow:disabled,
+.btn-premium-icon-glow:disabled {
+  opacity: .48;
+  filter: saturate(.65);
+  cursor: not-allowed;
+  box-shadow: none !important;
+}
+
+.btn-premium-glow:focus-visible,
+.btn-premium-icon-glow:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(59,130,246,.16),
+    0 0 0 5px rgba(168,85,247,.09) !important;
+}
+
+/* Circular/compact CTA version for the Zoni send action. */
+.btn-premium-icon-glow {
+  background: transparent !important;
+  border: 0 !important;
+  color: #fff !important;
+  box-shadow:
+    0 8px 22px rgba(59,130,246,.10),
+    0 10px 26px rgba(168,85,247,.10) !important;
+}
+
+.btn-premium-icon-glow::after {
+  inset: 1px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(14,14,24,.96),
+      rgba(4,4,10,.98)
+    );
+}
+
+/* Login CTA gets a slightly wider luminous rim, close to the supplied reference. */
+.auth-primary-button.btn-premium-glow {
+  min-height: 54px;
+  border-radius: 16px;
+  font-weight: 750;
+  letter-spacing: .005em;
+}
+
+.auth-primary-button.btn-premium-glow::before {
+  inset: -2.5px;
+}
+
+/* Investment CTA can carry a little more visual emphasis. */
+#btnGerarConsultoria.btn-premium-glow {
+  min-height: 48px;
+}
+
+/* Light theme: keep the colored rim but use a clean light interior. */
+:root.theme-light .btn-premium-glow::after {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,.96),
+      rgba(248,250,252,.98)
+    );
+}
+
+:root.theme-light .btn-premium-glow {
+  color: #0f172a !important;
+  box-shadow:
+    0 8px 24px rgba(37,99,235,.08),
+    0 10px 28px rgba(124,58,237,.08) !important;
+}
+
+:root.theme-light .btn-premium-icon-glow::after {
+  background: rgba(255,255,255,.96);
+}
+
+:root.theme-light .btn-premium-icon-glow {
+  color: #0f172a !important;
+}
+
+/* AMOLED: absolute-black center with a restrained gradient rim and almost no glow. */
+:root.theme-amoled .btn-premium-glow::after,
+:root.theme-amoled .btn-premium-icon-glow::after {
+  background: #000000 !important;
+}
+
+:root.theme-amoled .btn-premium-glow,
+:root.theme-amoled .btn-premium-icon-glow {
+  box-shadow: none !important;
+}
+
+:root.theme-amoled .btn-premium-glow::before,
+:root.theme-amoled .btn-premium-icon-glow::before {
+  opacity: .70;
+  filter: saturate(108%);
+}
+
+:root.theme-amoled .btn-premium-glow:hover::before,
+:root.theme-amoled .btn-premium-icon-glow:hover::before {
+  opacity: .92;
+  filter: saturate(112%) brightness(1.03);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-premium-glow,
+  .btn-premium-icon-glow,
+  .btn-premium-glow::before,
+  .btn-premium-icon-glow::before {
+    transition: none !important;
+  }
+}
