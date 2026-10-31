@@ -5247,7 +5247,7 @@ body::before {
   content: "";
   position: fixed;
   inset: -18vmax;
-  z-index: -2;
+  z-index: 0;
   pointer-events: none;
   background:
     radial-gradient(circle at 18% 18%, var(--noise-gradient-a) 0%, transparent 33%),
@@ -5263,7 +5263,7 @@ body::after {
   content: "";
   position: fixed;
   inset: 0;
-  z-index: -1;
+  z-index: 0;
   pointer-events: none;
   opacity: var(--noise-opacity);
   mix-blend-mode: var(--noise-blend);
@@ -5349,4 +5349,62 @@ body::after {
   body::after {
     animation: none !important;
   }
+}
+
+
+/* ── VISIBLE NOISE STACKING FIX ── */
+.app-container {
+  position: relative;
+  z-index: 1;
+}
+
+.mobile-menu-btn,
+.fab-ia,
+.toast-container,
+.modal-overlay,
+.notifications-panel,
+.zoni-modal {
+  z-index: 2;
+}
+
+:root {
+  --noise-opacity: 0.085;
+}
+
+:root.theme-light {
+  --noise-opacity: 0.055;
+}
+
+:root.theme-amoled {
+  --noise-opacity: 0.014;
+}
+
+:root:not(.theme-light):not(.theme-amoled) body::before {
+  filter: saturate(125%) brightness(1.06);
+}
+
+:root.theme-light body::before {
+  filter: saturate(108%) brightness(1.02);
+}
+
+:root.theme-amoled body::before {
+  filter: saturate(105%);
+}
+
+/* Give the login its own visible gradient layer instead of relying only on grain. */
+.auth-overlay::before {
+  content: "";
+  position: fixed;
+  inset: -12vmax;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 20% 18%, var(--noise-gradient-a) 0%, transparent 34%),
+    radial-gradient(circle at 82% 28%, var(--noise-gradient-b) 0%, transparent 32%),
+    radial-gradient(circle at 52% 84%, var(--noise-gradient-c) 0%, transparent 36%);
+  animation: finzoni-noise-gradient-drift 26s ease-in-out infinite alternate;
+}
+
+:root.theme-amoled .auth-overlay::before {
+  opacity: .45;
 }
