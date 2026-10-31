@@ -81,7 +81,7 @@
               <label class="form-check auth-remember"><input type="checkbox" id="rememberMe"><span>Lembrar de mim</span></label>
               <a href="#" onclick="app.showAuthView('reset')">Esqueci a senha?</a>
             </div>
-            <button type="submit" class="btn btn-primary auth-primary-button">Entrar no Painel <span aria-hidden="true">→</span></button>
+            <button type="submit" class="btn btn-primary auth-primary-button btn-premium-glow">Entrar no Painel <span aria-hidden="true">→</span></button>
           </form>
           <div class="auth-security-note"><span class="auth-security-icon" aria-hidden="true">◇</span><div><strong>Seus dados são protegidos</strong><small>e usados apenas para sua gestão financeira.</small></div></div>
         </div>
@@ -777,7 +777,7 @@
                 <option value="barsi">Estilo dividendos</option>
                 <option value="mira">Estilo professor</option>
               </select>
-              <button class="btn btn-primary" id="btnGerarConsultoria" onclick="app.gerarConsultoria()">
+              <button class="btn btn-primary btn-premium-glow" id="btnGerarConsultoria" onclick="app.gerarConsultoria()">
                 ✨ Gerar Carteira Recomendada
               </button>
               <div id="consultoriaStatus" class="fs-sm hidden" style="color:var(--text-secondary);">
@@ -869,7 +869,7 @@
             </div>
             <div class="wallet-header-actions">
               <button class="btn btn-outline" id="btnAddCartao">+ Cartão</button>
-              <button class="btn btn-primary" id="btnNovaCompraCartao">+ Nova Despesa</button>
+              <button class="btn btn-primary btn-premium-glow" id="btnNovaCompraCartao">+ Nova Despesa</button>
             </div>
           </div>
 
@@ -1537,7 +1537,7 @@
 
         <div class="profile-modal-footer">
           <button class="btn btn-ghost" onclick="closeModal('modalProfile')">Cancelar</button>
-          <button class="btn btn-primary profile-save-button" onclick="app.saveProfile()">Salvar perfil</button>
+          <button class="btn btn-primary profile-save-button btn-premium-glow" onclick="app.saveProfile()">Salvar perfil</button>
         </div>
       </div>
     </div>
@@ -1696,7 +1696,7 @@
               onkeydown="app.handleIAInputKeydown(event)"></textarea>
           </div>
 
-          <button class="zoni-send-button" onclick="app.enviarMensagemIA()" id="btnSendIA" title="Enviar mensagem" aria-label="Enviar mensagem">
+          <button class="zoni-send-button btn-premium-icon-glow" onclick="app.enviarMensagemIA()" id="btnSendIA" title="Enviar mensagem" aria-label="Enviar mensagem">
             <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/>
             </svg>
