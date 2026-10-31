@@ -5209,3 +5209,144 @@ body.sidebar-open .mobile-menu-btn {
 .auth-overlay.is-hidden {
   display: none !important;
 }
+
+
+/* ── ACETERNITY-INSPIRED NOISE BACKGROUND ── */
+:root {
+  --noise-gradient-a: rgba(37, 99, 235, 0.22);
+  --noise-gradient-b: rgba(147, 51, 234, 0.18);
+  --noise-gradient-c: rgba(14, 165, 233, 0.12);
+  --noise-opacity: 0.055;
+  --noise-blend: soft-light;
+}
+
+:root.theme-light {
+  --noise-gradient-a: rgba(59, 130, 246, 0.18);
+  --noise-gradient-b: rgba(168, 85, 247, 0.14);
+  --noise-gradient-c: rgba(20, 184, 166, 0.10);
+  --noise-opacity: 0.075;
+  --noise-blend: multiply;
+}
+
+:root.theme-amoled {
+  --noise-gradient-a: rgba(37, 99, 235, 0.045);
+  --noise-gradient-b: rgba(147, 51, 234, 0.03);
+  --noise-gradient-c: rgba(14, 165, 233, 0.018);
+  --noise-opacity: 0.022;
+  --noise-blend: screen;
+}
+
+body {
+  position: relative;
+  isolation: isolate;
+  background-color: var(--bg-primary) !important;
+  background-image: none !important;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: -18vmax;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 18%, var(--noise-gradient-a) 0%, transparent 33%),
+    radial-gradient(circle at 82% 24%, var(--noise-gradient-b) 0%, transparent 31%),
+    radial-gradient(circle at 54% 82%, var(--noise-gradient-c) 0%, transparent 35%);
+  filter: saturate(118%);
+  transform: translate3d(0, 0, 0) scale(1.03);
+  animation: finzoni-noise-gradient-drift 26s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: var(--noise-opacity);
+  mix-blend-mode: var(--noise-blend);
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.92' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.92'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+  background-repeat: repeat;
+  animation: finzoni-noise-grain 0.9s steps(2, end) infinite;
+}
+
+:root.theme-light body,
+:root.theme-amoled body {
+  background-image: none !important;
+}
+
+:root.theme-amoled body {
+  background-color: #000000 !important;
+}
+
+.auth-overlay {
+  background-color: var(--bg-primary) !important;
+  overflow-x: hidden;
+}
+
+.auth-overlay::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: calc(var(--noise-opacity) * 0.72);
+  mix-blend-mode: var(--noise-blend);
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n2'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.92' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n2)' opacity='.92'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
+.auth-overlay > * {
+  position: relative;
+  z-index: 1;
+}
+
+.card,
+.main-header,
+.sidebar,
+.auth-card-reference,
+.zoni-panel,
+.modal-content {
+  backdrop-filter: blur(22px) saturate(135%);
+  -webkit-backdrop-filter: blur(22px) saturate(135%);
+}
+
+:root.theme-amoled .card,
+:root.theme-amoled .main-header,
+:root.theme-amoled .sidebar,
+:root.theme-amoled .auth-card-reference,
+:root.theme-amoled .zoni-panel,
+:root.theme-amoled .modal-content {
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+@keyframes finzoni-noise-gradient-drift {
+  0% {
+    transform: translate3d(-2.5%, -1.5%, 0) scale(1.02) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(2%, 1.8%, 0) scale(1.08) rotate(1deg);
+  }
+  100% {
+    transform: translate3d(-1%, 2.2%, 0) scale(1.04) rotate(-0.8deg);
+  }
+}
+
+@keyframes finzoni-noise-grain {
+  0% { transform: translate3d(0, 0, 0); }
+  25% { transform: translate3d(-1.5%, 1%, 0); }
+  50% { transform: translate3d(1%, -1.25%, 0); }
+  75% { transform: translate3d(1.4%, 0.8%, 0); }
+  100% { transform: translate3d(-0.8%, -1%, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before,
+  body::after {
+    animation: none !important;
+  }
+}
