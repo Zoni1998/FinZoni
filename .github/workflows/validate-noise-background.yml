@@ -6,6 +6,8 @@ on:
       - feat/noise-background
     paths:
       - .github/workflows/validate-noise-background.yml
+      - index.html
+      - style.css
 
 jobs:
   validate:
