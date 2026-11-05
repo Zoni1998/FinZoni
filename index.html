@@ -309,9 +309,15 @@
             </div>
             <div class="summary-card balance">
               <div class="card-icon">💎</div>
-              <div class="card-label">Saldo</div>
+              <div class="card-label">Saldo previsto</div>
               <div class="card-value" id="dashSaldo">R$ 0,00</div>
-              <div class="card-sub" id="dashSaldoSub">Receitas - Despesas</div>
+              <div class="card-sub" id="dashSaldoSub">Receitas - Despesas cadastradas (não é saldo bancário)</div>
+            </div>
+            <div class="summary-card balance" id="dashSaldoBancoCard" style="display:none;">
+              <div class="card-icon">🏦</div>
+              <div class="card-label">Saldo Itaú confirmado</div>
+              <div class="card-value" id="dashSaldoBanco">R$ 0,00</div>
+              <div class="card-sub" id="dashSaldoBancoData">Saldo informado pelo titular, sem sincronização bancária</div>
             </div>
             <div class="summary-card diarias">
               <div class="card-icon">🎯</div>
