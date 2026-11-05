@@ -2906,6 +2906,21 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     document.getElementById('dashFaltaPagar').textContent = formatCurrency(resumo.pendente);
     document.getElementById('dashSalarioDisponivel').textContent = formatCurrency(salarioDisponivel);
     
+    // Saldo de conta corrente confirmado pelo titular: não confundir com o saldo orçamentário previsto.
+    const saldoBanco = this.dm.data.saldoBancarioConfirmado;
+    const saldoBancoCard = document.getElementById('dashSaldoBancoCard');
+    if (saldoBancoCard) {
+      const valido = saldoBanco && Number.isFinite(Number(saldoBanco.valor));
+      saldoBancoCard.style.display = valido ? '' : 'none';
+      if (valido) {
+        const bancoValue = Number(saldoBanco.valor);
+        document.getElementById('dashSaldoBanco').textContent = formatCurrency(bancoValue);
+        document.getElementById('dashSaldoBanco').className = 'card-value ' + (bancoValue >= 0 ? 'value-positive' : 'value-negative');
+        const rotulo = document.getElementById('dashSaldoBancoData');
+        rotulo.textContent = 'Confirmado em ' + (saldoBanco.data || 'data não informada') + ' · não atualizado automaticamente';
+      }
+    }
+
     // Check if the old dashSaldo exists
     const dashSaldoEl = document.getElementById('dashSaldo');
     if(dashSaldoEl) {
