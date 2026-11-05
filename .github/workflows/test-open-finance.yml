@@ -1,0 +1,26 @@
+name: Test Open Finance
+on:
+  push:
+    branches:
+      - feat/open-finance-pluggy-personal
+  pull_request:
+    paths:
+      - 'api/open-finance.js'
+      - 'api/_open-finance-mapper.mjs'
+      - 'open-finance.js'
+      - 'tests/open-finance.test.mjs'
+      - '.github/workflows/test-open-finance.yml'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check backend syntax
+        run: node --check api/open-finance.js
+      - name: Check frontend syntax
+        run: node --check open-finance.js
+      - name: Unit tests
+        run: node --test tests/open-finance.test.mjs
