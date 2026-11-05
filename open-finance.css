@@ -1,0 +1,28 @@
+/* Isolated layout for the personal Open Finance tab. */
+#tab-openfinance .of-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+#tab-openfinance .of-intro { color: var(--text-secondary); line-height: 1.55; }
+#tab-openfinance .of-intro a { color: var(--primary, #648cff); }
+#tab-openfinance .of-form { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+#tab-openfinance .of-form label { flex: 1 1 240px; display: flex; flex-direction: column; gap: 6px; }
+#tab-openfinance .of-form .form-input { width: 100%; min-width: 0; }
+#tab-openfinance .of-line { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 13px 0;
+  border-bottom: 1px solid var(--border-color, rgba(128,128,128,.17)); }
+#tab-openfinance .of-line-main { display: flex; flex-direction: column; gap: 4px; }
+#tab-openfinance small, #tab-openfinance .of-empty { color: var(--text-secondary); }
+#tab-openfinance .of-actions { display: flex; align-items: center; gap: 8px; }
+#tab-openfinance .of-account { display: flex; justify-content: space-between; gap: 10px; padding: 12px 0;
+  border-bottom: 1px solid var(--border-color, rgba(128,128,128,.17)); }
+#tab-openfinance .of-account span { display: flex; flex-direction: column; gap: 4px; }
+#tab-openfinance .of-balance { font-size: 1.4rem; font-weight: 800; }
+#tab-openfinance .of-table-wrap { overflow-x: auto; }
+#tab-openfinance .of-table { width: 100%; border-collapse: collapse; }
+#tab-openfinance .of-table th, #tab-openfinance .of-table td { padding: 11px 9px; text-align: left;
+  border-bottom: 1px solid var(--border-color, rgba(128,128,128,.17)); }
+#tab-openfinance .of-table td small { display: block; }
+#tab-openfinance .of-money { text-align: right !important; white-space: nowrap; }
+#tab-openfinance.of-busy button { pointer-events: none; opacity: .55; }
+@media (max-width: 760px) {
+  #tab-openfinance .of-grid { grid-template-columns: 1fr; }
+  #tab-openfinance .of-line { flex-direction: column; }
+  #tab-openfinance .of-form button { width: 100%; }
+}
