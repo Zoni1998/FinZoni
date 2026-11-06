@@ -187,7 +187,8 @@ class DataManager {
         for (let m = 1; m <= 12; m++) {
           app.syncFixedSharing(m);
         }
-        this.save();
+        // Não salvar ao carregar: uma versão aberta poderia sobrescrever o saldo atualizado externamente.
+        // Salvar somente ações explícitas do usuário.
   
         return true;
       } else if (!this.userId) { // Auto-Migration from localStorage
