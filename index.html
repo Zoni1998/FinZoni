@@ -280,44 +280,31 @@
             </div>
           </div>
           
-          <!-- Summary Cards -->
+          <!-- Resumo simples: saldo bancário destacado; orçamento em informações secundárias. -->
           <div class="summary-grid" id="summaryCards">
-            <div class="summary-card income">
-              <div class="card-icon">📈</div>
-              <div class="card-label">Receitas</div>
-              <div class="card-value" id="dashTotalReceitas">R$ 0,00</div>
-              <div class="card-sub" id="dashReceitasSub">Receita total do mês</div>
-            </div>
-            <div class="summary-card expense"
-              style="display: flex; flex-direction: column; justify-content: center; padding: 16px;">
-              <div class="fs-sm"
-                style="color:var(--text-secondary); text-transform:uppercase; font-weight:600; margin-bottom:4px;">
-                Despesas Pagas</div>
-              <div class="card-value" style="color:var(--text-primary); font-size:1.4rem;" id="dashDespesasPagas">R$
-                0,00</div>
-
-              <div class="fs-sm"
-                style="color:var(--red); text-transform:uppercase; font-weight:600; margin-top:12px; margin-bottom:4px;">
-                Falta Pagar</div>
-              <div class="card-value" style="color:var(--red); font-size:1.4rem;" id="dashFaltaPagar">R$ 0,00</div>
-            </div>
-            <div class="summary-card balance">
-              <div class="card-icon">💸</div>
-              <div class="card-label">Salário Disponível</div>
-              <div class="card-value" id="dashSalarioDisponivel">R$ 0,00</div>
-              <div class="card-sub">Receitas - Contas Pagas</div>
-            </div>
-            <div class="summary-card balance">
-              <div class="card-icon">💎</div>
-              <div class="card-label">Saldo previsto</div>
-              <div class="card-value" id="dashSaldo">R$ 0,00</div>
-              <div class="card-sub" id="dashSaldoSub">Receitas - Despesas cadastradas (não é saldo bancário)</div>
-            </div>
-            <div class="summary-card balance" id="dashSaldoBancoCard" style="display:none;">
+            <div class="summary-card balance" id="dashSaldoBancoCard">
               <div class="card-icon">🏦</div>
-              <div class="card-label">Saldo Itaú confirmado</div>
+              <div class="card-label">Saldo disponível · Itaú</div>
               <div class="card-value" id="dashSaldoBanco">R$ 0,00</div>
-              <div class="card-sub" id="dashSaldoBancoData">Saldo informado pelo titular, sem sincronização bancária</div>
+              <div class="card-sub" id="dashSaldoBancoData">Saldo controlado a partir das movimentações informadas</div>
+            </div>
+            <div class="summary-card income">
+              <div class="card-icon">📥</div>
+              <div class="card-label">Entradas cadastradas · mês</div>
+              <div class="card-value" id="dashTotalReceitas">R$ 0,00</div>
+              <div class="card-sub" id="dashReceitasSub">Receitas e reembolsos lançados (não é extrato bancário)</div>
+            </div>
+            <div class="summary-card expense">
+              <div class="card-icon">📤</div>
+              <div class="card-label">Despesas pagas · mês</div>
+              <div class="card-value" id="dashDespesasPagas">R$ 0,00</div>
+              <div class="card-sub">Orçamento cadastrado; pode considerar rateios de contas compartilhadas</div>
+              <div style="margin-top:10px;font-size:0.85rem;color:var(--text-secondary)">A pagar: <strong id="dashFaltaPagar">R$ 0,00</strong></div>
+            </div>
+            <div class="summary-card balance" style="display:none" aria-hidden="true">
+              <div class="card-value" id="dashSalarioDisponivel">R$ 0,00</div>
+              <div class="card-value" id="dashSaldo">R$ 0,00</div>
+              <div class="card-sub" id="dashSaldoSub">Saldo orçamentário previsto</div>
             </div>
             <div class="summary-card diarias">
               <div class="card-icon">🎯</div>

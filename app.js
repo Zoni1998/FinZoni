@@ -2906,18 +2906,23 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     document.getElementById('dashFaltaPagar').textContent = formatCurrency(resumo.pendente);
     document.getElementById('dashSalarioDisponivel').textContent = formatCurrency(salarioDisponivel);
     
-    // Saldo de conta corrente confirmado pelo titular: não confundir com o saldo orçamentário previsto.
+    // Saldo controlado do Itaú informado pelo titular (sem sincronização bancária).
+    // Não confundir com o saldo previsto do orçamento nem descontar novamente despesas já aplicadas.
     const saldoBanco = this.dm.data.saldoBancarioConfirmado;
     const saldoBancoCard = document.getElementById('dashSaldoBancoCard');
     if (saldoBancoCard) {
-      const valido = saldoBanco && Number.isFinite(Number(saldoBanco.valor));
-      saldoBancoCard.style.display = valido ? '' : 'none';
+      const valido = saldoBanco && saldoBanco.valor !== null && saldoBanco.valor !== undefined && Number.isFinite(Number(saldoBanco.valor));
+      // Mostra o card principal mesmo se ainda não houver saldo cadastrado.
+      saldoBancoCard.style.display = '';
       if (valido) {
         const bancoValue = Number(saldoBanco.valor);
         document.getElementById('dashSaldoBanco').textContent = formatCurrency(bancoValue);
         document.getElementById('dashSaldoBanco').className = 'card-value ' + (bancoValue >= 0 ? 'value-positive' : 'value-negative');
         const rotulo = document.getElementById('dashSaldoBancoData');
-        rotulo.textContent = 'Confirmado em ' + (saldoBanco.data || 'data não informada') + ' · não atualizado automaticamente';
+        rotulo.textContent = 'Controle atualizado em ' + (saldoBanco.atualizacao || saldoBanco.data || 'data não informada') + ' · sem conexão bancária automática';
+      } else {
+        document.getElementById('dashSaldoBanco').textContent = '—';
+        document.getElementById('dashSaldoBancoData').textContent = 'Informe o saldo inicial da conta para começar a acompanhar';
       }
     }
 
