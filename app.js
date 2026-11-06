@@ -1366,6 +1366,8 @@ constructor() {
     let changed = false;
     (mes.gastosFixos || []).forEach(g => {
       const catShared = catMap[g.descricao];
+      // Um rateio específico do mês tem prioridade sobre a configuração global.
+      if (g.compartilhadoOverride === true) return;
       if (catShared !== undefined && g.compartilhado !== catShared) {
         g.compartilhado = catShared;
         changed = true;
