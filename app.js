@@ -851,7 +851,10 @@ constructor() {
     // Redimensiona gráficos ao expandir análises, sem alterar os dados.
     const analytics = document.getElementById('fzAdvanced');
     analytics?.addEventListener('toggle', () => {
-      if (analytics.open) Object.values(this.charts || {}).forEach(chart => chart?.resize?.());
+      if (analytics.open) {
+        Object.values(this.charts || {}).forEach(chart => chart?.resize?.());
+        this.checkAndFetchInsight();
+      }
     });
 
     // Mobile menu
@@ -2889,10 +2892,12 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       Number.isFinite(Number(saldoBanco.valor));
     const bankValue = valido ? Number(saldoBanco.valor) : null;
     const pendingAmount = Number(resumo.pendente) || 0;
+    const now = new Date();
+    const selectedPeriodIsCurrent = month === now.getMonth() + 1 && Number(data.year || YEAR) === now.getFullYear();
     const livre = document.getElementById('fzSaldoLivre');
     const reservado = document.getElementById('fzSaldoReservado');
     if (livre) {
-      livre.textContent = valido ? formatCurrency(bankValue - pendingAmount) : '—';
+      livre.textContent = valido && selectedPeriodIsCurrent ? formatCurrency(bankValue - pendingAmount) : '—';
       livre.title = 'Projeção: saldo controlado menos contas pendentes cadastradas';
     }
     if (reservado) reservado.textContent = formatCurrency(pendingAmount);
@@ -2974,7 +2979,8 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
 
   // ── DASHBOARD ──
   renderDashboard() {
-    this.checkAndFetchInsight();
+    // IA disponível apenas quando a área de análises for aberta.
+    if (document.getElementById('fzAdvanced')?.open) this.checkAndFetchInsight();
     
     const m = this.currentMonth;
     const totalReceitas = this.calcTotalReceitas(m);
