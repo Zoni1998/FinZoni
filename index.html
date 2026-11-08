@@ -301,10 +301,12 @@
               <div class="card-sub">Orçamento cadastrado; pode considerar rateios de contas compartilhadas</div>
               <div style="margin-top:10px;font-size:0.85rem;color:var(--text-secondary)">A pagar: <strong id="dashFaltaPagar">R$ 0,00</strong></div>
             </div>
-            <div class="summary-card balance" style="display:none" aria-hidden="true">
-              <div class="card-value" id="dashSalarioDisponivel">R$ 0,00</div>
-              <div class="card-value" id="dashSaldo">R$ 0,00</div>
-              <div class="card-sub" id="dashSaldoSub">Saldo orçamentário previsto</div>
+            <!-- Valores legados mantidos apenas para compatibilidade com o JavaScript.
+                 Não renderizar um cartão de saldo orçamentário duplicado. -->
+            <div hidden aria-hidden="true">
+              <span id="dashSalarioDisponivel"></span>
+              <span id="dashSaldo"></span>
+              <span id="dashSaldoSub"></span>
             </div>
             <div class="summary-card diarias">
               <div class="card-icon">🎯</div>
