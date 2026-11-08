@@ -863,3 +863,12 @@ body {
   #tab-cartoes .wallet-credit-card { flex-basis: 100%; }
   #tab-cartoes .wallet-due-pill { padding-inline: 6px; }
 }
+
+#tab-cartoes .wallet-automatic-info {
+  margin-top: 16px;
+  padding-top: 13px;
+  border-top: 1px solid var(--fz-border);
+  font-size: .76rem;
+  color: var(--fz-muted);
+}
+#tab-cartoes .wallet-automatic-info:empty { display: none; }
