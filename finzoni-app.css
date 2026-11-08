@@ -1,0 +1,560 @@
+/* FinZoni v2 — sistema visual de produto financeiro, sem estética genérica de dashboard.
+   Sobrescreve a camada visual; dados e regras de negócio continuam no app.js. */
+
+:root {
+  --fz-bg: #0a1020;
+  --fz-sidebar: #10182a;
+  --fz-card: #131d30;
+  --fz-card-raised: #19243a;
+  --fz-border: #26334b;
+  --fz-text: #f4f7ff;
+  --fz-muted: #99a8c1;
+  --fz-subtle: #73849f;
+  --fz-primary: #7893ff;
+  --fz-primary-soft: rgba(110, 139, 255, .12);
+  --fz-positive: #59c5bb;
+  --fz-negative: #ff9a90;
+  --fz-shadow: 0 12px 38px rgba(0, 5, 25, .16);
+  --bg-primary: var(--fz-bg);
+  --bg-secondary: var(--fz-sidebar);
+  --bg-card: var(--fz-card);
+  --bg-card-hover: var(--fz-card-raised);
+  --bg-glass: var(--fz-card);
+  --bg-input: #0c1628;
+  --text-primary: var(--fz-text);
+  --text-secondary: var(--fz-muted);
+  --text-muted: var(--fz-subtle);
+  --blue: #7893ff;
+  --blue-soft: var(--fz-primary-soft);
+  --green: #59c5bb;
+  --green-soft: rgba(89, 197, 187, .11);
+  --green-glow: rgba(89, 197, 187, .1);
+  --purple: #a39aff;
+  --border: var(--fz-border);
+  --border-light: #394a65;
+  --radius-xl: 17px;
+  --radius-lg: 13px;
+  --shadow-md: var(--fz-shadow);
+  --shadow-lg: 0 18px 45px rgba(0, 5, 25, .2);
+}
+:root.theme-light {
+  --fz-bg: #f5f7fc;
+  --fz-sidebar: #ffffff;
+  --fz-card: #ffffff;
+  --fz-card-raised: #f5f7fc;
+  --fz-border: #e5e9f2;
+  --fz-text: #19263c;
+  --fz-muted: #59697e;
+  --fz-subtle: #7b899d;
+  --fz-primary: #4d64dc;
+  --fz-primary-soft: rgba(77, 100, 220, .09);
+  --fz-positive: #087e76;
+  --fz-negative: #bc4d4d;
+  --fz-shadow: 0 5px 25px rgba(27, 44, 81, .045);
+  --bg-primary: var(--fz-bg);
+  --bg-secondary: var(--fz-sidebar);
+  --bg-card: var(--fz-card);
+  --bg-card-hover: var(--fz-card-raised);
+  --bg-glass: var(--fz-card);
+  --bg-input: #f7f9fd;
+  --text-primary: var(--fz-text);
+  --text-secondary: var(--fz-muted);
+  --text-muted: var(--fz-subtle);
+  --blue: #4d64dc;
+  --blue-soft: var(--fz-primary-soft);
+  --green: #087e76;
+  --green-soft: rgba(8, 126, 118, .09);
+  --border: var(--fz-border);
+  --border-light: #d4dce9;
+  --shadow-md: var(--fz-shadow);
+  --shadow-lg: 0 10px 36px rgba(27, 44, 81, .07);
+}
+:root.theme-amoled {
+  --fz-bg: #000;
+  --fz-sidebar: #090909;
+  --fz-card: #0f0f11;
+  --fz-card-raised: #18181c;
+  --fz-border: #2a2a2d;
+  --fz-text: #f6f6f8;
+  --fz-muted: #a1a1ae;
+  --fz-subtle: #888896;
+  --fz-primary: #91a4ff;
+  --fz-primary-soft: rgba(145, 164, 255, .1);
+  --fz-shadow: none;
+  --bg-primary: #000;
+  --bg-secondary: #080808;
+  --bg-card: #0f0f11;
+  --bg-card-hover: #18181c;
+  --bg-glass: #0f0f11;
+  --bg-input: #111114;
+  --text-primary: var(--fz-text);
+  --text-secondary: var(--fz-muted);
+  --text-muted: var(--fz-subtle);
+  --border: var(--fz-border);
+  --border-light: #39393c;
+  --blue: #91a4ff;
+  --blue-soft: var(--fz-primary-soft);
+}
+html { background: var(--fz-bg); }
+body {
+  background: var(--fz-bg) !important;
+  color: var(--fz-text);
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-feature-settings: "tnum" 1;
+}
+.sidebar {
+  background: var(--fz-sidebar) !important;
+  border: 1px solid var(--fz-border);
+  border-radius: 20px;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.sidebar-header { border-color: var(--fz-border); padding: 22px 19px; }
+.sidebar-brand-modern h1, .sidebar-logo h1 { letter-spacing: -.04em; }
+.sidebar-brand-modern h1 span, .sidebar-logo h1 span { letter-spacing: 0; font-weight: 450; }
+.nav-item { border-radius: 11px; padding: 12px 14px; font-weight: 560; }
+.nav-item:hover { background: var(--fz-card-raised); }
+.nav-item.active {
+  background: var(--fz-primary-soft) !important;
+  color: var(--fz-primary) !important;
+}
+.nav-item.active::before { background: var(--fz-primary); width: 2px; height: 20px; }
+.main-header {
+  border-radius: 16px;
+  border-color: var(--fz-border);
+  background: var(--fz-card);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+  margin-top: 16px;
+  top: 12px;
+}
+.month-selector .month-nav-btn {
+  background: var(--fz-bg);
+  border-color: var(--fz-border);
+  border-radius: 10px;
+}
+.month-selector .current-month { font-size: .93rem; font-weight: 650; letter-spacing: -.015em; }
+.search-bar, .form-input, .form-textarea { border-color: var(--fz-border); }
+.card, .summary-card, .chart-card, .forecast-card {
+  background: var(--fz-card);
+  border-color: var(--fz-border);
+  border-radius: 16px;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: var(--fz-shadow);
+}
+.card:hover, .summary-card:hover, .chart-card:hover {
+  border-color: var(--fz-border);
+  box-shadow: var(--fz-shadow);
+  transform: none;
+}
+.card-title { letter-spacing: .02em; text-transform: none; font-size: .95rem; }
+.btn { border-radius: 11px; }
+.btn-primary { background: #556fea; border-color: #556fea; color: #fff; }
+.btn-primary:hover { background: #445fdc; }
+#tab-dashboard { max-width: 1280px; margin-inline: auto; }
+#tab-dashboard .fz-home-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 7px 0 25px;
+}
+#tab-dashboard .fz-eyebrow,
+#tab-dashboard .fz-section-kicker,
+#tab-dashboard .fz-advanced-kicker {
+  font-size: .67rem;
+  font-weight: 750;
+  letter-spacing: .12em;
+  line-height: 1.6;
+  color: var(--fz-primary);
+}
+.fz-presence-dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 100%;
+  margin-right: 7px;
+  vertical-align: 2px;
+  background: #8095ff;
+}
+#tab-dashboard .fz-home-heading h2 {
+  margin: 6px 0 5px;
+  font-size: clamp(1.55rem, 3vw, 2rem);
+  letter-spacing: -.05em;
+  font-weight: 760;
+  color: var(--fz-text);
+}
+#tab-dashboard .fz-home-heading p { margin: 0; font-size: .89rem; color: var(--fz-muted); }
+.fz-heading-history, .fz-link {
+  border: none;
+  background: none;
+  color: var(--fz-primary);
+  cursor: pointer;
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 650;
+  white-space: nowrap;
+  padding: 8px 0;
+}
+.fz-heading-history:hover, .fz-link:hover { text-decoration: underline; }
+.fz-heading-history span, .fz-link span { padding-left: 3px; }
+#tab-dashboard .fz-finance-layout.summary-grid {
+  display: block;
+  margin: 0;
+}
+#tab-dashboard #dashSaldoBancoCard.fz-balance-panel {
+  display: block;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 267px;
+  padding: 25px 29px 20px;
+  background: linear-gradient(128deg, #1d3270 0%, #172b5b 56%, #101d3d 100%);
+  border: 1px solid rgba(175, 192, 255, .22);
+  border-radius: 21px;
+  box-shadow: 0 16px 38px rgba(18, 34, 83, .18);
+  color: #fff;
+}
+#tab-dashboard #dashSaldoBancoCard.fz-balance-panel::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: -85px -80px auto auto;
+  width: 390px;
+  height: 315px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(110, 132, 255, .27), transparent 65%);
+  pointer-events: none;
+}
+#tab-dashboard .fz-balance-topline,
+#tab-dashboard .fz-balance-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+}
+#tab-dashboard .fz-account-chip {
+  display: inline-flex;
+  align-items: center;
+  color: #e7ecff;
+  font-size: .79rem;
+  font-weight: 650;
+}
+.fz-bank-symbol {
+  display: inline-grid;
+  place-items: center;
+  width: 24px; height: 24px;
+  border-radius: 7px;
+  background: #f28c24;
+  color: #fff;
+  font-size: .9rem;
+  font-weight: 800;
+  font-style: italic;
+  margin-right: 9px;
+}
+#tab-dashboard .fz-account-type { color: #aabce6; font-weight: 450; }
+.fz-balance-visibility {
+  width: 35px;
+  height: 35px;
+  display: grid;
+  place-items: center;
+  color: #dbe4ff;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.13);
+  border-radius: 11px;
+  cursor: pointer;
+}
+.fz-balance-visibility svg { width: 19px; height: 19px; }
+#tab-dashboard .fz-balance-caption { margin-top: 28px; color: #c7d5f4; font-size: .81rem; letter-spacing: .01em; }
+#tab-dashboard #dashSaldoBanco.fz-balance-amount {
+  display: block;
+  padding: 3px 0 19px;
+  color: #fff !important;
+  font-size: clamp(2.3rem, 5vw, 3.35rem);
+  font-weight: 750;
+  letter-spacing: -.055em;
+  line-height: 1.17;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+#tab-dashboard .fz-balance-footer {
+  justify-content: start;
+  border-top: 1px solid rgba(218,227,255,.19);
+  padding-top: 17px;
+  gap: 24px;
+}
+#tab-dashboard .fz-balance-secondary { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+#tab-dashboard .fz-balance-secondary span { color: #bfceed; font-size: .75rem; }
+#tab-dashboard .fz-balance-secondary strong { color: #fff; font-size: 1.05rem; letter-spacing: -.02em; font-weight: 680; }
+#tab-dashboard .fz-balance-divider { height: 35px; width: 1px; background: rgba(255,255,255,.2); }
+#tab-dashboard .fz-account-footnote { font-size: .69rem; color: #afc1e5; margin-top: 13px; }
+#tab-dashboard .fz-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 16px 0 29px;
+  gap: 12px;
+}
+#tab-dashboard .fz-action {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 15px 16px;
+  background: var(--fz-card);
+  border: 1px solid var(--fz-border);
+  color: var(--fz-text);
+  border-radius: 15px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 650;
+  font-size: .83rem;
+  text-align: left;
+  transition: border-color .15s, background .15s;
+}
+#tab-dashboard .fz-action:hover { border-color: var(--fz-primary); background: var(--fz-card-raised); }
+.fz-action-icon {
+  flex: 0 0 38px;
+  width: 38px; height: 38px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: var(--fz-primary);
+  background: var(--fz-primary-soft);
+}
+.fz-action-icon svg { width: 19px; height: 19px; }
+.fz-action-icon.out { color: var(--fz-negative); background: rgba(255, 154, 144, .10); }
+.fz-action-icon.in { color: var(--fz-positive); background: rgba(89, 197, 187, .10); }
+.fz-action-icon.goals { color: #bea8ff; background: rgba(159, 137, 255, .12); }
+#tab-dashboard .fz-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+#tab-dashboard .fz-section-head h3 {
+  margin: 3px 0 0;
+  color: var(--fz-text);
+  font-size: 1.02rem;
+  font-weight: 740;
+  letter-spacing: -.025em;
+}
+#tab-dashboard .fz-section-caption { color: var(--fz-subtle); font-size: .75rem; }
+#tab-dashboard .fz-month-summary { margin: 0 0 26px; }
+#tab-dashboard .fz-stats-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+#tab-dashboard .fz-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  background: var(--fz-card);
+  border: 1px solid var(--fz-border);
+  border-radius: 15px;
+  padding: 19px 20px;
+}
+#tab-dashboard .fz-stat-head { color: var(--fz-muted); font-size: .79rem; font-weight: 570; display: flex; gap: 8px; align-items: center; }
+#tab-dashboard .fz-stat-dot { width: 7px; height: 7px; display: inline-block; border-radius: 3px; background: var(--fz-primary); }
+#tab-dashboard .fz-stat-dot.income { background: var(--fz-positive); }
+#tab-dashboard .fz-stat-dot.expense { background: var(--fz-negative); }
+#tab-dashboard .fz-stat-dot.pending { background: #cba5fc; }
+#tab-dashboard .fz-stat strong { color: var(--fz-text); font-size: clamp(1.05rem, 2.35vw, 1.52rem); font-weight: 740; letter-spacing: -.038em; overflow-wrap: anywhere; }
+#tab-dashboard .fz-stat small { color: var(--fz-subtle); font-size: .73rem; }
+#tab-dashboard .fz-main-sections { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(300px, .8fr); gap: 16px; align-items: start; }
+#tab-dashboard .fz-feed-card,
+#tab-dashboard .fz-bills-card,
+#tab-dashboard .fz-goals-strip,
+#tab-dashboard .fz-insight-panel {
+  min-width: 0;
+  background: var(--fz-card);
+  border: 1px solid var(--fz-border);
+  border-radius: 17px;
+  padding: 22px;
+  box-shadow: var(--fz-shadow);
+}
+#tab-dashboard .fz-activity,
+#tab-dashboard .fz-bill-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  border-bottom: 1px solid var(--fz-border);
+  min-height: 61px;
+}
+#tab-dashboard .fz-activity:last-child,
+#tab-dashboard .fz-bill-row:last-child { border-bottom: none; }
+#tab-dashboard .fz-activity-symbol {
+  display: grid;
+  place-items: center;
+  flex: 0 0 38px;
+  height: 38px; width: 38px;
+  border-radius: 11px;
+  background: var(--fz-primary-soft);
+  color: var(--fz-primary);
+  font-size: 1.15rem;
+}
+#tab-dashboard .fz-activity-symbol.expense { background: rgba(255,154,144,.1); color: var(--fz-negative); }
+#tab-dashboard .fz-activity-symbol.income { background: rgba(89,197,187,.10); color: var(--fz-positive); }
+#tab-dashboard .fz-activity-info { display: flex; flex: 1; flex-direction: column; gap: 5px; min-width: 0; padding: 13px 0; }
+#tab-dashboard .fz-activity-info strong {
+  color: var(--fz-text);
+  font-size: .82rem;
+  font-weight: 650;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#tab-dashboard .fz-activity-info small { color: var(--fz-muted); font-size: .71rem; line-height: 1.3; overflow-wrap: anywhere; }
+#tab-dashboard .fz-activity-value { font-size: .83rem; color: var(--fz-text); font-weight: 690; white-space: nowrap; }
+#tab-dashboard .fz-activity-value.income { color: var(--fz-positive); }
+#tab-dashboard .fz-activity-value.transfer { color: var(--fz-primary); }
+#tab-dashboard .fz-card-footnote { margin-top: 16px; font-size: .7rem; line-height: 1.5; color: var(--fz-subtle); }
+#tab-dashboard .fz-bill-row { min-height: 58px; gap: 12px; }
+#tab-dashboard .fz-bill-date { flex: 0 0 63px; border-radius: 8px; background: var(--fz-primary-soft); color: var(--fz-primary); font-size: .7rem; font-weight: 720; padding: 8px 6px; text-align: center; }
+#tab-dashboard .fz-bill-name { font-size: .8rem; font-weight: 565; color: var(--fz-text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#tab-dashboard .fz-bill-row strong { color: var(--fz-text); font-size: .8rem; font-weight: 690; white-space: nowrap; }
+#tab-dashboard .fz-empty { color: var(--fz-muted); font-size: .83rem; padding: 28px 0; margin: 0; }
+#tab-dashboard .fz-goals-strip { margin-top: 17px; }
+#tab-dashboard .fz-goal-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+#tab-dashboard .fz-mini-goal { display: flex; align-items: center; gap: 13px; padding: 15px; border: 1px solid var(--fz-border); border-radius: 13px; }
+#tab-dashboard .fz-goal-icon {
+  flex: 0 0 40px;
+  height: 40px; display: grid; place-items: center;
+  font-size: 1.5rem;
+  background: var(--fz-primary-soft); color: var(--fz-primary);
+  border-radius: 12px;
+}
+#tab-dashboard .fz-goal-icon.car { color: #baa8ff; background: rgba(161,141,255,.11); }
+#tab-dashboard .fz-mini-goal > div { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 6px; }
+#tab-dashboard .fz-mini-goal span:not(.fz-goal-progress):not(.fz-goal-icon) { color: var(--fz-muted); font-size: .75rem; }
+#tab-dashboard .fz-mini-goal strong { font-size: 1.11rem; letter-spacing: -.04em; color: var(--fz-text); }
+#tab-dashboard .fz-goal-progress { height: 5px; border-radius: 20px; display: block; background: var(--fz-border); overflow: hidden; }
+#tab-dashboard .fz-goal-progress span { display: block; height: 100%; background: #8799ff; border-radius: 20px; width: 0; }
+#tab-dashboard .fz-advanced { border: 1px solid var(--fz-border); border-radius: 16px; background: var(--fz-card); margin: 18px 0 0; }
+#tab-dashboard .fz-advanced > summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 22px; list-style: none; cursor: pointer; }
+#tab-dashboard .fz-advanced > summary::-webkit-details-marker { display: none; }
+#tab-dashboard .fz-advanced > summary > span { display: flex; flex-direction: column; gap: 5px; }
+#tab-dashboard .fz-advanced > summary strong { color: var(--fz-text); font-size: 1rem; }
+#tab-dashboard .fz-advanced > summary small { color: var(--fz-muted); font-size: .78rem; }
+#tab-dashboard .fz-advanced > summary svg { flex: 0 0 22px; color: var(--fz-muted); transition: transform .2s; }
+#tab-dashboard .fz-advanced[open] > summary svg { transform: rotate(180deg); }
+#tab-dashboard .fz-advanced-content { padding: 6px 20px 23px; }
+#tab-dashboard .fz-advanced-content .forecast-card { margin-bottom: 18px; }
+#tab-dashboard .fz-advanced-content .charts-grid { margin-block: 16px; }
+#tab-dashboard .fz-advanced-content .section-title { font-size: 1.07rem; }
+#tab-dashboard .fz-insight-panel { margin-top: 18px; }
+#tab-dashboard .fz-insight-content { color: var(--fz-muted); font-size: .86rem; line-height: 1.65; }
+#tab-dashboard .fz-insight-timer { display: block; font-size: .7rem; color: var(--fz-subtle); margin-bottom: 12px; }
+.fz-bottom-nav { display: none; }
+.fab-ia {
+  display: grid;
+  place-items: center;
+  width: 48px !important;
+  height: 48px !important;
+  background: var(--fz-card) !important;
+  color: var(--fz-primary) !important;
+  border: 1px solid var(--fz-border) !important;
+  box-shadow: var(--fz-shadow) !important;
+  transform: none !important;
+  animation: none !important;
+}
+.fab-ia::before, .fab-ia::after { display: none !important; }
+.fab-ia svg { display: block; }
+
+:root.theme-amoled #tab-dashboard #dashSaldoBancoCard.fz-balance-panel {
+  background: #121c3c;
+  box-shadow: none;
+}
+@media (max-width: 1100px) {
+  #tab-dashboard .fz-main-sections { grid-template-columns: 1fr; }
+  #tab-dashboard .fz-quick-actions { gap: 10px; }
+  #tab-dashboard .fz-action { flex-direction: column; text-align: center; gap: 8px; padding: 14px 6px; }
+}
+@media (max-width: 768px) {
+  .sidebar {
+    background: var(--fz-sidebar) !important;
+    border-radius: 0 20px 20px 0;
+  }
+  .main-header { padding: 0 12px 0 62px; margin: 10px 12px 11px; height: 58px; top: 8px; }
+  .main-header .header-actions { gap: 7px; }
+  .main-header .header-actions .search-bar { display: none; }
+  .main-header .header-actions #mainThemeSelector { display: none; }
+  .page-content { padding: 16px 15px 105px; }
+  .mobile-menu-btn { top: 21px; left: 20px; border-color: var(--fz-border); }
+  #tab-dashboard .fz-home-heading { margin: 3px 0 19px; align-items: center; }
+  #tab-dashboard .fz-home-heading h2 { font-size: 1.49rem; }
+  #tab-dashboard .fz-home-heading p { font-size: .81rem; line-height: 1.45; }
+  #tab-dashboard .fz-heading-history { display: none; }
+  #tab-dashboard #dashSaldoBancoCard.fz-balance-panel { padding: 23px 20px 17px; border-radius: 19px; min-height: 258px; }
+  #tab-dashboard .fz-balance-caption { margin-top: 28px; }
+  #tab-dashboard #dashSaldoBanco.fz-balance-amount { font-size: clamp(2rem, 8vw, 2.85rem); }
+  #tab-dashboard .fz-balance-footer { gap: 16px; }
+  #tab-dashboard .fz-balance-secondary strong { font-size: .96rem; }
+  #tab-dashboard .fz-account-footnote { font-size: .64rem; }
+  #tab-dashboard .fz-quick-actions { gap: 9px; margin: 13px 0 25px; }
+  #tab-dashboard .fz-action { border-radius: 13px; padding: 12px 4px; font-size: .7rem; min-height: 88px; }
+  #tab-dashboard .fz-action-icon { height: 34px; width: 34px; flex-basis: 34px; border-radius: 10px; }
+  #tab-dashboard .fz-stats-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
+  #tab-dashboard .fz-stat { padding: 16px 14px; min-height: 108px; }
+  #tab-dashboard .fz-stat:last-child { grid-column: span 2; min-height: 85px; }
+  #tab-dashboard .fz-stat strong { font-size: 1.23rem; }
+  #tab-dashboard .fz-main-sections { grid-template-columns: 1fr; gap: 13px; }
+  #tab-dashboard .fz-feed-card, #tab-dashboard .fz-bills-card, #tab-dashboard .fz-goals-strip { padding: 18px 16px; }
+  #tab-dashboard .fz-goal-cards { grid-template-columns: 1fr; gap: 9px; }
+  #tab-dashboard .fz-goals-strip { margin-top: 13px; }
+  #tab-dashboard .fz-advanced-content { padding: 4px 13px 16px; }
+  #tab-dashboard .fz-advanced > summary { padding: 18px 17px; }
+  .fz-bottom-nav {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0,1fr));
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 280;
+    padding: 9px 7px calc(6px + env(safe-area-inset-bottom, 0px));
+    background: var(--fz-sidebar);
+    border-top: 1px solid var(--fz-border);
+    box-shadow: 0 -8px 22px rgba(0,0,0,.06);
+  }
+  .fz-bottom-item {
+    font: inherit;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-height: 50px;
+    padding: 5px 1px 3px;
+    background: transparent;
+    border: none;
+    color: var(--fz-muted);
+    cursor: pointer;
+    border-radius: 9px;
+  }
+  .fz-bottom-item svg { width: 21px; height: 21px; }
+  .fz-bottom-item span { font-size: .66rem; font-weight: 570; }
+  body[data-active-tab="dashboard"] .fz-bottom-item[data-fz-tab="dashboard"],
+  body[data-active-tab="despesas"] .fz-bottom-item[data-fz-tab="despesas"],
+  body[data-active-tab="receitas"] .fz-bottom-item[data-fz-tab="receitas"],
+  body[data-active-tab="investimentos"] .fz-bottom-item[data-fz-tab="investimentos"],
+  body[data-active-tab="cartoes"] .fz-bottom-item[data-fz-tab="cartoes"] {
+    color: var(--fz-primary);
+    background: var(--fz-primary-soft);
+  }
+  .fab-ia { bottom: calc(87px + env(safe-area-inset-bottom, 0px)) !important; }
+  body[data-active-tab="dashboard"] .fab-ia { display: none !important; }
+}
+@media (max-width: 380px) {
+  #tab-dashboard .fz-account-type { display: none; }
+  #tab-dashboard .fz-balance-footer { gap: 11px; }
+  #tab-dashboard .fz-balance-secondary span { font-size: .66rem; }
+  #tab-dashboard .fz-quick-actions { gap: 6px; }
+  #tab-dashboard .fz-action { font-size: .64rem; }
+  #tab-dashboard .fz-activity-value { font-size: .76rem; }
+  #tab-dashboard .fz-bill-date { flex-basis: 54px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #tab-dashboard *, #tab-dashboard *::before, #tab-dashboard *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

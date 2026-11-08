@@ -4,14 +4,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard Financeiro Pessoal</title>
+  <title>FinZoni — Seu dinheiro, em ordem</title>
   <meta name="description"
     content="Ferramenta completa de gestão financeira pessoal com controle de receitas, despesas, diárias e investimentos.">
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0a0a1a">
+  <meta name="theme-color" content="#10182c">
   <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data: https://cdnjs.cloudflare.com; connect-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://jbzypqaimerrptxhovzq.supabase.co https://kqjdslnysmhhwccukbuz.supabase.co https://api.bcb.gov.br https://economia.awesomeapi.com.br; img-src 'self' data: blob:;">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css?v=361">
+  <link rel="stylesheet" href="finzoni-app.css?v=1">
   <!-- DOMPurify for XSS mitigation -->
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
   <!-- Chart.js -->
@@ -22,7 +23,7 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 
-<body>
+<body data-active-tab="dashboard">
 
 
 
@@ -55,7 +56,7 @@
 
         <div class="auth-feature-row" aria-hidden="true">
           <div class="auth-feature"><div class="auth-feature-icon">▥</div><strong>Controle completo</strong></div>
-          <div class="auth-feature"><div class="auth-feature-icon">✦</div><strong>IA financeira 24h</strong></div>
+          <div class="auth-feature"><div class="auth-feature-icon">✦</div><strong>Visão do seu dinheiro</strong></div>
           <div class="auth-feature"><div class="auth-feature-icon">◎</div><strong>Metas e investimentos</strong></div>
         </div>
 
@@ -81,7 +82,7 @@
               <label class="form-check auth-remember"><input type="checkbox" id="rememberMe"><span>Lembrar de mim</span></label>
               <a href="#" onclick="app.showAuthView('reset')">Esqueci a senha?</a>
             </div>
-            <button type="submit" class="btn btn-primary auth-primary-button btn-premium-glow">Entrar no Painel <span aria-hidden="true">→</span></button>
+            <button type="submit" class="btn btn-primary auth-primary-button btn-premium-glow">Entrar no FinZoni <span aria-hidden="true">→</span></button>
           </form>
           <div class="auth-security-note"><span class="auth-security-icon" aria-hidden="true">◇</span><div><strong>Seus dados são protegidos</strong><small>e usados apenas para sua gestão financeira.</small></div></div>
         </div>
@@ -142,7 +143,7 @@
   <path d="M42 18h8v8" fill="none" stroke="var(--logo-highlight)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
   <circle cx="18" cy="43" r="2.7" fill="var(--logo-highlight)"/>
 </svg></div>
-          <h1>FinZoni<span>Minha Gestão Financeira</span></h1>
+          <h1>FinZoni<span>Controle financeiro</span></h1>
         </div>
       </div>
       <div class="sidebar-profile" onclick="app.openProfileModal()" title="Editar Perfil">
@@ -157,19 +158,19 @@
       </div>
       <nav class="sidebar-nav">
         <button class="nav-item active" data-tab="dashboard" id="nav-dashboard">
-          <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg></span> Dashboard
+          <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg></span> Início
         </button>
         <button class="nav-item" data-tab="diarias" id="nav-diarias">
-          <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></span> Diárias
+          <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></span> Rendimentos
         </button>
         <button class="nav-item" data-tab="despesas" id="nav-despesas">
-          <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6"/></svg></span> Despesas
+          <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6"/></svg></span> Gastos
         </button>
         <button class="nav-item" data-tab="receitas" id="nav-receitas">
-          <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg></span> Receitas
+          <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg></span> Entradas
         </button>
         <button class="nav-item" data-tab="investimentos" id="nav-investimentos">
-          <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg></span> Investimentos
+          <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg></span> Objetivos
         </button>
         <button class="nav-item" data-tab="cartoes" id="nav-cartoes">
           <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span> Cartões
@@ -254,75 +255,112 @@
 
         <!-- ═══════════ TAB: DASHBOARD ═══════════ -->
         <div class="tab-content active" id="tab-dashboard">
-          <div class="section-header">
+
+          <section class="fz-home-heading" aria-label="Visão financeira do mês">
             <div>
-              <div class="section-title">📊 Visão Geral</div>
-              <div class="section-subtitle">Gere um resumo detalhado deste mês.</div>
+              <div class="fz-eyebrow"><span class="fz-presence-dot"></span> FINZONI / MINHAS FINANÇAS</div>
+              <h2>Seu dinheiro, com clareza.</h2>
+              <p>Saldo, lançamentos e contas — tudo no lugar certo.</p>
             </div>
-          </div>
-          
-          <!-- Insight Diário da IA -->
-          <div class="card" style="border-left: 4px solid var(--purple);">
-            <div style="display: flex; gap: 15px; align-items: flex-start;">
-              <div style="font-size: 2rem; color: var(--purple);">✨</div>
-              <div style="flex: 1;">
-                <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center;">
-                  <span>Insight do FinZoni</span>
-                  <div style="display: flex; gap: 10px; align-items: center;">
-                    <span id="insightTimer" style="font-size: 0.8rem; color: var(--text-secondary); font-weight: normal;">Analisando...</span>
-                    <button class="btn-icon" style="padding: 2px 5px; font-size: 0.8rem; border: 1px solid var(--border-color); border-radius: 4px;" onclick="app.forcarNovoInsight()" title="Forçar novo insight">🔄</button>
-                  </div>
+            <button class="fz-heading-history" type="button" onclick="document.getElementById('nav-despesas')?.click()" aria-label="Ver minhas despesas">
+              Ver despesas <span aria-hidden="true">↗</span>
+            </button>
+          </section>
+
+          <div class="fz-finance-layout summary-grid" id="summaryCards">
+            <section class="fz-balance-panel" id="dashSaldoBancoCard" aria-label="Saldo controlado no Itaú">
+              <div class="fz-balance-topline">
+                <span class="fz-account-chip"><span class="fz-bank-symbol" aria-hidden="true">I</span> Conta Itaú <span class="fz-account-type">· Controle manual</span></span>
+                <button class="fz-balance-visibility" type="button" onclick="app.togglePrivacy()" title="Mostrar ou ocultar valores" aria-label="Alternar privacidade dos valores">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+              <div class="fz-balance-caption">Saldo em conta</div>
+              <div class="fz-balance-amount card-value" id="dashSaldoBanco" aria-live="polite">—</div>
+              <div class="fz-balance-footer">
+                <div class="fz-balance-secondary">
+                  <span>Após contas pendentes</span>
+                  <strong id="fzSaldoLivre">—</strong>
                 </div>
-                <div id="insightContent" style="color: var(--text-secondary); line-height: 1.5; font-size: 0.95rem;">
-                  Carregando sua dica financeira do turno...
+                <span class="fz-balance-divider" aria-hidden="true"></span>
+                <div class="fz-balance-secondary">
+                  <span>Contas a pagar</span>
+                  <strong id="fzSaldoReservado">—</strong>
                 </div>
               </div>
-            </div>
-          </div>
-          
-          <!-- Resumo simples: saldo bancário destacado; orçamento em informações secundárias. -->
-          <div class="summary-grid" id="summaryCards">
-            <div class="summary-card balance" id="dashSaldoBancoCard">
-              <div class="card-icon">🏦</div>
-              <div class="card-label">Saldo disponível · Itaú</div>
-              <div class="card-value" id="dashSaldoBanco">R$ 0,00</div>
-              <div class="card-sub" id="dashSaldoBancoData">Saldo controlado a partir das movimentações informadas</div>
-            </div>
-            <div class="summary-card income">
-              <div class="card-icon">📥</div>
-              <div class="card-label">Entradas cadastradas · mês</div>
-              <div class="card-value" id="dashTotalReceitas">R$ 0,00</div>
-              <div class="card-sub" id="dashReceitasSub">Receitas e reembolsos lançados (não é extrato bancário)</div>
-            </div>
-            <div class="summary-card expense">
-              <div class="card-icon">📤</div>
-              <div class="card-label">Despesas pagas · mês</div>
-              <div class="card-value" id="dashDespesasPagas">R$ 0,00</div>
-              <div class="card-sub">Orçamento cadastrado; pode considerar rateios de contas compartilhadas</div>
-              <div style="margin-top:10px;font-size:0.85rem;color:var(--text-secondary)">A pagar: <strong id="dashFaltaPagar">R$ 0,00</strong></div>
-            </div>
-            <!-- Valores legados mantidos apenas para compatibilidade com o JavaScript.
-                 Não renderizar um cartão de saldo orçamentário duplicado. -->
-            <div hidden aria-hidden="true">
-              <span id="dashSalarioDisponivel"></span>
-              <span id="dashSaldo"></span>
-              <span id="dashSaldoSub"></span>
-            </div>
-            <div class="summary-card diarias">
-              <div class="card-icon">🎯</div>
-              <div class="card-label">Produção</div>
-              <div class="card-value" id="dashTotalDiarias">R$ 0,00</div>
-              <div class="card-sub">Previsão: <span id="forecastPercent" style="font-weight:700;color:var(--amber)">0%
-                  alcançado</span></div>
-              <div class="progress-bar-container" style="margin-top:8px;">
-                <div class="progress-bar">
-                  <div class="progress-fill" id="forecastProgressBar"
-                    style="width:0%;background:var(--amber)"></div>
+              <div class="fz-account-footnote" id="dashSaldoBancoData">Saldo informado, sem sincronização automática</div>
+            </section>
+
+            <nav class="fz-quick-actions" aria-label="Ações rápidas">
+              <button class="fz-action" type="button" onclick="document.getElementById('btnAddGastoVar')?.click()">
+                <span class="fz-action-icon out" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M8 7h9v9"/></svg></span><span>Nova saída</span>
+              </button>
+              <button class="fz-action" type="button" onclick="document.getElementById('btnAddReceita')?.click()">
+                <span class="fz-action-icon in" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 7 7 17M16 17H7V8"/></svg></span><span>Nova entrada</span>
+              </button>
+              <button class="fz-action" type="button" onclick="document.getElementById('nav-despesas')?.click()">
+                <span class="fz-action-icon bills" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg></span><span>Contas</span>
+              </button>
+              <button class="fz-action" type="button" onclick="document.getElementById('nav-investimentos')?.click()">
+                <span class="fz-action-icon goals" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span><span>Objetivos</span>
+              </button>
+            </nav>
+
+            <section class="fz-month-summary" aria-label="Resumo mensal">
+              <div class="fz-section-head"><div><span class="fz-section-kicker">ACOMPANHAMENTO</span><h3>Resumo do mês</h3></div><span class="fz-section-caption">Valores registrados</span></div>
+              <div class="fz-stats-grid">
+                <div class="fz-stat">
+                  <span class="fz-stat-head"><span class="fz-stat-dot income"></span> Entradas</span>
+                  <strong id="dashTotalReceitas">R$ 0,00</strong>
+                  <small id="dashReceitasSub">Receitas cadastradas</small>
+                </div>
+                <div class="fz-stat">
+                  <span class="fz-stat-head"><span class="fz-stat-dot expense"></span> Gastos pagos</span>
+                  <strong id="dashDespesasPagas">R$ 0,00</strong>
+                  <small>Orçamento registrado</small>
+                </div>
+                <div class="fz-stat">
+                  <span class="fz-stat-head"><span class="fz-stat-dot pending"></span> A pagar</span>
+                  <strong id="dashFaltaPagar">R$ 0,00</strong>
+                  <small>Contas ainda pendentes</small>
                 </div>
               </div>
+            </section>
+
+            <div class="fz-main-sections">
+              <section class="fz-feed-card" aria-labelledby="fzTransactionsTitle">
+                <div class="fz-section-head">
+                  <div><span class="fz-section-kicker">SEU DIA A DIA</span><h3 id="fzTransactionsTitle">Últimos lançamentos</h3></div>
+                  <button class="fz-link" type="button" onclick="document.getElementById('nav-despesas')?.click()">Ver todos <span aria-hidden="true">↗</span></button>
+                </div>
+                <div id="fzTransactionsList" class="fz-activity-list"><p class="fz-empty">Carregando lançamentos...</p></div>
+                <div class="fz-card-footnote">Movimentações cadastradas no FinZoni; não é extrato bancário.</div>
+              </section>
+
+              <section class="fz-bills-card" aria-labelledby="fzBillsTitle">
+                <div class="fz-section-head">
+                  <div><span class="fz-section-kicker">ORGANIZAÇÃO</span><h3 id="fzBillsTitle">Próximas contas</h3></div>
+                  <button class="fz-link" type="button" onclick="document.getElementById('nav-despesas')?.click()">Ver contas <span aria-hidden="true">↗</span></button>
+                </div>
+                <div id="fzBillsList" class="fz-bills-list"><p class="fz-empty">Carregando contas...</p></div>
+              </section>
             </div>
+
+            <section class="fz-goals-strip" aria-label="Objetivos e reserva">
+              <div class="fz-section-head"><div><span class="fz-section-kicker">PATRIMÔNIO</span><h3>Seu dinheiro guardado</h3></div><button class="fz-link" type="button" onclick="document.getElementById('nav-investimentos')?.click()">Detalhes <span aria-hidden="true">↗</span></button></div>
+              <div class="fz-goal-cards">
+                <div class="fz-mini-goal"><span class="fz-goal-icon" aria-hidden="true">◎</span><div><span>Reserva de emergência</span><strong id="fzReservaValue">—</strong></div></div>
+                <div class="fz-mini-goal"><span class="fz-goal-icon car" aria-hidden="true">◈</span><div><span id="fzCarGoalLabel">Meta do carro</span><strong id="fzCarGoalValue">—</strong><div class="fz-goal-progress" aria-label="Progresso da meta"><span id="fzCarGoalProgress"></span></div></div></div>
+              </div>
+            </section>
+
+            <!-- Mantém os elementos usados pelos cálculos existentes fora da interface visível. -->
+            <div hidden aria-hidden="true"><span id="dashSalarioDisponivel"></span><span id="dashSaldo"></span><span id="dashSaldoSub"></span><span id="dashTotalDiarias"></span><span id="forecastPercent"></span><span id="forecastProgressBar"></span></div>
           </div>
 
+          <details class="fz-advanced" id="fzAdvanced">
+            <summary><span><span class="fz-advanced-kicker">MAIS RECURSOS</span><strong>Análises e relatórios</strong><small>Gráficos, projeções e insights opcionais</small></span><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+            <div class="fz-advanced-content">
           <!-- Salary Forecast -->
           <div class="forecast-card" id="forecastSection">
             <div class="section-header">
@@ -375,6 +413,15 @@
             <div class="card-header"><span class="card-title">📝 Observações do Mês</span></div>
             <textarea class="form-textarea" id="dashNotas" placeholder="Anotações livres sobre o mês..."></textarea>
           </div>
+
+              <section class="fz-insight-panel" aria-label="Insights opcionais">
+                <div class="fz-section-head"><div><span class="fz-section-kicker">ASSISTENTE</span><h3>Insights financeiros</h3></div>
+                  <button class="fz-link" type="button" onclick="app.forcarNovoInsight()">Atualizar análise</button></div>
+                <span id="insightTimer" class="fz-insight-timer">Aguardando análise...</span>
+                <div id="insightContent" class="fz-insight-content">Seu resumo aparecerá aqui quando estiver disponível.</div>
+              </section>
+            </div>
+          </details>
         </div>
 
         <!-- ═══════════ TAB: DIÁRIAS ═══════════ -->
@@ -1704,13 +1751,21 @@
     </div>
   </div>
 
-  <!-- Zoni Financeiro -->
-  <button class="fab-ia" onclick="app.consultarIA()" title="Abrir o Zoni Financeiro" aria-label="Abrir o Zoni Financeiro">
-    <span aria-hidden="true">✨</span>
+  <!-- Assistente opcional; foco da tela inicial é o dinheiro. -->
+  <button class="fab-ia" onclick="app.consultarIA()" title="Abrir assistente financeiro" aria-label="Abrir assistente financeiro">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11.5a8.5 8.5 0 0 1-8.5 8.5A8.9 8.9 0 0 1 7 18.8L3 21l1.2-4.6A8.5 8.5 0 1 1 20 11.5Z"/><path d="M8 11.5h8M8 15h5"/></svg>
   </button>
 
-  <!-- Toast Container -->
-  <div id="toastContainer" class="toast-container"></div>
+
+  <nav class="fz-bottom-nav" aria-label="Menu principal do FinZoni">
+    <button type="button" class="fz-bottom-item" data-fz-tab="dashboard" onclick="document.getElementById('nav-dashboard')?.click()" aria-label="Início"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m3 10 9-7 9 7v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 21v-7h6v7"/></svg><span>Início</span></button>
+    <button type="button" class="fz-bottom-item" data-fz-tab="despesas" onclick="document.getElementById('nav-despesas')?.click()" aria-label="Despesas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 17 17 7M8 7h9v9"/><path d="M4 4h16v16H4z" opacity=".28"/></svg><span>Gastos</span></button>
+    <button type="button" class="fz-bottom-item" data-fz-tab="receitas" onclick="document.getElementById('nav-receitas')?.click()" aria-label="Receitas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 7 7 17M16 17H7V8"/><rect x="3" y="3" width="18" height="18" rx="4" opacity=".25"/></svg><span>Entradas</span></button>
+    <button type="button" class="fz-bottom-item" data-fz-tab="investimentos" onclick="document.getElementById('nav-investimentos')?.click()" aria-label="Objetivos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg><span>Metas</span></button>
+    <button type="button" class="fz-bottom-item" data-fz-tab="cartoes" onclick="document.getElementById('nav-cartoes')?.click()" aria-label="Cartões"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20M6 15h4"/></svg><span>Cartões</span></button>
+  </nav>
+
+  <!-- Contêiner de notificações já definido acima. -->
 
   <!-- Animation Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
@@ -1719,7 +1774,7 @@
   
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="zoni-context.js?v=353"></script>
-  <script src="app.js?v=355"></script>
+  <script src="app.js?v=380"></script>
 </body>
 </html>
 
