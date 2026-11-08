@@ -1751,9 +1751,9 @@
     </div>
   </div>
 
-  <!-- Zoni Financeiro -->
-  <button class="fab-ia" onclick="app.consultarIA()" title="Abrir o Zoni Financeiro" aria-label="Abrir o Zoni Financeiro">
-    <span aria-hidden="true">✨</span>
+  <!-- Assistente opcional; foco da tela inicial é o dinheiro. -->
+  <button class="fab-ia" onclick="app.consultarIA()" title="Abrir assistente financeiro" aria-label="Abrir assistente financeiro">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11.5a8.5 8.5 0 0 1-8.5 8.5A8.9 8.9 0 0 1 7 18.8L3 21l1.2-4.6A8.5 8.5 0 1 1 20 11.5Z"/><path d="M8 11.5h8M8 15h5"/></svg>
   </button>
 
 
@@ -1765,8 +1765,7 @@
     <button type="button" class="fz-bottom-item" data-fz-tab="cartoes" onclick="document.getElementById('nav-cartoes')?.click()" aria-label="Cartões"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20M6 15h4"/></svg><span>Cartões</span></button>
   </nav>
 
-  <!-- Toast Container -->
-  <div id="toastContainer" class="toast-container"></div>
+  <!-- Contêiner de notificações já definido acima. -->
 
   <!-- Animation Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
@@ -1775,7 +1774,7 @@
   
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="zoni-context.js?v=353"></script>
-  <script src="app.js?v=355"></script>
+  <script src="app.js?v=380"></script>
 </body>
 </html>
 
