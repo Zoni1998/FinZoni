@@ -445,7 +445,21 @@ body {
 #tab-dashboard .fz-insight-content { color: var(--fz-muted); font-size: .86rem; line-height: 1.65; }
 #tab-dashboard .fz-insight-timer { display: block; font-size: .7rem; color: var(--fz-subtle); margin-bottom: 12px; }
 .fz-bottom-nav { display: none; }
-.fab-ia { box-shadow: none !important; transform: none !important; }
+.fab-ia {
+  display: grid;
+  place-items: center;
+  width: 48px !important;
+  height: 48px !important;
+  background: var(--fz-card) !important;
+  color: var(--fz-primary) !important;
+  border: 1px solid var(--fz-border) !important;
+  box-shadow: var(--fz-shadow) !important;
+  transform: none !important;
+  animation: none !important;
+}
+.fab-ia::before, .fab-ia::after { display: none !important; }
+.fab-ia svg { display: block; }
+
 :root.theme-amoled #tab-dashboard #dashSaldoBancoCard.fz-balance-panel {
   background: #121c3c;
   box-shadow: none;
