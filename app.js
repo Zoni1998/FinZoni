@@ -5001,6 +5001,10 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     document.getElementById('walletDueDays').textContent = open ? (vencimentoValido ? `Vence dia ${vencimento}` : 'Aberta') : vencimentoValido ? this.getWalletDueText(vencimento) : 'Data a confirmar';
     const statusInfo = document.getElementById('walletSourceInfo');
     if (statusInfo) statusInfo.textContent = disponivelInformado ? `Limite disponível conforme Itaú · conferido em ${formatDate(cartao?.limiteDisponivelData || '')} · sem sincronização` : 'Limites dependem das informações cadastradas';
+    const debitInfo = document.getElementById('walletAutomaticInfo');
+    if (debitInfo) debitInfo.textContent = cartao?.debitoAutomaticoFatura === false
+      ? 'Débito automático da fatura: desativado'
+      : cartao?.debitoAutomaticoFatura === true ? 'Débito automático da fatura: ativado' : '';
     summary.style.setProperty('--wallet-accent', cartao?.cor || '#6d83ff');
   }
 
