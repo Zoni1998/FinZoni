@@ -4943,7 +4943,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
 
   getCartaoFaturaAberta(cartao) {
     const snaps = Object.entries(cartao?.faturasReferencia || {})
-      .filter(([key, snap]) => /^\\d{4}-(0[1-9]|1[0-2])$/.test(key) && snap?.status === 'aberta' && Number.isFinite(Number(snap.valor)))
+      .filter(([key, snap]) => /^\d{4}-(0[1-9]|1[0-2])$/.test(key) && snap?.status === 'aberta' && Number.isFinite(Number(snap.valor)))
       .sort(([a], [b]) => a.localeCompare(b));
     return snaps.length ? { ...snaps[0][1], valor: Number(snaps[0][1].valor), monthKey: snaps[0][0] } : null;
   }
@@ -5048,15 +5048,17 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     if (!selMonth || !selCartao || !tbody) return;
     
     if (selMonth.options.length === 0) {
-      const year = this.dm.data.year || new Date().getFullYear();
-      for(let i=1; i<=12; i++) {
-        selMonth.options.add(new Option(`${MONTHS[i-1]} ${year}`, `${year}-${String(i).padStart(2,'0')}`));
+      const year = Number(this.dm.data.year || new Date().getFullYear());
+      for (const y of [year, year + 1]) {
+        for (let i = 1; i <= 12; i++)
+          selMonth.options.add(new Option(`${MONTHS[i - 1]} ${y}`, `${y}-${String(i).padStart(2, '0')}`));
       }
-      selMonth.value = `${year}-${String(this.currentMonth).padStart(2,'0')}`;
+      const card = (this.dm.data.cartoes || []).find(c => String(c.id) === String(this.selectedCartaoId));
+      selMonth.value = this.getCartaoFaturaAberta(card)?.monthKey || `${year}-${String(this.currentMonth).padStart(2,'0')}`;
     }
-    
+
     const previousCardFilter = selCartao.value;
-    selCartao.innerHTML = '<option value="all">Todos os Cartões</option>' + (this.dm.data.cartoes||[]).map(c=>`<option value="${c.id}">${escapeHTML(c.nome)}</option>`).join('');
+    selCartao.innerHTML = '<option value="all">Todos os Cartões</option>' + (this.dm.data.cartoes||[]).filter(c=>c.id).map(c=>`<option value="${c.id}">${escapeHTML(c.nome)}</option>`).join('');
     const desiredCardFilter = this.faturaFilterAll ? 'all' : (this.selectedCartaoId ?? previousCardFilter ?? 'all');
     if (Array.from(selCartao.options).some(option => String(option.value) === String(desiredCardFilter))) {
       selCartao.value = String(desiredCardFilter);
@@ -5068,6 +5070,8 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     let itemsHTML = '';
     let faturaTotal = 0;
     
+    const selectedCard = (this.dm.data.cartoes || []).find(c => String(c.id) === String(selectedCartaoId));
+    const snap = this.getFaturaReferencia(selectedCard, selectedMonth);
     const compras = this.parcelasFaturaCartao(selectedCartaoId, selectedMonth);
     const cartoesDict = {};
     (this.dm.data.cartoes||[]).forEach(c => cartoesDict[c.id] = c);
@@ -5095,15 +5099,39 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
        }
     });
     
-    tbody.innerHTML = itemsHTML || '<tr><td colspan="6" class="text-center text-muted">Nenhuma compra nesta fatura.</td></tr>';
-    totalEl.textContent = formatCurrency(faturaTotal / 100);
+    const totalExibido = snap?.valor ?? faturaTotal / 100;
+    if (!itemsHTML && snap?.resumo) {
+      const cols = [
+        ['Compras (resumo do banco)', snap.resumo.compras],
+        ['Produtos e serviços', snap.resumo.produtosServicos],
+        ['Outros custos', snap.resumo.outrosCustos]
+      ];
+      itemsHTML = cols.map(([desc,amount]) => `<tr class="wallet-summary-line"><td>—</td>
+        <td>${escapeHTML(selectedCard?.nome || 'Cartão')}</td>
+        <td>${escapeHTML(desc)}</td><td>—</td>
+        <td class="text-right">${formatCurrency(amount)}</td><td></td></tr>`).join('');
+    } else if (!itemsHTML && snap) {
+      itemsHTML = '<tr><td colspan="6" class="wallet-no-items">Total informado pelo banco. Lançamentos individuais não importados.</td></tr>';
+    }
+    tbody.innerHTML = itemsHTML || '<tr><td colspan="6" class="text-center text-muted">Nenhuma compra cadastrada nesta fatura.</td></tr>';
+    totalEl.textContent = formatCurrency(totalExibido);
+    const statusEl = document.getElementById('walletCurrentInvoiceStatus');
+    if (statusEl) {
+      const names = {paga:'Paga',aberta:'Em aberto',prevista:'Previsão',historico:'Histórico'};
+      statusEl.textContent = snap ? (names[snap.status] || 'Informada pelo banco') : 'Calculada';
+      statusEl.className = 'wallet-invoice-status ' + (snap?.status || 'calculada');
+    }
+    const payButton = document.getElementById('btnPagarFatura');
+    if (payButton) {
+      payButton.disabled = !!snap || totalExibido <= 0;
+      payButton.title = snap ? 'Fatura informada pelo Itaú: registre pagamento em despesas somente após ocorrer.' : '';
+    }
 
     const [selectedYear, selectedMonthNumber] = selectedMonth.split('-').map(Number);
     const nextDate = new Date(selectedYear, selectedMonthNumber, 1);
     const nextMonthKey = `${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, '0')}`;
     const filterId = selectedCartaoId === 'all' ? 'all' : selectedCartaoId;
-    const nextTotal = this.calcFaturaCartao(filterId, nextMonthKey);
-    const selectedCard = (this.dm.data.cartoes || []).find(card => String(card.id) === String(selectedCartaoId));
+    const nextTotal = this.getFaturaReferencia(selectedCard, nextMonthKey)?.valor ?? this.calcFaturaCartao(filterId, nextMonthKey);
     const dueDay = Number(selectedCard?.vencimento);
     const dueValid = Number.isInteger(dueDay) && dueDay >= 1 && dueDay <= 31;
     const shortYear = String(selectedYear).slice(-2);
@@ -5118,6 +5146,33 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     if (currentDue) currentDue.textContent = dueValid ? `Vence ${String(dueDay).padStart(2, '0')}/${String(selectedMonthNumber).padStart(2, '0')}/${selectedYear}` : selectedCartaoId === 'all' ? 'Todos os cartões' : 'Vencimento não informado';
     if (nextDue) nextDue.textContent = dueValid ? `Vence ${String(dueDay).padStart(2, '0')}/${String(nextDate.getMonth() + 1).padStart(2, '0')}/${nextDate.getFullYear()}` : selectedCartaoId === 'all' ? 'Todos os cartões' : 'Vencimento não informado';
     if (nextValue) nextValue.textContent = formatCurrency(nextTotal);
+    const timeline = document.getElementById('walletInvoiceTimeline');
+    if (timeline) {
+      const names = {paga:'Paga',aberta:'Aberta',prevista:'Prevista',historico:'Histórico'};
+      const entries = Object.entries(selectedCard?.faturasReferencia || {})
+        .filter(([key,entry]) => /^\d{4}-(0[1-9]|1[0-2])$/.test(key) && Number.isFinite(Number(entry?.valor)))
+        .sort(([a],[b]) => a.localeCompare(b));
+      timeline.innerHTML = entries.map(([key,entry]) => {
+        const [year,mo] = key.split('-').map(Number);
+        const active = key === selectedMonth;
+        return `<button class="wallet-cycle-item ${active ? 'is-active' : ''}" type="button"
+          aria-pressed="${active}" onclick="app.selectFaturaReferencia('${key}')">
+          <span>${MONTHS[mo-1].slice(0,3)} ${String(year).slice(-2)}</span>
+          <strong>${formatCurrency(entry.valor)}</strong>
+          <small>${names[entry.status] || 'Informada'}</small></button>`;
+      }).join('');
+      timeline.style.display = entries.length ? '' : 'none';
+    }
+    const note = document.getElementById('walletSnapshotInfo');
+    if (note) note.textContent = snap ? 'Valores transcritos das telas do banco. Não há importação de compras nem pagamento automático.' : 'Fatura calculada pelas compras cadastradas no FinZoni.';
+  }
+
+  selectFaturaReferencia(monthKey) {
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(String(monthKey))) return;
+    const month = document.getElementById('faturaMonthSelect');
+    if (!month || !Array.from(month.options).some(o => o.value === monthKey)) return;
+    month.value = monthKey;
+    this.renderFaturas();
   }
 
   deleteCompraCartao(id) {
@@ -5128,6 +5183,12 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
   }
 
   pagarFaturaMes() {
+    const card = (this.dm.data.cartoes || []).find(c => String(c.id) === String(document.getElementById('faturaCartaoSelect')?.value));
+    if (this.getFaturaReferencia(card, document.getElementById('faturaMonthSelect')?.value)) {
+      showToast('Fatura já informada pelo banco. Evite registrar o mesmo pagamento duas vezes.', 'info');
+      return;
+    }
+
     const totalText = document.getElementById('faturaTotalMes').textContent;
     if (confirm(`Deseja lançar o pagamento da fatura no valor de ${totalText} como um Gasto Fixo Pago no mês atual?`)) {
        const mes = this.dm.getMonth(this.currentMonth);
