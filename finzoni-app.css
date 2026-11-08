@@ -558,3 +558,317 @@ body {
     transition: none !important;
   }
 }
+
+
+/* Carteira FinZoni — controle bancário legível, acessível e centrado em faturas. */
+#tab-cartoes {
+  --wallet-local-surface: var(--fz-card);
+  --wallet-local-border: var(--fz-border);
+  max-width: 1100px;
+  margin: 0 auto;
+  padding-bottom: 40px;
+}
+#tab-cartoes .wallet-page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 4px 0 26px;
+}
+#tab-cartoes .wallet-page-title {
+  font-size: clamp(1.6rem, 4vw, 2.05rem);
+  font-weight: 760;
+  letter-spacing: -.055em;
+}
+#tab-cartoes .wallet-page-header .section-subtitle {
+  margin-top: 7px;
+  font-size: .85rem;
+  line-height: 1.5;
+  color: var(--fz-muted);
+}
+#tab-cartoes .wallet-header-actions { display: flex; gap: 10px; }
+#tab-cartoes .wallet-header-actions .btn {
+  min-height: 42px;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: .8rem;
+}
+#tab-cartoes .wallet-header-actions .btn-primary {
+  background: #526cea !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+#tab-cartoes .wallet-card-browser {
+  grid-template-columns: 36px minmax(0, 1fr) 36px;
+  gap: 10px;
+  max-width: 850px;
+  margin: 0 auto;
+}
+#tab-cartoes .wallet-card-nav {
+  width: 36px;
+  height: 36px;
+  background: var(--fz-card);
+  border: 1px solid var(--fz-border);
+  color: var(--fz-muted);
+  border-radius: 12px;
+  font-size: 1.6rem;
+}
+#tab-cartoes .wallet-card-nav:hover { color: var(--fz-primary); border-color: var(--fz-primary); }
+#tab-cartoes .wallet-card-rail {
+  gap: 16px;
+  padding: 5px 5px 23px;
+  scrollbar-width: none;
+}
+#tab-cartoes .wallet-card-rail::-webkit-scrollbar { display: none; }
+#tab-cartoes .wallet-credit-card {
+  flex: 0 0 min(100%, 430px);
+  min-height: 248px;
+  padding: 21px 23px;
+  border-radius: 21px;
+  border: 1px solid rgba(255,255,255,.1);
+  box-shadow: 0 15px 33px rgba(14,22,39,.13);
+  background: linear-gradient(130deg, #223a78, #172650);
+  transition: box-shadow .2s, border-color .2s;
+}
+#tab-cartoes .wallet-credit-card.is-itau {
+  background: linear-gradient(135deg, #ff7208 0%, #fb5e06 64%, #d95012 100%);
+  border-color: rgba(255,144,66,.55);
+}
+#tab-cartoes .wallet-credit-card.is-selected {
+  outline: 2px solid var(--fz-primary);
+  outline-offset: 3px;
+}
+#tab-cartoes .wallet-credit-card::before {
+  background: radial-gradient(circle at 88% 15%, rgba(255,255,255,.16), transparent 45%);
+}
+#tab-cartoes .wallet-brand strong { font-size: 1.05rem; letter-spacing: -.015em; }
+#tab-cartoes .wallet-brand-mark {
+  width: 40px;
+  height: 40px;
+  font-size: 1.02rem;
+  background: rgba(0,0,0,.16);
+  border-radius: 11px;
+}
+#tab-cartoes .wallet-contactless {
+  font-size: .73rem;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  font-weight: 650;
+  opacity: .85;
+}
+#tab-cartoes .wallet-card-network {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: .76rem !important;
+  font-style: normal;
+  font-weight: 750;
+  text-transform: capitalize;
+  letter-spacing: .01em;
+}
+#tab-cartoes .wallet-card-number { letter-spacing: .11em; font-weight: 670; }
+#tab-cartoes .wallet-card-meta { font-size: .72rem; }
+#tab-cartoes .wallet-card-footer { font-size: .76rem; }
+#tab-cartoes .wallet-card-footer > span { max-width: 70%; }
+#tab-cartoes .wallet-card-edit { font-size: .7rem; border-radius: 8px; }
+#tab-cartoes .wallet-dots { margin: 0 auto 8px; }
+#tab-cartoes .wallet-dots span { background: var(--fz-border); }
+#tab-cartoes .wallet-dots span.active { background: var(--fz-primary); }
+#tab-cartoes .wallet-cards-disclaimer {
+  text-align: center;
+  color: var(--fz-subtle);
+  font-size: .72rem;
+  line-height: 1.5;
+  margin: 8px auto 24px;
+}
+#tab-cartoes .wallet-summary,
+#tab-cartoes .wallet-launches {
+  border-radius: 19px;
+  background: var(--wallet-local-surface);
+  border: 1px solid var(--wallet-local-border);
+  box-shadow: var(--fz-shadow);
+}
+#tab-cartoes .wallet-summary {
+  padding: 24px 26px;
+  margin-bottom: 18px;
+}
+#tab-cartoes .wallet-summary-label { color: var(--fz-muted); font-size: .84rem; }
+#tab-cartoes .wallet-summary-amount {
+  color: var(--fz-text);
+  letter-spacing: -.045em;
+  font-size: clamp(1.8rem,3vw,2.25rem);
+}
+#tab-cartoes .wallet-due-block { color: var(--fz-muted); font-size: .78rem; }
+#tab-cartoes .wallet-due-pill {
+  background: var(--fz-primary-soft);
+  border: 1px solid var(--fz-border);
+  color: var(--fz-primary);
+  padding: 8px 13px;
+  border-radius: 10px;
+  font-size: .75rem;
+  font-weight: 650;
+}
+#tab-cartoes .wallet-summary-divider { background: var(--fz-border); margin: 18px 0; }
+#tab-cartoes .wallet-limit-amount { color: var(--fz-text); font-size: 1.5rem; letter-spacing: -.04em; }
+#tab-cartoes .wallet-limit-percent { color: var(--fz-subtle); }
+#tab-cartoes .wallet-limit-percent strong { color: var(--fz-primary); font-size: .83rem; }
+#tab-cartoes .wallet-limit-percent span { font-size: .73rem; }
+#tab-cartoes .wallet-best-day { font-size: .84rem; color: var(--fz-muted); }
+#tab-cartoes .wallet-best-day strong { color: var(--fz-text); }
+#tab-cartoes .wallet-source-info {
+  font-size: .7rem;
+  color: var(--fz-subtle);
+  line-height: 1.5;
+  margin: 11px 0 0;
+}
+#tab-cartoes .wallet-launches {
+  padding: 23px 24px;
+}
+#tab-cartoes .wallet-section-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 14px;
+}
+#tab-cartoes .wallet-section-kicker {
+  color: var(--fz-primary);
+  letter-spacing: .13em;
+  font-size: .65rem;
+  font-weight: 760;
+}
+#tab-cartoes .wallet-section-heading h3 {
+  color: var(--fz-text);
+  margin: 5px 0 0;
+  font-size: 1.05rem;
+  letter-spacing: -.025em;
+}
+#tab-cartoes .wallet-invoice-timeline {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 3px 1px 17px;
+  margin-bottom: 20px;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+#tab-cartoes .wallet-cycle-item {
+  min-width: 148px;
+  flex: 1 0 148px;
+  min-height: 113px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: space-between;
+  text-align: left;
+  background: var(--fz-bg);
+  border: 1px solid var(--fz-border);
+  border-radius: 13px;
+  color: var(--fz-text);
+  font-family: inherit;
+  padding: 16px 15px 14px;
+  cursor: pointer;
+  transition: background .16s, border-color .16s;
+}
+#tab-cartoes .wallet-cycle-item:hover,
+#tab-cartoes .wallet-cycle-item.is-active {
+  background: var(--fz-primary-soft);
+  border-color: var(--fz-primary);
+}
+#tab-cartoes .wallet-cycle-item span {
+  font-size: .74rem;
+  color: var(--fz-muted);
+  font-weight: 670;
+}
+#tab-cartoes .wallet-cycle-item strong { letter-spacing: -.025em; font-size: 1.04rem; }
+#tab-cartoes .wallet-cycle-item small { color: var(--fz-subtle); font-size: .7rem; }
+#tab-cartoes .wallet-cycle-item.is-active small { color: var(--fz-primary); }
+#tab-cartoes .wallet-launches-header { margin: 5px 0 16px; }
+#tab-cartoes .wallet-launches-header .section-title { font-size: 1.03rem; font-weight: 740; letter-spacing: -.02em; }
+#tab-cartoes .wallet-launches-header .section-subtitle { font-size: .77rem; color: var(--fz-muted); margin-top: 5px; }
+#tab-cartoes .wallet-filters .form-input { border: 1px solid var(--fz-border); background: var(--fz-bg); color: var(--fz-text); border-radius: 10px; min-height: 40px; }
+#tab-cartoes .wallet-invoice-overview { gap: 10px; }
+#tab-cartoes .wallet-invoice-row {
+  background: var(--fz-bg);
+  border-color: var(--fz-border);
+  border-radius: 13px;
+  padding: 16px 17px;
+}
+#tab-cartoes .wallet-invoice-icon {
+  color: var(--fz-primary);
+  border-color: var(--fz-border);
+  background: var(--fz-primary-soft);
+  border-radius: 11px;
+}
+#tab-cartoes .wallet-invoice-next { background: var(--fz-bg); }
+#tab-cartoes .wallet-invoice-copy strong { color: var(--fz-text); font-size: .85rem; }
+#tab-cartoes .wallet-invoice-copy span { color: var(--fz-muted); font-size: .76rem; }
+#tab-cartoes .wallet-invoice-value { color: var(--fz-text); letter-spacing: -.025em; font-weight: 760; }
+#tab-cartoes .wallet-invoice-status {
+  width: fit-content;
+  display: inline-block;
+  border-radius: 7px;
+  padding: 4px 8px;
+  background: var(--fz-primary-soft);
+  color: var(--fz-primary) !important;
+  font-size: .7rem !important;
+  font-weight: 680;
+}
+#tab-cartoes .wallet-invoice-status.paga { background: rgba(89,197,187,.12); color: var(--fz-positive) !important; }
+#tab-cartoes .wallet-invoice-status.aberta { background: rgba(255,154,144,.12); color: var(--fz-negative) !important; }
+#tab-cartoes .wallet-snapshot-info { font-size: .73rem; color: var(--fz-subtle); margin: 9px 0 17px; line-height: 1.5; }
+#tab-cartoes .wallet-table-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+#tab-cartoes .wallet-table-toolbar strong { color: var(--fz-text); font-size: .85rem; }
+#tab-cartoes .wallet-table-toolbar button:disabled { display: none; }
+#tab-cartoes .wallet-no-items { padding: 22px 17px; color: var(--fz-muted); font-size: .82rem; line-height: 1.6; }
+#tab-cartoes .wallet-summary-line td { font-size: .83rem; }
+#tab-cartoes .wallet-summary-line td:nth-child(3) { font-weight: 620; }
+#tab-cartoes .table-responsive { overflow-x: auto; width: 100%; }
+#tab-cartoes .data-table { min-width: 570px; }
+@media (max-width: 768px) {
+  #tab-cartoes .wallet-page-header { flex-direction: column; align-items: stretch; gap: 15px; margin: 3px 0 19px; }
+  #tab-cartoes .wallet-page-title { font-size: 1.55rem; }
+  #tab-cartoes .wallet-page-header .section-subtitle { font-size: .78rem; }
+  #tab-cartoes .wallet-header-actions { flex-wrap: nowrap; display: grid; grid-template-columns: .8fr 1.2fr; }
+  #tab-cartoes .wallet-header-actions .btn { white-space: normal; font-size: .75rem; min-height: 43px; }
+  #tab-cartoes .wallet-card-browser { grid-template-columns: 1fr; max-width: 100%; }
+  #tab-cartoes .wallet-card-nav { display: none; }
+  #tab-cartoes .wallet-card-rail { padding: 5px 5px 17px; }
+  #tab-cartoes .wallet-credit-card { flex: 0 0 min(100%, 365px); min-height: 226px; border-radius: 18px; padding: 19px 18px 17px; }
+  #tab-cartoes .wallet-brand strong { font-size: 1rem; }
+  #tab-cartoes .wallet-dots { margin-bottom: 6px; }
+  #tab-cartoes .wallet-cards-disclaimer { font-size: .66rem; margin-bottom: 16px; }
+  #tab-cartoes .wallet-summary { padding: 21px 17px; margin-bottom: 14px; }
+  #tab-cartoes .wallet-summary-top { align-items: flex-start; }
+  #tab-cartoes .wallet-summary-amount { font-size: clamp(1.55rem, 6vw, 2rem); }
+  #tab-cartoes .wallet-due-block { gap: 7px; text-align: right; font-size: .71rem; }
+  #tab-cartoes .wallet-due-pill { font-size: .67rem; padding: 7px 9px; }
+  #tab-cartoes .wallet-limit-amount { font-size: 1.36rem; }
+  #tab-cartoes .wallet-limit-percent strong { font-size: .72rem; }
+  #tab-cartoes .wallet-limit-percent span { font-size: .65rem; }
+  #tab-cartoes .wallet-launches { padding: 18px 14px; }
+  #tab-cartoes .wallet-section-heading h3 { font-size: 1rem; }
+  #tab-cartoes .wallet-cycle-item { min-width: 132px; flex-basis: 132px; min-height: 100px; padding: 13px; }
+  #tab-cartoes .wallet-cycle-item strong { font-size: .95rem; }
+  #tab-cartoes .wallet-launches-header { align-items: stretch; }
+  #tab-cartoes .wallet-filters { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+  #tab-cartoes .wallet-filters .form-input { width: 100% !important; max-width: 100%; font-size: .74rem; padding-inline: 8px; }
+  #tab-cartoes .wallet-invoice-row { grid-template-columns: 32px minmax(0,1fr) auto; gap: 9px; padding: 13px 9px; }
+  #tab-cartoes .wallet-invoice-icon { width: 31px; height: 31px; font-size: 1rem; }
+  #tab-cartoes .wallet-invoice-value { font-size: .85rem; }
+  #tab-cartoes .wallet-invoice-copy strong { font-size: .77rem; }
+  #tab-cartoes .wallet-invoice-copy span { font-size: .69rem; }
+}
+@media (max-width: 385px) {
+  #tab-cartoes .wallet-limit-row { align-items: flex-start; flex-wrap: wrap; }
+  #tab-cartoes .wallet-summary-top { gap: 9px; }
+  #tab-cartoes .wallet-credit-card { flex-basis: 100%; }
+  #tab-cartoes .wallet-due-pill { padding-inline: 6px; }
+}
+
+#tab-cartoes .wallet-automatic-info {
+  margin-top: 16px;
+  padding-top: 13px;
+  border-top: 1px solid var(--fz-border);
+  font-size: .76rem;
+  color: var(--fz-muted);
+}
+#tab-cartoes .wallet-automatic-info:empty { display: none; }

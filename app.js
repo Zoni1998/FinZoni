@@ -1007,6 +1007,9 @@ constructor() {
       btnAddCartao.addEventListener('click', () => {
         this.editingCartaoIndex = null;
         document.getElementById('cartaoNome').value = '';
+        if (document.getElementById('cartaoFinal')) document.getElementById('cartaoFinal').value = '';
+        if (document.getElementById('cartaoLimiteDisponivel')) document.getElementById('cartaoLimiteDisponivel').value = '';
+        if (document.getElementById('cartaoBandeira')) document.getElementById('cartaoBandeira').value = '';
         document.getElementById('cartaoLimite').value = '';
         document.getElementById('cartaoFechamento').value = '';
         document.getElementById('cartaoVencimento').value = '';
@@ -1026,7 +1029,7 @@ constructor() {
           showToast('Adicione um cartão primeiro!', 'error');
           return;
         }
-        select.innerHTML = this.dm.data.cartoes.map(c => `<option value="${c.id}">${escapeHTML(c.nome)}</option>`).join('');
+        select.innerHTML = this.dm.data.cartoes.filter(c => c.id).map(c => `<option value="${c.id}">${escapeHTML(c.nome)}</option>`).join('');
         if (this.selectedCartaoId != null && Array.from(select.options).some(option => String(option.value) === String(this.selectedCartaoId))) {
           select.value = String(this.selectedCartaoId);
         }
@@ -4734,16 +4737,31 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     const fechamento = parseInt(document.getElementById('cartaoFechamento').value);
     const vencimento = parseInt(document.getElementById('cartaoVencimento').value);
     const cor = document.getElementById('cartaoCor').value;
+    const final = document.getElementById('cartaoFinal')?.value.trim() || '';
+    const disponivelBruto = document.getElementById('cartaoLimiteDisponivel')?.value ?? '';
+    const limiteDisponivelInformado = disponivelBruto.trim() === '' ? null : Number(disponivelBruto);
+    if (limiteDisponivelInformado !== null && (!Number.isFinite(limiteDisponivelInformado) || limiteDisponivelInformado < 0)) {
+      showToast('Informe um limite disponível válido ou deixe o campo vazio.', 'error');
+      return;
+    }
+    if (final && !/^\d{4}$/.test(final)) {
+      showToast('Informe exatamente quatro dígitos finais para o cartão.', 'error');
+      return;
+    }
     
-    if (!nome || !Number.isFinite(limite) || limite <= 0 || !Number.isInteger(fechamento) || fechamento < 1 || fechamento > 31 || !Number.isInteger(vencimento) || vencimento < 1 || vencimento > 31) {
+    if (!nome || (Number.isFinite(limite) && limite <= 0) || !Number.isInteger(fechamento) || fechamento < 1 || fechamento > 31 || !Number.isInteger(vencimento) || vencimento < 1 || vencimento > 31) {
       showToast('Preencha todos os campos do cartão!', 'error');
       return;
     }
     
     if (Number.isInteger(this.editingCartaoIndex) && this.dm.data.cartoes[this.editingCartaoIndex]) {
-      Object.assign(this.dm.data.cartoes[this.editingCartaoIndex], { nome, limite, fechamento, vencimento, cor });
+      const atual = this.dm.data.cartoes[this.editingCartaoIndex];
+      const valorAnterior = atual.limiteDisponivel;
+      Object.assign(atual, { nome, limite: Number.isFinite(limite) ? limite : null, fechamento, vencimento, cor, final, bandeira: document.getElementById('cartaoBandeira')?.value || null, limiteDisponivel: limiteDisponivelInformado });
+      if (String(valorAnterior ?? '') !== String(limiteDisponivelInformado ?? '') && limiteDisponivelInformado != null)
+        atual.limiteDisponivelData = new Date().toISOString().slice(0,10);
     } else {
-      const novoCartao = { id: generateId(), nome, limite, fechamento, vencimento, cor };
+      const novoCartao = { id: generateId(), nome, limite: Number.isFinite(limite) ? limite : null, fechamento, vencimento, cor, final, bandeira: document.getElementById('cartaoBandeira')?.value || null, limiteDisponivel: limiteDisponivelInformado, limiteDisponivelData: limiteDisponivelInformado == null ? null : new Date().toISOString().slice(0,10) };
       this.dm.data.cartoes.push(novoCartao);
       this.selectedCartaoId = novoCartao.id;
       this.faturaFilterAll = false;
@@ -4760,6 +4778,9 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     if (!cartao) return;
     this.editingCartaoIndex = index;
     document.getElementById('cartaoNome').value = cartao.nome || '';
+    if (document.getElementById('cartaoFinal')) document.getElementById('cartaoFinal').value = cartao.final || '';
+    if (document.getElementById('cartaoLimiteDisponivel')) document.getElementById('cartaoLimiteDisponivel').value = Number.isFinite(Number(cartao.limiteDisponivel)) && cartao.limiteDisponivel != null ? cartao.limiteDisponivel : '';
+    if (document.getElementById('cartaoBandeira')) document.getElementById('cartaoBandeira').value = cartao.bandeira || '';
     document.getElementById('cartaoLimite').value = cartao.limite != null && Number.isFinite(Number(cartao.limite)) ? Number(cartao.limite) : '';
     document.getElementById('cartaoFechamento').value = cartao.fechamento != null && Number.isFinite(Number(cartao.fechamento)) ? Number(cartao.fechamento) : '';
     document.getElementById('cartaoVencimento').value = cartao.vencimento != null && Number.isFinite(Number(cartao.vencimento)) ? Number(cartao.vencimento) : '';
@@ -4806,7 +4827,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     const dots = document.getElementById('cartoesDots');
     if (!rail) return;
 
-    const cartoes = this.dm.data.cartoes || [];
+    const cartoes = (this.dm.data.cartoes || []).filter(c => c && c.id);
     if (cartoes.length === 0) {
       this.selectedCartaoId = null;
       rail.innerHTML = `
@@ -4837,34 +4858,37 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       const limiteValido = Number.isFinite(limite) && limite > 0;
       const fechamentoValido = Number.isInteger(fechamento) && fechamento >= 1 && fechamento <= 31;
       const vencimentoValido = Number.isInteger(vencimento) && vencimento >= 1 && vencimento <= 31;
-      const cadastroIncompleto = !limiteValido || !fechamentoValido || !vencimentoValido;
+      const cadastroIncompleto = !vencimentoValido || (!limiteValido && !(Number(c.limiteDisponivel) > 0));
       const nomeNormalizado = String(c.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
       const brandClass = nomeNormalizado.includes('itau') ? 'is-itau' : nomeNormalizado.includes('amazon') ? 'is-amazon' : 'is-generic';
+      const sourceLabel = c.limiteDisponivel != null ? 'Limite disponível informado pelo banco' : 'Cadastro manual';
       const brandMark = nomeNormalizado.includes('amazon') ? 'a' : nomeNormalizado.includes('itau') ? 'itaú' : escapeHTML(String(c.nome || '?').slice(0, 1).toUpperCase());
-      const ending = String(c.id ?? index).replace(/\D/g, '').slice(-4).padStart(4, '0');
-      const currentInvoice = this.calcFaturaCartao(c.id, monthKey);
+      const ending = /^\d{4}$/.test(String(c.final || '')) ? String(c.final) : '••••';
+      const openSnapshot = this.getCartaoFaturaAberta(c);
+      const currentInvoice = openSnapshot?.valor ?? this.calcFaturaCartao(c.id, monthKey);
+      const network = String(c.bandeira || '').toLowerCase() === 'mastercard' ? 'mastercard' : String(c.bandeira || 'Bandeira não informada');
 
       return `
         <article class="wallet-credit-card ${brandClass} ${selected ? 'is-selected' : ''} ${cadastroIncompleto ? 'is-incomplete' : ''}"
           style="--wallet-card-color:${c.cor || '#2563eb'}" onclick="app.selectCartao(${index})"
           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();app.selectCartao(${index})}" role="button" tabindex="0"
-          aria-label="Selecionar ${escapeHTML(c.nome || 'cartão')}" aria-pressed="${selected}">
+          aria-label="Selecionar ${escapeHTML(c.nome || 'cartão')} ${ending}" aria-pressed="${selected}">
           <div class="wallet-card-top">
             <div class="wallet-brand"><span class="wallet-brand-mark">${brandMark}</span><strong>${escapeHTML(c.nome || 'Cartão')}</strong></div>
-            <span class="wallet-contactless" aria-hidden="true">)))</span>
+            <span class="wallet-contactless" aria-hidden="true">Crédito</span>
           </div>
           <div class="wallet-chip" aria-hidden="true"><span></span><span></span><span></span></div>
           <div class="wallet-card-number">•••• &nbsp;•••• &nbsp;•••• &nbsp;${ending}</div>
           <div class="wallet-card-bottom">
             <div><span>Titular</span><strong>${escapeHTML(holder)}</strong></div>
-            <strong class="wallet-card-network">VISA</strong>
+            <strong class="wallet-card-network">${escapeHTML(network)}</strong>
           </div>
           <div class="wallet-card-meta">
             <span>${fechamentoValido ? `Fecha dia ${fechamento}` : 'Fechamento não informado'}</span>
             <span>${vencimentoValido ? `Vence dia ${vencimento}` : 'Vencimento não informado'}</span>
           </div>
           <div class="wallet-card-footer">
-            <span>${cadastroIncompleto ? 'Complete os dados para ver o resumo' : `Fatura ${formatCurrency(currentInvoice)}`}</span>
+            <span>${openSnapshot ? 'Fatura aberta ' : 'Fatura do mês '}${formatCurrency(currentInvoice)}</span>
             <button class="wallet-card-edit" onclick="event.stopPropagation();app.editCartao(${index})" aria-label="${cadastroIncompleto ? 'Completar dados' : 'Editar cartão'}">${cadastroIncompleto ? 'Completar dados' : 'Editar'}</button>
           </div>
         </article>`;
@@ -4927,31 +4951,61 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     }, 0);
   }
 
+  getFaturaReferencia(cartao, monthKey) {
+    const snap = cartao?.faturasReferencia?.[monthKey];
+    if (!snap || snap.valor === null || snap.valor === undefined) return null;
+    const valor = Number(snap.valor);
+    return Number.isFinite(valor) && valor >= 0 ? { ...snap, valor, monthKey } : null;
+  }
+
+  getCartaoFaturaAberta(cartao) {
+    const snaps = Object.entries(cartao?.faturasReferencia || {})
+      .filter(([key, snap]) => /^\d{4}-(0[1-9]|1[0-2])$/.test(key) && snap?.status === 'aberta' && Number.isFinite(Number(snap.valor)))
+      .sort(([a], [b]) => a.localeCompare(b));
+    return snaps.length ? { ...snaps[0][1], valor: Number(snaps[0][1].valor), monthKey: snaps[0][0] } : null;
+  }
+
   updateWalletSummary(cartao) {
     const summary = document.getElementById('walletSummary');
     if (!summary) return;
     const year = this.dm.data.year || YEAR;
     const monthKey = `${year}-${String(this.currentMonth).padStart(2, '0')}`;
-    const limite = Number(cartao?.limite);
-    const limiteValido = Number.isFinite(limite) && limite > 0;
+    const limiteTotal = Number(cartao?.limite);
+    const limiteValido = cartao?.limite != null && Number.isFinite(limiteTotal) && limiteTotal > 0;
+    const limiteFoto = cartao?.limiteDisponivel;
+    const disponivelInformado = limiteFoto != null && Number.isFinite(Number(limiteFoto)) && Number(limiteFoto) >= 0;
     const vencimento = Number(cartao?.vencimento);
     const fechamento = Number(cartao?.fechamento);
     const vencimentoValido = Number.isInteger(vencimento) && vencimento >= 1 && vencimento <= 31;
     const fechamentoValido = Number.isInteger(fechamento) && fechamento >= 1 && fechamento <= 31;
-    const faturaAtual = cartao ? this.calcFaturaCartao(cartao.id, monthKey) : 0;
-    const emAberto = cartao ? this.calcCartaoEmAberto(cartao.id, monthKey) : 0;
-    const disponivel = limiteValido ? Math.max(0, limite - emAberto) : null;
-    const percentual = limiteValido ? Math.min(100, Math.max(0, (emAberto / limite) * 100)) : 0;
-
-    document.getElementById('walletOpenAmount').textContent = formatCurrency(faturaAtual);
+    const open = this.getCartaoFaturaAberta(cartao);
+    const currentInvoice = this.getFaturaReferencia(cartao, monthKey);
+    const monthlyValue = currentInvoice?.valor ?? (cartao ? this.calcFaturaCartao(cartao.id, monthKey) : 0);
+    const aberto = open?.valor ?? monthlyValue;
+    const remaining = cartao ? this.calcCartaoEmAberto(cartao.id, monthKey) : 0;
+    const disponivelCalculado = limiteValido ? Math.max(0, limiteTotal - remaining) : null;
+    const disponivel = disponivelInformado ? Number(limiteFoto) : disponivelCalculado;
+    const pct = limiteValido && !disponivelInformado ? Math.min(100, Math.max(0, remaining / limiteTotal * 100)) : null;
+    const openMonth = open?.monthKey?.split('-').map(Number);
+    const periodLabel = openMonth ? MONTHS[openMonth[1]-1]?.slice(0,3) + '/' + openMonth[0] : null;
+    document.getElementById('walletOpenAmount').textContent = aberto ? formatCurrency(aberto) : (cartao ? formatCurrency(0) : '—');
     document.getElementById('walletAvailableLimit').textContent = disponivel == null ? '—' : formatCurrency(disponivel);
-    document.getElementById('walletLimitPercent').textContent = limiteValido ? `${percentual.toFixed(0)}% usado` : '—';
-    document.getElementById('walletTotalLimit').textContent = limiteValido ? `de ${formatCurrency(limite)}` : 'Limite não informado';
-    document.getElementById('walletLimitFill').style.width = `${percentual}%`;
-    document.getElementById('walletDueLabel').textContent = vencimentoValido ? `Vence dia ${vencimento}` : 'Vencimento não informado';
-    document.getElementById('walletBestDay').textContent = fechamentoValido ? `Dia ${fechamento === 31 ? 1 : fechamento + 1}` : '—';
-    document.getElementById('walletDueDays').textContent = vencimentoValido ? this.getWalletDueText(vencimento) : 'Complete os dados';
-    summary.style.setProperty('--wallet-accent', cartao?.cor || '#22a8ff');
+    document.getElementById('walletLimitPercent').textContent = pct == null ? 'Banco informado' : `${pct.toFixed(0)}% usado`;
+    document.getElementById('walletTotalLimit').textContent =
+      disponivelInformado ? 'Total do limite não confirmado' : limiteValido ? `de ${formatCurrency(limiteTotal)}` : 'Limite total não informado';
+    document.getElementById('walletLimitFill').style.width = pct == null ? '0%' : `${pct}%`;
+    const track = document.getElementById('walletLimitFill')?.parentElement;
+    if (track) track.style.display = pct == null ? 'none' : '';
+    document.getElementById('walletDueLabel').textContent = open ? `Fatura aberta · ${periodLabel}` : vencimentoValido ? `Vence dia ${vencimento}` : 'Vencimento não informado';
+    document.getElementById('walletBestDay').textContent = Number(cartao?.melhorDiaCompra) >= 1 ? `Dia ${cartao.melhorDiaCompra}` : fechamentoValido ? `Dia ${fechamento === 31 ? 1 : fechamento + 1}` : '—';
+    document.getElementById('walletDueDays').textContent = open ? (vencimentoValido ? `Vence dia ${vencimento}` : 'Aberta') : vencimentoValido ? this.getWalletDueText(vencimento) : 'Data a confirmar';
+    const statusInfo = document.getElementById('walletSourceInfo');
+    if (statusInfo) statusInfo.textContent = disponivelInformado ? `Limite disponível conforme Itaú · conferido em ${formatDate(cartao?.limiteDisponivelData || '')} · sem sincronização` : 'Limites dependem das informações cadastradas';
+    const debitInfo = document.getElementById('walletAutomaticInfo');
+    if (debitInfo) debitInfo.textContent = cartao?.debitoAutomaticoFatura === false
+      ? 'Débito automático da fatura: desativado'
+      : cartao?.debitoAutomaticoFatura === true ? 'Débito automático da fatura: ativado' : '';
+    summary.style.setProperty('--wallet-accent', cartao?.cor || '#6d83ff');
   }
 
   getWalletDueText(vencimento) {
@@ -4978,7 +5032,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
   }
 
   navigateCartao(direction) {
-    const cartoes = this.dm.data.cartoes || [];
+    const cartoes = (this.dm.data.cartoes || []).filter(c => c && c.id);
     if (cartoes.length < 2) return;
     const currentIndex = Math.max(0, cartoes.findIndex(card => String(card.id) === String(this.selectedCartaoId)));
     const nextIndex = (currentIndex + direction + cartoes.length) % cartoes.length;
@@ -5015,15 +5069,17 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     if (!selMonth || !selCartao || !tbody) return;
     
     if (selMonth.options.length === 0) {
-      const year = this.dm.data.year || new Date().getFullYear();
-      for(let i=1; i<=12; i++) {
-        selMonth.options.add(new Option(`${MONTHS[i-1]} ${year}`, `${year}-${String(i).padStart(2,'0')}`));
+      const year = Number(this.dm.data.year || new Date().getFullYear());
+      for (const y of [year, year + 1]) {
+        for (let i = 1; i <= 12; i++)
+          selMonth.options.add(new Option(`${MONTHS[i - 1]} ${y}`, `${y}-${String(i).padStart(2, '0')}`));
       }
-      selMonth.value = `${year}-${String(this.currentMonth).padStart(2,'0')}`;
+      const card = (this.dm.data.cartoes || []).find(c => String(c.id) === String(this.selectedCartaoId));
+      selMonth.value = this.getCartaoFaturaAberta(card)?.monthKey || `${year}-${String(this.currentMonth).padStart(2,'0')}`;
     }
-    
+
     const previousCardFilter = selCartao.value;
-    selCartao.innerHTML = '<option value="all">Todos os Cartões</option>' + (this.dm.data.cartoes||[]).map(c=>`<option value="${c.id}">${escapeHTML(c.nome)}</option>`).join('');
+    selCartao.innerHTML = '<option value="all">Todos os Cartões</option>' + (this.dm.data.cartoes||[]).filter(c=>c.id).map(c=>`<option value="${c.id}">${escapeHTML(c.nome)}</option>`).join('');
     const desiredCardFilter = this.faturaFilterAll ? 'all' : (this.selectedCartaoId ?? previousCardFilter ?? 'all');
     if (Array.from(selCartao.options).some(option => String(option.value) === String(desiredCardFilter))) {
       selCartao.value = String(desiredCardFilter);
@@ -5035,6 +5091,8 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     let itemsHTML = '';
     let faturaTotal = 0;
     
+    const selectedCard = (this.dm.data.cartoes || []).find(c => String(c.id) === String(selectedCartaoId));
+    const snap = this.getFaturaReferencia(selectedCard, selectedMonth);
     const compras = this.parcelasFaturaCartao(selectedCartaoId, selectedMonth);
     const cartoesDict = {};
     (this.dm.data.cartoes||[]).forEach(c => cartoesDict[c.id] = c);
@@ -5062,15 +5120,39 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
        }
     });
     
-    tbody.innerHTML = itemsHTML || '<tr><td colspan="6" class="text-center text-muted">Nenhuma compra nesta fatura.</td></tr>';
-    totalEl.textContent = formatCurrency(faturaTotal / 100);
+    const totalExibido = snap?.valor ?? faturaTotal / 100;
+    if (!itemsHTML && snap?.resumo) {
+      const cols = [
+        ['Compras (resumo do banco)', snap.resumo.compras],
+        ['Produtos e serviços', snap.resumo.produtosServicos],
+        ['Outros custos', snap.resumo.outrosCustos]
+      ];
+      itemsHTML = cols.map(([desc,amount]) => `<tr class="wallet-summary-line"><td>—</td>
+        <td>${escapeHTML(selectedCard?.nome || 'Cartão')}</td>
+        <td>${escapeHTML(desc)}</td><td>—</td>
+        <td class="text-right">${formatCurrency(amount)}</td><td></td></tr>`).join('');
+    } else if (!itemsHTML && snap) {
+      itemsHTML = '<tr><td colspan="6" class="wallet-no-items">Total informado pelo banco. Lançamentos individuais não importados.</td></tr>';
+    }
+    tbody.innerHTML = itemsHTML || '<tr><td colspan="6" class="text-center text-muted">Nenhuma compra cadastrada nesta fatura.</td></tr>';
+    totalEl.textContent = formatCurrency(totalExibido);
+    const statusEl = document.getElementById('walletCurrentInvoiceStatus');
+    if (statusEl) {
+      const names = {paga:'Paga',aberta:'Em aberto',prevista:'Previsão',historico:'Histórico'};
+      statusEl.textContent = snap ? (names[snap.status] || 'Informada pelo banco') : 'Calculada';
+      statusEl.className = 'wallet-invoice-status ' + (snap?.status || 'calculada');
+    }
+    const payButton = document.getElementById('btnPagarFatura');
+    if (payButton) {
+      payButton.disabled = !!snap || totalExibido <= 0;
+      payButton.title = snap ? 'Fatura informada pelo Itaú: registre pagamento em despesas somente após ocorrer.' : '';
+    }
 
     const [selectedYear, selectedMonthNumber] = selectedMonth.split('-').map(Number);
     const nextDate = new Date(selectedYear, selectedMonthNumber, 1);
     const nextMonthKey = `${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, '0')}`;
     const filterId = selectedCartaoId === 'all' ? 'all' : selectedCartaoId;
-    const nextTotal = this.calcFaturaCartao(filterId, nextMonthKey);
-    const selectedCard = (this.dm.data.cartoes || []).find(card => String(card.id) === String(selectedCartaoId));
+    const nextTotal = this.getFaturaReferencia(selectedCard, nextMonthKey)?.valor ?? this.calcFaturaCartao(filterId, nextMonthKey);
     const dueDay = Number(selectedCard?.vencimento);
     const dueValid = Number.isInteger(dueDay) && dueDay >= 1 && dueDay <= 31;
     const shortYear = String(selectedYear).slice(-2);
@@ -5080,11 +5162,38 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     const nextTitle = document.getElementById('walletNextInvoiceTitle');
     const nextDue = document.getElementById('walletNextInvoiceDue');
     const nextValue = document.getElementById('walletNextInvoiceValue');
-    if (currentTitle) currentTitle.textContent = `Fatura atual · ${MONTHS[selectedMonthNumber - 1].slice(0, 3)}/${shortYear}`;
-    if (nextTitle) nextTitle.textContent = `Próxima fatura · ${MONTHS[nextDate.getMonth()].slice(0, 3)}/${nextShortYear}`;
+    if (currentTitle) currentTitle.textContent = `Fatura de ${MONTHS[selectedMonthNumber - 1].slice(0, 3)}/${shortYear}`;
+    if (nextTitle) nextTitle.textContent = `Fatura seguinte · ${MONTHS[nextDate.getMonth()].slice(0, 3)}/${nextShortYear}`;
     if (currentDue) currentDue.textContent = dueValid ? `Vence ${String(dueDay).padStart(2, '0')}/${String(selectedMonthNumber).padStart(2, '0')}/${selectedYear}` : selectedCartaoId === 'all' ? 'Todos os cartões' : 'Vencimento não informado';
     if (nextDue) nextDue.textContent = dueValid ? `Vence ${String(dueDay).padStart(2, '0')}/${String(nextDate.getMonth() + 1).padStart(2, '0')}/${nextDate.getFullYear()}` : selectedCartaoId === 'all' ? 'Todos os cartões' : 'Vencimento não informado';
     if (nextValue) nextValue.textContent = formatCurrency(nextTotal);
+    const timeline = document.getElementById('walletInvoiceTimeline');
+    if (timeline) {
+      const names = {paga:'Paga',aberta:'Aberta',prevista:'Prevista',historico:'Histórico'};
+      const entries = Object.entries(selectedCard?.faturasReferencia || {})
+        .filter(([key,entry]) => /^\d{4}-(0[1-9]|1[0-2])$/.test(key) && Number.isFinite(Number(entry?.valor)))
+        .sort(([a],[b]) => a.localeCompare(b));
+      timeline.innerHTML = entries.map(([key,entry]) => {
+        const [year,mo] = key.split('-').map(Number);
+        const active = key === selectedMonth;
+        return `<button class="wallet-cycle-item ${active ? 'is-active' : ''}" type="button"
+          aria-pressed="${active}" onclick="app.selectFaturaReferencia('${key}')">
+          <span>${MONTHS[mo-1].slice(0,3)} ${String(year).slice(-2)}</span>
+          <strong>${formatCurrency(entry.valor)}</strong>
+          <small>${names[entry.status] || 'Informada'}</small></button>`;
+      }).join('');
+      timeline.style.display = entries.length ? '' : 'none';
+    }
+    const note = document.getElementById('walletSnapshotInfo');
+    if (note) note.textContent = snap ? 'Valores transcritos das telas do banco. Não há importação de compras nem pagamento automático.' : 'Fatura calculada pelas compras cadastradas no FinZoni.';
+  }
+
+  selectFaturaReferencia(monthKey) {
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(String(monthKey))) return;
+    const month = document.getElementById('faturaMonthSelect');
+    if (!month || !Array.from(month.options).some(o => o.value === monthKey)) return;
+    month.value = monthKey;
+    this.renderFaturas();
   }
 
   deleteCompraCartao(id) {
@@ -5095,6 +5204,12 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
   }
 
   pagarFaturaMes() {
+    const card = (this.dm.data.cartoes || []).find(c => String(c.id) === String(document.getElementById('faturaCartaoSelect')?.value));
+    if (this.getFaturaReferencia(card, document.getElementById('faturaMonthSelect')?.value)) {
+      showToast('Fatura já informada pelo banco. Evite registrar o mesmo pagamento duas vezes.', 'info');
+      return;
+    }
+
     const totalText = document.getElementById('faturaTotalMes').textContent;
     if (confirm(`Deseja lançar o pagamento da fatura no valor de ${totalText} como um Gasto Fixo Pago no mês atual?`)) {
        const mes = this.dm.getMonth(this.currentMonth);
