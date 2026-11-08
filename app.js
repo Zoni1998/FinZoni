@@ -1008,6 +1008,7 @@ constructor() {
         this.editingCartaoIndex = null;
         document.getElementById('cartaoNome').value = '';
         if (document.getElementById('cartaoFinal')) document.getElementById('cartaoFinal').value = '';
+        if (document.getElementById('cartaoLimiteDisponivel')) document.getElementById('cartaoLimiteDisponivel').value = '';
         if (document.getElementById('cartaoBandeira')) document.getElementById('cartaoBandeira').value = '';
         document.getElementById('cartaoLimite').value = '';
         document.getElementById('cartaoFechamento').value = '';
@@ -4737,6 +4738,12 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     const vencimento = parseInt(document.getElementById('cartaoVencimento').value);
     const cor = document.getElementById('cartaoCor').value;
     const final = document.getElementById('cartaoFinal')?.value.trim() || '';
+    const disponivelBruto = document.getElementById('cartaoLimiteDisponivel')?.value ?? '';
+    const limiteDisponivelInformado = disponivelBruto.trim() === '' ? null : Number(disponivelBruto);
+    if (limiteDisponivelInformado !== null && (!Number.isFinite(limiteDisponivelInformado) || limiteDisponivelInformado < 0)) {
+      showToast('Informe um limite disponível válido ou deixe o campo vazio.', 'error');
+      return;
+    }
     if (final && !/^\d{4}$/.test(final)) {
       showToast('Informe exatamente quatro dígitos finais para o cartão.', 'error');
       return;
@@ -4748,9 +4755,13 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     }
     
     if (Number.isInteger(this.editingCartaoIndex) && this.dm.data.cartoes[this.editingCartaoIndex]) {
-      Object.assign(this.dm.data.cartoes[this.editingCartaoIndex], { nome, limite: Number.isFinite(limite) ? limite : null, fechamento, vencimento, cor, final: document.getElementById('cartaoFinal')?.value.trim() || null, bandeira: document.getElementById('cartaoBandeira')?.value || null });
+      const atual = this.dm.data.cartoes[this.editingCartaoIndex];
+      const valorAnterior = atual.limiteDisponivel;
+      Object.assign(atual, { nome, limite: Number.isFinite(limite) ? limite : null, fechamento, vencimento, cor, final, bandeira: document.getElementById('cartaoBandeira')?.value || null, limiteDisponivel: limiteDisponivelInformado });
+      if (String(valorAnterior ?? '') !== String(limiteDisponivelInformado ?? '') && limiteDisponivelInformado != null)
+        atual.limiteDisponivelData = new Date().toISOString().slice(0,10);
     } else {
-      const novoCartao = { id: generateId(), nome, limite: Number.isFinite(limite) ? limite : null, fechamento, vencimento, cor, final: document.getElementById('cartaoFinal')?.value.trim() || null, bandeira: document.getElementById('cartaoBandeira')?.value || null };
+      const novoCartao = { id: generateId(), nome, limite: Number.isFinite(limite) ? limite : null, fechamento, vencimento, cor, final, bandeira: document.getElementById('cartaoBandeira')?.value || null, limiteDisponivel: limiteDisponivelInformado, limiteDisponivelData: limiteDisponivelInformado == null ? null : new Date().toISOString().slice(0,10) };
       this.dm.data.cartoes.push(novoCartao);
       this.selectedCartaoId = novoCartao.id;
       this.faturaFilterAll = false;
@@ -4768,6 +4779,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     this.editingCartaoIndex = index;
     document.getElementById('cartaoNome').value = cartao.nome || '';
     if (document.getElementById('cartaoFinal')) document.getElementById('cartaoFinal').value = cartao.final || '';
+    if (document.getElementById('cartaoLimiteDisponivel')) document.getElementById('cartaoLimiteDisponivel').value = Number.isFinite(Number(cartao.limiteDisponivel)) && cartao.limiteDisponivel != null ? cartao.limiteDisponivel : '';
     if (document.getElementById('cartaoBandeira')) document.getElementById('cartaoBandeira').value = cartao.bandeira || '';
     document.getElementById('cartaoLimite').value = cartao.limite != null && Number.isFinite(Number(cartao.limite)) ? Number(cartao.limite) : '';
     document.getElementById('cartaoFechamento').value = cartao.fechamento != null && Number.isFinite(Number(cartao.fechamento)) ? Number(cartao.fechamento) : '';
