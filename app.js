@@ -4736,6 +4736,11 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     const fechamento = parseInt(document.getElementById('cartaoFechamento').value);
     const vencimento = parseInt(document.getElementById('cartaoVencimento').value);
     const cor = document.getElementById('cartaoCor').value;
+    const final = document.getElementById('cartaoFinal')?.value.trim() || '';
+    if (final && !/^\d{4}$/.test(final)) {
+      showToast('Informe exatamente quatro dígitos finais para o cartão.', 'error');
+      return;
+    }
     
     if (!nome || (Number.isFinite(limite) && limite <= 0) || !Number.isInteger(fechamento) || fechamento < 1 || fechamento > 31 || !Number.isInteger(vencimento) || vencimento < 1 || vencimento > 31) {
       showToast('Preencha todos os campos do cartão!', 'error');
@@ -5141,8 +5146,8 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     const nextTitle = document.getElementById('walletNextInvoiceTitle');
     const nextDue = document.getElementById('walletNextInvoiceDue');
     const nextValue = document.getElementById('walletNextInvoiceValue');
-    if (currentTitle) currentTitle.textContent = `Fatura atual · ${MONTHS[selectedMonthNumber - 1].slice(0, 3)}/${shortYear}`;
-    if (nextTitle) nextTitle.textContent = `Próxima fatura · ${MONTHS[nextDate.getMonth()].slice(0, 3)}/${nextShortYear}`;
+    if (currentTitle) currentTitle.textContent = `Fatura de ${MONTHS[selectedMonthNumber - 1].slice(0, 3)}/${shortYear}`;
+    if (nextTitle) nextTitle.textContent = `Fatura seguinte · ${MONTHS[nextDate.getMonth()].slice(0, 3)}/${nextShortYear}`;
     if (currentDue) currentDue.textContent = dueValid ? `Vence ${String(dueDay).padStart(2, '0')}/${String(selectedMonthNumber).padStart(2, '0')}/${selectedYear}` : selectedCartaoId === 'all' ? 'Todos os cartões' : 'Vencimento não informado';
     if (nextDue) nextDue.textContent = dueValid ? `Vence ${String(dueDay).padStart(2, '0')}/${String(nextDate.getMonth() + 1).padStart(2, '0')}/${nextDate.getFullYear()}` : selectedCartaoId === 'all' ? 'Todos os cartões' : 'Vencimento não informado';
     if (nextValue) nextValue.textContent = formatCurrency(nextTotal);
