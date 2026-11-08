@@ -840,11 +840,18 @@ constructor() {
              tab.style.opacity = '1';
           }
         }
+        document.body.dataset.activeTab = btn.dataset.tab;
         this.activeTab = btn.dataset.tab;
         this.renderCurrentTab(btn.dataset.tab);
         // Close mobile menu
         this.closeMobileMenu();
       });
+    });
+
+    // Redimensiona gráficos ao expandir análises, sem alterar os dados.
+    const analytics = document.getElementById('fzAdvanced');
+    analytics?.addEventListener('toggle', () => {
+      if (analytics.open) Object.values(this.charts || {}).forEach(chart => chart?.resize?.());
     });
 
     // Mobile menu
@@ -2871,6 +2878,100 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
     }
   }
 
+
+  // A tela inicial usa os próprios registros do FinZoni, sem simular extrato bancário.
+  renderFinanceHome(month, saldoBanco, resumo) {
+    const data = this.dm.data;
+    const mes = this.dm.getMonth(month);
+    if (!mes) return;
+    const currentPrefix = String(data.year || YEAR) + '-' + String(month).padStart(2, '0');
+    const valido = saldoBanco && saldoBanco.valor !== undefined && saldoBanco.valor !== null &&
+      Number.isFinite(Number(saldoBanco.valor));
+    const bankValue = valido ? Number(saldoBanco.valor) : null;
+    const pendingAmount = Number(resumo.pendente) || 0;
+    const livre = document.getElementById('fzSaldoLivre');
+    const reservado = document.getElementById('fzSaldoReservado');
+    if (livre) {
+      livre.textContent = valido ? formatCurrency(bankValue - pendingAmount) : '—';
+      livre.title = 'Projeção: saldo controlado menos contas pendentes cadastradas';
+    }
+    if (reservado) reservado.textContent = formatCurrency(pendingAmount);
+
+    const pendingBills = (mes.gastosFixos || [])
+      .filter(item => item && !item.pago)
+      .map(item => ({
+        nome: String(item.descricao || 'Conta'),
+        valor: Number(item.valor || 0) / (item.compartilhado ? 2 : 1),
+        vencimento: Number.parseInt(item.vencimento, 10)
+      }))
+      .filter(item => Number.isFinite(item.valor))
+      .sort((a, b) => (Number.isFinite(a.vencimento) ? a.vencimento : 99) -
+                      (Number.isFinite(b.vencimento) ? b.vencimento : 99));
+    const bills = document.getElementById('fzBillsList');
+    if (bills) {
+      bills.innerHTML = pendingBills.length
+        ? pendingBills.slice(0, 5).map(item => {
+          const dia = Number.isFinite(item.vencimento) && item.vencimento >= 1 && item.vencimento <= 31
+            ? 'Dia ' + String(item.vencimento).padStart(2, '0') : 'Sem data';
+          return '<div class="fz-bill-row">' +
+            '<span class="fz-bill-date">' + escapeHTML(dia) + '</span>' +
+            '<span class="fz-bill-name">' + escapeHTML(item.nome) + '</span>' +
+            '<strong>' + formatCurrency(item.valor) + '</strong></div>';
+        }).join('')
+        : '<p class="fz-empty">Nenhuma conta pendente neste mês.</p>';
+    }
+
+    // Não usar vencimento das contas fixas como se fosse data de débito.
+    // Listar somente lançamentos com datas reais cadastradas.
+    const recent = [];
+    const add = (row, kind, label, detail) => {
+      if (!row || typeof row.data !== 'string' || !row.data.startsWith(currentPrefix)) return;
+      const valor = Number(row.valor);
+      if (!Number.isFinite(valor)) return;
+      recent.push({ data: row.data, label: String(label || 'Movimentação'), detail: String(detail || ''),
+        valor, kind });
+    };
+    const categories = new Map((data.categoriasVariaveis || [])
+      .map(c => [c.id, String(c.nome || 'Gasto')]));
+    (mes.gastosVariaveis || []).forEach(row => add(row, 'expense', row.descricao,
+      categories.get(row.categoriaId) || 'Saída'));
+    (mes.outrasReceitas || []).forEach(row => add(row, 'income', row.descricao,
+      row.tipo === 'reembolso' ? 'Reembolso recebido' : 'Entrada'));
+    (data.reserva?.movimentacoes || []).forEach(row => add(row,
+      'transfer', row.tipo === 'deposito' ? 'Reserva de emergência' : 'Retirada da reserva',
+      row.tipo === 'deposito' ? 'Transferência para reserva' : 'Transferência da reserva'));
+    (data.metas || []).forEach(meta => (meta.historico || []).forEach(row =>
+      add(row, 'transfer', meta.nome || 'Objetivo', 'Aporte para meta')));
+    recent.sort((a, b) => b.data.localeCompare(a.data));
+    const feed = document.getElementById('fzTransactionsList');
+    if (feed) {
+      feed.innerHTML = recent.length ? recent.slice(0, 6).map(row => {
+        const isIn = row.kind === 'income';
+        const isTransfer = row.kind === 'transfer';
+        const symbol = isTransfer ? '⇄' : isIn ? '↙' : '↗';
+        const amount = (isIn ? '+' : '−') + ' ' + formatCurrency(Math.abs(row.valor));
+        return '<div class="fz-activity">' +
+          '<span class="fz-activity-symbol ' + row.kind + '" aria-hidden="true">' + symbol + '</span>' +
+          '<div class="fz-activity-info"><strong>' + escapeHTML(row.label) + '</strong>' +
+          '<small>' + escapeHTML(row.detail) + ' · ' + escapeHTML(formatDate(row.data)) + '</small></div>' +
+          '<span class="fz-activity-value ' + row.kind + '">' + escapeHTML(amount) + '</span></div>';
+      }).join('') : '<p class="fz-empty">Ainda não há lançamentos com data neste mês.</p>';
+    }
+    const reserve = document.getElementById('fzReservaValue');
+    if (reserve) reserve.textContent = formatCurrency(this.calcReserva().saldo);
+    const car = (data.metas || []).find(meta => String(meta.nome || '').toLowerCase().includes('carro'));
+    const goalLabel = document.getElementById('fzCarGoalLabel');
+    const goalValue = document.getElementById('fzCarGoalValue');
+    const progress = document.getElementById('fzCarGoalProgress');
+    if (goalLabel) goalLabel.textContent = car ? String(car.nome || 'Meta do carro') : 'Objetivo';
+    if (goalValue) goalValue.textContent = car ? formatCurrency(Number(car.valorAtual) || 0) : 'Nenhuma meta cadastrada';
+    if (progress) {
+      const target = Number(car?.valorMeta || 0);
+      const atual = Number(car?.valorAtual || 0);
+      progress.style.width = target > 0 ? Math.max(0, Math.min(100, 100 * atual / target)) + '%' : '0%';
+    }
+  }
+
   // ── DASHBOARD ──
   renderDashboard() {
     this.checkAndFetchInsight();
@@ -2928,6 +3029,8 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
         document.getElementById('dashSaldoBancoData').textContent = 'Informe o saldo inicial da conta para começar a acompanhar';
       }
     }
+
+    this.renderFinanceHome(m, saldoBanco, resumo);
 
     // Check if the old dashSaldo exists
     const dashSaldoEl = document.getElementById('dashSaldo');
