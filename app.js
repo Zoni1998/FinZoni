@@ -3027,7 +3027,7 @@ Devolva JSON: {"resultados": [ {"id": "id_da_despesa", "categoriaId": "id_da_cat
       if (valido) {
         const bancoValue = Number(saldoBanco.valor);
         document.getElementById('dashSaldoBanco').textContent = formatCurrency(bancoValue);
-        document.getElementById('dashSaldoBanco').className = 'card-value ' + (bancoValue >= 0 ? 'value-positive' : 'value-negative');
+        document.getElementById('dashSaldoBanco').className = 'card-value fz-balance-amount ' + (bancoValue >= 0 ? 'value-positive' : 'value-negative');
         const rotulo = document.getElementById('dashSaldoBancoData');
         rotulo.textContent = 'Controle atualizado em ' + (saldoBanco.atualizacao || saldoBanco.data || 'data não informada') + ' · sem conexão bancária automática';
       } else {
